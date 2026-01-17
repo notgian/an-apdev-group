@@ -1,0 +1,21 @@
+services:
+  express-api:
+    build: 
+      context: ./api/.
+      dockerfile: prod.Dockerfile
+    environment: 
+      API_PORT: 4200
+    ports: 
+      - "4200:4200"
+
+  express-web:
+    build: 
+      context: ./web/.
+      dockerfile: prod.Dockerfile
+    environment:
+      WEB_PORT: 8000 
+      API_LOCATION: "localhost:4200"
+    ports: 
+      - "8000:8000"
+    depends_on:
+      - express-api
