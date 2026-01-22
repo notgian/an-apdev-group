@@ -9,6 +9,7 @@ services:
       - "4200:4200"
     volumes:
       - ./api/:/app/api
+      - /app/api/node_modules
 
   express-web:
     build: 
@@ -23,4 +24,5 @@ services:
       - express-api
     volumes:
       - ./web/:/app/web
+      - /app/web/node_modules
 

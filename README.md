@@ -27,3 +27,12 @@ Production:
 ```
 docker compose -f "compose-prod.yaml" up --build
 ```
+
+To close the docker containers after detatching, run either of the commands applicable to either the dev or prod environment. Make sure these are run in the project root directory (same directory as this README file)
+
+```
+docker compose -f "compose-dev.yaml" down
+
+docker compose -f "compose-prod.yaml" down
+
+```
