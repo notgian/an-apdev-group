@@ -1,14 +1,20 @@
-.homeSearch {
+.homeSearchForm {
     margin: 0 auto;
 }
 
-.searchIcon {
-    padding: 1em;
-    padding-left: 3em;
+.searchIconHome {
+    height: 40px;
+    width: 40px;
+    margin: 0 1em 0 2em;
+}
+
+.homeSearchInputContainer {
+    width: 50vw;
+}
+
+
+.homeSearchInput {
+    font-size: 25px;
+    padding: 0.5em;
     height: 2em;
-    background: url("../src/search-icon.png") no-repeat left;
-    background-color: white;
-    background-size: 2em;
-    width: 60vh;
-    border-radius: 2em;
 }

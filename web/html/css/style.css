@@ -22,6 +22,35 @@ body {
     flex-direction: column;
 }
 
+.inputIconWrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 2em;
+    padding: 0 10px;
+    width: fit-content;
+    background: white;
+}
+
+.inputIconWrapper > input{
+    border: none;
+    outline: none;
+    background: none;
+    padding: 0.5em;
+}
+
+.inputIconWrapper:focus-within {
+  border-color: #007bff; /* Highlights the "border" when typing */
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.searchIcon {
+    display: inline-block;
+    background: url("../src/search-icon.png") no-repeat left;
+    background-size: contain;
+}
+
+
 /* navbar stuff */
 
 .navigation {
@@ -29,7 +58,7 @@ body {
     align-items: center;
     justify-content: space-between;
     text-align: center;
-    margin: 1em 20%;
+    margin: 1em 10%;
 }
 
 .navigation > .navName {
@@ -51,6 +80,11 @@ body {
     display: block;
     float: left;
     margin: 0 1vw;
+}
+
+.searchIconNav {
+    width: 20px;
+    height: 20px;
 }
 
 /* main content stuff */
