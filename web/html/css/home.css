@@ -1,0 +1,14 @@
+.homeSearch {
+    margin: 0 auto;
+}
+
+.searchIcon {
+    padding: 1em;
+    padding-left: 3em;
+    height: 2em;
+    background: url("../src/search-icon.png") no-repeat left;
+    background-color: white;
+    background-size: 2em;
+    width: 60vh;
+    border-radius: 2em;
+}

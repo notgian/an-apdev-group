@@ -1,0 +1,66 @@
+* {
+    font-family: "Helvetica"
+}
+
+body {
+    background-image: url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F037%2F236%2F624%2Flarge_2x%2Fai-generated-beautuful-fast-food-background-with-copy-space-free-photo.jpg&f=1&nofb=1&ipt=76683658411181954b2c9391fe6d349946fb24e28f7852c10f798a2ef7023e48");
+    width: 100%;
+    background-attachment: fixed;
+}
+
+.wrapper {
+    box-sizing: border-box;
+    position: absolute;
+    width: 100%;
+    min-height: 100vh; /* Takes full viewport height */
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 1em 2em;
+    background-color: rgba(255,255,255, 0.8);
+    display: flex;
+    flex-direction: column;
+}
+
+/* navbar stuff */
+
+.navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    margin: 1em 20%;
+}
+
+.navigation > .navName {
+    float: left;
+    display: float;
+} 
+
+.navigation .navList {
+    float: right;
+    background-color: white;
+    display: flex;
+    justify-content: space-around;
+    min-width: 30vw;
+    list-style: none;
+    padding-left: 0;
+}
+
+.navigation .navList > li {
+    display: block;
+    float: left;
+    margin: 0 1vw;
+}
+
+/* main content stuff */
+
+.content {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 40vh;
+    min-height: 60vh;
+    background-color: white;
+}
+
