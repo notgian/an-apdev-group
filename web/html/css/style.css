@@ -1,100 +1,102 @@
-* {
-    font-family: "Helvetica"
+/* General resets */
+body { 
+    font-family: 'Helvetica', Arial, sans-serif; 
+    margin: 0; 
+    color: #333; 
 }
 
-body {
-    background-image: url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F037%2F236%2F624%2Flarge_2x%2Fai-generated-beautuful-fast-food-background-with-copy-space-free-photo.jpg&f=1&nofb=1&ipt=76683658411181954b2c9391fe6d349946fb24e28f7852c10f798a2ef7023e48");
-    width: 100%;
-    background-attachment: fixed;
-}
-
-.wrapper {
-    box-sizing: border-box;
-    position: absolute;
-    width: 100%;
-    min-height: 100vh; /* Takes full viewport height */
-    left: 0;
+/* Header Navigation */
+.main-header {
+    position: sticky;
     top: 0;
-    margin: 0;
-    padding: 1em 2em;
-    background-color: rgba(255,255,255, 0.8);
+    z-index: 1000;
+    background-color: white;
+    padding: 10px 5%;
     display: flex;
-    flex-direction: column;
-}
-
-.inputIconWrapper {
-    display: flex;
-    align-items: center;
-    border: 1px solid #ccc;
-    border-radius: 2em;
-    padding: 0 10px;
-    width: fit-content;
-    background: white;
-}
-
-.inputIconWrapper > input{
-    border: none;
-    outline: none;
-    background: none;
-    padding: 0.5em;
-}
-
-.inputIconWrapper:focus-within {
-  border-color: #007bff; /* Highlights the "border" when typing */
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
-.searchIcon {
-    display: inline-block;
-    background: url("../src/search-icon.png") no-repeat left;
-    background-size: contain;
-}
-
-
-/* navbar stuff */
-
-.navigation {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
-    text-align: center;
-    margin: 1em 10%;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.navigation > .navName {
-    float: left;
-    display: float;
-} 
+.logo { 
+    font-weight: bold; 
+    font-size: 40px; 
+    color: #d14d72;
+    text-shadow: #d12e69 1px 1px 2px;
+}
 
-.navigation .navList {
-    float: right;
-    background-color: white;
+.nav-links a {
+    text-decoration: none;
+    margin-left: 20px;
+    color: #666;
+    font-weight: 600;
+}
+
+.nav-links a:hover {
+    color: #d12e69;
+}
+
+.remember-group {
     display: flex;
-    justify-content: space-around;
-    min-width: 30vw;
-    list-style: none;
-    padding-left: 0;
-}
-
-.navigation .navList > li {
-    display: block;
-    float: left;
-    margin: 0 1vw;
-}
-
-.searchIconNav {
-    width: 20px;
-    height: 20px;
-}
-
-/* main content stuff */
-
-.content {
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #555;
+    justify-content: flex-start;
     width: 100%;
-    position: absolute;
-    left: 0;
-    top: 40vh;
-    min-height: 60vh;
-    background-color: white;
 }
 
+.remember-group input {
+    width: auto; /* Overrides the 100% width of other inputs */
+    margin-bottom: 0;
+}
+
+button {
+    background-color: #e64b98;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 2em;
+    cursor: pointer;
+    font-size: 1em; 
+    text-decoration: none;
+}
+
+/* Search bar styling */
+.search-bar-container {
+  display: flex;
+  align-items: center; /* vertically center */
+  gap: 8px;
+}
+
+.search-bar-container input {
+  height: 36px; /* consistent height */
+  width: 150px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 18px;
+}
+
+.search-bar-container .search-btn {
+  height: 36px; /* same as input */
+  padding: 0 16px;
+  border-radius: 18px;
+  background-color: #d3237a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.search-bar-container .search-btn:hover {
+  background-color: #ad1457;
+}
+
+.stars {
+    color: #f1da2f;
+}
+
+.nav-links > .active{
+    font-family: 'Helvetica', Arial, sans-serif; 
+    color: #cb1877; 
+}

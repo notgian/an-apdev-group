@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>6-7-Ate-9 | Establishments</title>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/establishments.css">
+    </head>
+    <body>
+        <header class="main-header">
+            <div class="logo">6-7-Ate-9</div>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="establishments.html" class="active">Establishments</a>
+                <a href="profile.html">Profile</a>
+            </nav>
+
+            <div class="search-bar-container">
+                <input type="text" placeholder="Looking for..." id="search-input">
+                <button type="button" class="search-btn" onclick="redirectSearch()">Search</button>
+            </div>
+        </header>
+
+        <main class="content-container">
+            <h2>DISCOVER PLACES TO EAT</h2>
+            <div id="establishment-list" class="list"></div>
+            <div id="results-info"></div>
+        </main>
+
+        <div id="pagination"></div>
+        <div id="results-info"></div>
+
+        <script src="scripts/script.js"></script>
+    </body>
+</html>

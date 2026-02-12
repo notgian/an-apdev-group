@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>6-7-Ate-9 | Search Results</title>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/establishment.css">
+    </head>
+    <body>
+        <header class="main-header">
+            <div class="logo">6-7-Ate-9</div>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="establishments.html">Establishments</a>
+                <a href="profile.html">Profile</a>
+            </nav>
+
+            <div class="search-bar-container">
+                <input type="text" placeholder="Looking for..." id="search-input">
+                <button type="button" class="search-btn" onclick="redirectSearch()">Search</button>
+            </div>
+        </header>
+
+        <main class="establishment-container">
+            <div class="establishment-left">
+                <img id="establishment-img" alt="Restaurant image">
+                <div class="establishment-info">
+                    <h2 id="establishment-name"></h2>
+                    <p id="establishment-rating"></p>
+                    <p id="establishment-category"></p>
+                    <p id="establishment-location"></p>
+                    <p id="establishment-price"></p>
+                    <div class="establishment-about">
+                        <h3>About</h3>
+                        <p id="establishment-about"></p>
+                    </div>
+                    <div class="establishment-hours">
+                        <h3>Hours</h3>
+                        <p id="establishment-hours"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="establishment-right">
+                <form id="review-form">
+                    <textarea id="review-title" placeholder="Title your review..."> </textarea>
+                    <textarea id="review-text" placeholder="Write your review..."></textarea>
+
+                    <div class="input-group">
+                        <label for="review-media">Add media...</label> <br />
+                        <input type="file" name="review-media" accept="image/*" class="file-input">
+                    </div>
+                    <button id="add-review-btn" type="submit">Add Review</button>
+                </form>
+                <div id="reviews-list"></div>
+                <button id="view-more-btn">View More</button>
+            </div>
+        </main>
+
+        <script defer src="scripts/script.js"></script>
+    </body>
+</html>

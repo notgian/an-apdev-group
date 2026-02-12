@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>6-7-Ate-9 | Edit Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile-edit.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo">6-7-Ate-9</div>
+        <nav class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="establishments.html">Establishments</a>
+            <a href="profile.html" class="profile">Profile</a>
+        </nav>
+    </header>
+
+    <div class="form-container">
+        <div class="auth-card">
+            <h2>Edit Your Profile</h2>
+            <p class="subtitle">Update your photo and bio below.</p>
+            
+            <form id="edit-profile-form">
+                <div class="input-group">
+                    <label for="profile-pic">Change Profile Picture</label>
+                    <input type="file" id="profile-pic" accept="image/*" class="file-input">
+                </div>
+
+                <div class="input-group">
+                    <label for="edit-desc">Update Description</label>
+                    <textarea id="edit-desc" rows="4" placeholder="Tell the community about your food adventures..."></textarea>
+                </div>
+
+                <div class="auth-buttons">
+                    <button type="button" class="signup-btn" onclick="saveProfileChanges()">Save Changes</button>
+                    <a href="profile.html" class="login-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="scripts/script.js"></script>
+</body>
+</html>

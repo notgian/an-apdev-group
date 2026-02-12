@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>6-7-Ate-9 | Log In</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/signlog.css"> </head>
+<body>
+
+    <header class="main-header">
+        <div class="logo">6-7-Ate-9</div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="establishments.html">Establishments</a>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+
+    <div class="form-container">
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Log in to share your latest food trip.</p>
+        
+        <form id="login-form">
+            <div class="input-group">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" placeholder="Enter your username" required>
+            </div>
+
+            <div class="input-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+
+            <div class="remember-me">
+                <input type="checkbox" id="remember-check">
+                <label for="remember-check">Keep me logged in for 3 weeks</label>
+            </div>
+
+            <button type="button" class="btn-main" onclick="simulateLogin()">Log In</button>
+        </form>
+        <p class="footer-text">New here? <a href="signup.html">Create an account</a></p>
+    </div>
+</div>
+
+    <script src="scripts/script.js"></script>
+</body>
+</html>

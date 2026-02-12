@@ -1,0 +1,112 @@
+/* Container to center the edit card on the page */
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+/* The Edit Card Styling */
+.auth-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+h2 {
+    color: #d3237a; /* Main theme pink */
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+/* Form Grouping */
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #444;
+    font-size: 0.9em;
+}
+
+/* Input & Textarea Styling */
+input[type="text"], 
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d4d4d4;
+    border-radius: 1em; /* Rounded pill style */
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input:focus, 
+textarea:focus {
+    border-color: #d3237a;
+}
+
+textarea {
+    resize: none; /* Prevents users from breaking your layout */
+}
+
+.file-input {
+    border: none;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+
+/* Button Layout */
+.auth-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+/* Save Changes Button (Pink) */
+.signup-btn {
+    background-color: #d3237a;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.signup-btn:hover {
+    background-color: #ad1457;
+}
+
+/* Cancel Button (Light Pink/White) */
+.login-btn {
+    background-color: #f7ebf1;
+    color: #d3237a;
+    border: 1px solid #d3237a;
+    padding: 12px 25px;
+    border-radius: 2em;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    transition: background 0.3s;
+}
+
+.login-btn:hover {
+    background-color: #fce4ec;
+}

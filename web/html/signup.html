@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>6-7-Ate-9 | Sign Up</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/signlog.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo">6-7-Ate-9</div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="establishments.html">Establishments</a>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+    
+<div class="form-container">
+    <div class="auth-card">
+        <h2>Create an Account</h2>
+        <p class="subtitle">Join the 6-7-Ate-9 community!</p>
+        
+        <form id="signup-form">
+            <div class="input-group">
+                <label for="signup-username">Username</label>
+                <input type="text" id="signup-username" placeholder="Choose a unique username" required>
+            </div>
+
+            <div class="input-group">
+                <label for="signup-password">Password</label>
+                <input type="password" id="signup-password" placeholder="Min. 8 characters" required>
+            </div>
+
+            <div class="input-group">
+                <label for="avatar">Profile Picture</label>
+                <input type="file" id="avatar" accept="image/*" class="file-input">
+            </div>
+
+            <div class="input-group">
+                <label for="signup-desc">About You</label>
+                <textarea id="signup-desc" placeholder="Tell us about your favorite eats..."></textarea>
+            </div>
+
+            <button type="button" class="btn-main" onclick="simulateSignUp()">Sign Up</button>
+        </form>
+        <p class="footer-text">Already have an account? <a href="login.html">Log In</a></p>
+    </div>
+</div>
+
+    <script src="scripts/script.js"></script>
+</body>
+</html>
