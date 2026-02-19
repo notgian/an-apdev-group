@@ -1,28 +1,83 @@
 services:
-  express-api:
-    build: 
-      context: ./api/.
-      dockerfile: dev.Dockerfile
-    environment: 
-      API_PORT: 4200
-    ports: 
-      - "4200:4200"
-    volumes:
-      - ./api/:/app/api
-      - /app/api/node_modules
-
   express-web:
+    container_name: express-web
+    hostname: express-web
     build: 
       context: ./web/.
       dockerfile: dev.Dockerfile
     environment:
-      WEB_PORT: 8000 
-      API_LOCATION: "localhost:4200"
+      WEB_PORT: ${WEB_PORT}
+      API_PORT: ${API_PORT}
+      API_HOSTNAME: ${API_HOSTNAME}
+      API_LOCATION: "localhost:4200"  # depracate this
     ports: 
-      - "8000:8000"
+      - ${WEB_PORT}:${WEB_PORT}
     depends_on:
       - express-api
     volumes:
       - ./web/:/app/web
       - /app/web/node_modules
+    networks:
+      - api-network
 
+
+  express-api:
+    container_name: express-api
+    hostname: ${API_HOSTNAME}
+    build: 
+      context: ./api/.
+      dockerfile: dev.Dockerfile
+    environment: 
+      API_PORT: ${API_PORT}
+    ports: 
+      - ${API_PORT}:${API_PORT}
+    volumes:
+      - ./api/:/app/api
+      - /app/api/node_modules
+    networks:
+      - api-network
+      - mongo-network
+
+
+  mongodb:
+    image: mongo:8.2.4
+    container_name: mongodb
+    hostname: ${MONGO_HOSTNAME}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
+      MONGO_INITDB_DATABASE: ${MONGO_ROOT_DB}
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+    volumes:
+      - mongo-data:/data/db
+      - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - mongo-network
+
+
+  mongo-setup:
+    image: mongo:8.2.4
+    container_name: mongo-setup
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+      MONGO_ROOT_PASS: ${MONGO_ROOT_PASS}
+
+      APP_USER: ${APP_USER}
+      APP_PASS: ${APP_PASS}
+      APP_DB: ${APP_DB}
+    volumes:
+      - ./scripts/mongo-setup.sh:/mongo-setup.sh  # Mount the script into the container
+    command: ["/bin/bash", "/mongo-setup.sh"]  # Run the script
+    networks:
+      - mongo-network
+
+
+volumes:
+  mongo-data:
+
+networks:
+  mongo-network:
+  api-network:

@@ -1,0 +1,102 @@
+/* General resets */
+body { 
+    font-family: 'Helvetica', Arial, sans-serif; 
+    margin: 0; 
+    color: #333; 
+}
+
+/* Header Navigation */
+.main-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: white;
+    padding: 10px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logo { 
+    font-weight: bold; 
+    font-size: 40px; 
+    color: #d14d72;
+    text-shadow: #d12e69 1px 1px 2px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    margin-left: 20px;
+    color: #666;
+    font-weight: 600;
+}
+
+.nav-links a:hover {
+    color: #d12e69;
+}
+
+.remember-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #555;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.remember-group input {
+    width: auto; /* Overrides the 100% width of other inputs */
+    margin-bottom: 0;
+}
+
+button {
+    background-color: #e64b98;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 2em;
+    cursor: pointer;
+    font-size: 1em; 
+    text-decoration: none;
+}
+
+/* Search bar styling */
+.search-bar-container {
+  display: flex;
+  align-items: center; /* vertically center */
+  gap: 8px;
+}
+
+.search-bar-container input {
+  height: 36px; /* consistent height */
+  width: 150px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 18px;
+}
+
+.search-bar-container .search-btn {
+  height: 36px; /* same as input */
+  padding: 0 16px;
+  border-radius: 18px;
+  background-color: #d3237a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.search-bar-container .search-btn:hover {
+  background-color: #ad1457;
+}
+
+.stars {
+    color: #f1da2f;
+}
+
+.nav-links > .active{
+    font-family: 'Helvetica', Arial, sans-serif; 
+    color: #cb1877; 
+}

@@ -7,7 +7,7 @@ The application suite can be run using docker. These commands MUST be executed i
 
 Build and run the docker containers with the following command:
 ```
-docker compose -f "compose-prod.yaml" up --build
+docker compose -f "compose-prod.yaml" up --build --remove-orphans
 ```
 This runs the production build. Take note that these builds are IMMUTABLE docker containers. For development instructions see the [**Development**](# Development) section.
 
@@ -38,7 +38,7 @@ app/
 ## Running the development build
 Using the command line:
 ```
-docker compose -f "compose-dev.yaml" up --build
+docker compose -f "compose-dev.yaml" up --build --remove-orphans
 ```
 To close the containers:
 

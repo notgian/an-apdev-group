@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>6-7-Ate-9 | Search Results</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/search.css">
+</head>
+<body>
+  <header class="main-header">
+    <div class="logo">6-7-Ate-9</div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="establishments.html">Establishments</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+
+    <div class="search-bar-container">
+      <input type="text" placeholder="Looking for..." id="search-input">
+      <button type="button" class="search-btn" onclick="redirectSearch()">Search</button>
+    </div>
+  </header>
+
+  <main class="content-container search-page">
+    <h2 id="results-info"></h2>
+    <div id="search-results-list" class="list"></div>
+  </main>
+
+  <script src="scripts/script.js"></script>
+</body>
+</html>

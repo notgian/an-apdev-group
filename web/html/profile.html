@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>6-7-Ate-9 | Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo">6-7-Ate-9</div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="establishments.html">Establishments</a>
+            <a href="profile.html" class="profile">Profile</a>
+        </nav>
+        <div class="search-bar-container">
+            <input type="text" placeholder="Looking for..." id="search-input">
+            <button type="button" class="search-btn" onclick="redirectSearch()">Search</button>
+        </div>
+    </header>
+
+    <div id="profile-content" class="container"></div>
+
+    <div id="auth-div" class="auth-div">
+        <div id="logged-out-view" class="auth-prompt">
+            <p class="auth-prompt-text">Please log in to view your profile and activity.</p>
+        <div class="auth-buttons">
+            <a href="signup.html" class="signup-btn">Sign Up</a>
+            <a href="login.html" class="login-btn">Log In</a>
+        </div>  
+        </div>
+    </div>
+
+    <div id="logged-in-view" style="display: none;">
+        <div class="user-header">
+            <img src="images/user-avatar.png" id="profile-pic" class="avatar-large">
+            <h2 id="username-display">Foodie_Juan</h2>
+            <p id="user-desc">Love exploring hidden gems in Manila!</p>
+            <a href="profile-edit.html" class="edit-btn">Edit Profile</a>
+        </div>
+
+        <div class="user-activity">
+            <h3>Latest Reviews</h3>
+            <div class="review-item">"Best Ramen ever!" - Mendokoro Ramba</div>
+        </div>
+
+        <div class="profile-actions">
+            <button class="viewrev-btn">View Reviews</button>
+            <button class="logout-btn" onclick="logout()">Log Out</button>
+        </div>
+    </div>
+
+    <div id="other-users" class="other-users">
+        <h3>Other Foodies to Follow</h3>
+        <div class="user-card">
+            <img src="images/user2-avatar.jpg" class="avatar-med">
+            <p>Foodie_Maria</p>
+            <button class="follow-btn">Follow</button>
+        </div>
+        <div class="user-card">
+            <img src="images/user3-avatar.jpg" class="avatar-med">
+            <p>Foodie_Carlos</p>
+            <button class="follow-btn">Follow</button>
+        </div>
+        <div class="user-card">
+            <img src="images/user4-avatar.webp" class="avatar-med">
+            <p><a href="profile-other.html">Chef_Inigo</a></p>
+            <button class="follow-btn">Follow</button>
+        </div>
+        <div class="user-card">
+            <img src="images/user5-avatar.jpg" class="avatar-med">
+            <p>ManilaEats_Sophia</p>
+            <button class="follow-btn">Follow</button>
+        </div>
+        <div class="user-card">
+            <img src="images/user6-avatar.jpg" class="avatar-med">
+            <p>CoffeeLover_Ben</p>
+            <button class="follow-btn">Follow</button>
+        </div>
+    </div>
+
+    <script src="scripts/script.js"></script>
+</body>
+</html>
