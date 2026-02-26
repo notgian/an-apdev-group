@@ -3,13 +3,12 @@ const router = express.Router();
 const qs = require('node:querystring'); 
 const httpStatus = require('http-status-codes').StatusCodes
 
-
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
-// All routes in this file will be accessed via /api/v1/users
+// All routes in this file will be accessed via /api/v1/establishments
 
-// const User = require('../models/User');
+// const Establishment = require('../models/Establishment');
 
-// GET Users
+// GET Establishments
 router.get('/', async (req, res) => {
     var OFFSET = 0;
     var COUNT = 20;
@@ -17,8 +16,8 @@ router.get('/', async (req, res) => {
 
     const orderbyValues = [
         'name',
-        'joindate',
-        'reviews', // review count
+        'rating',
+        'category', 
     ];
 
     if ('offset' in req.query) {
@@ -61,7 +60,7 @@ router.get('/', async (req, res) => {
         }
     }
 
-    // Query for the users with the parameters
+    // Query for the establishments with the parameters
     // Insert code here
     
     // Send the query
@@ -69,50 +68,48 @@ router.get('/', async (req, res) => {
         "status": httpStatus.OK,
         "message": "OK",
         "data": ["will include data here later"] // TODO: Replace this with the result of the query
-
     })
 });
 
-// GET a specific user by ID
+// GET a specific establishment by ID
 router.get('/:id', async (req, res) => {
-    const userId = req.params.id;
+    const estId = req.params.id;
 
-    // Logic for searching for the user here let's say a user is found
-    // const foundUser = `imagine this is user data of user with id '${userId}'`
-    const foundUser = undefined;
+    // Logic for searching for the establishment here let's say an establishment is found
+    // const foundEst = `imagine this is establishment data with id '${estId}'`
+    const foundEst = undefined;
     
-    if (foundUser != undefined) {
+    if (foundEst != undefined) {
         res.send({
             "status": httpStatus.OK,
             "message": "OK",
-            "data": foundUser
+            "data": foundEst
         });
     } 
     else {
         res.send({
             "status": httpStatus.NOT_FOUND,
-            "message": `User with id '${userId}' not found.`,
+            "message": `Establishment with id '${estId}' not found.`,
             "data": null
         });
     }
-
 });
 
-// POST to create a new user
+// POST to create a new establishment
 router.post('/', async (req, res) => {
     // const name = req.body.name
     
-    var userCreated = true
+    var estCreated = true
 
     var errorCode = httpStatus.BAD_REQUEST // would only be set if error occurs
     var errorMessage = "Request format is invalid. Please try again."  // same as above
 
-    // 200 success, 400 malformed request, 409 for conflict (i.e. email/username), 422 for specia business rules
-    if (userCreated) 
+    // 200 success, 400 malformed request, 409 for conflict, 422 for special business rules
+    if (estCreated) 
         res.send({
             "status": httpStatus.CREATED,
-            "message": `User successfully created.`,
-            "data": "return the userdata here too"
+            "message": `Establishment successfully created.`,
+            "data": "return the establishment data here too"
         });
     else
         res.send({
@@ -120,55 +117,55 @@ router.post('/', async (req, res) => {
             "message": errorMessage,
             "data": null
         });
-
 });
 
-// PATCH to modify user data
+// PATCH to modify establishment data
 // Requires authentication tokens
 router.patch("/:id", async (req, res) => {
-    // Find user first
-    var userFound = true
+    // Find establishment first
+    var estFound = true
 
-    if (!userFound) {
+    if (!estFound) {
         res.send({
             "status": httpStatus.NOT_FOUND,
-            "message": `The user with the id ${req.params.id} cannot be found!`,
+            "message": `The establishment with the id ${req.params.id} cannot be found!`,
             "data": null
         }) ;
         return;
     }
 
     // Next, check the querystring if all fields passed are valid fields
+    // GEMINI: Note that your original code checks req.query for PATCH updates; 
+    // usually, update data is sent in req.body for PATCH.
     let query = req.query
     const editableFields = [
         'name',
-        'email'
+        'address',
+        'category'
     ]
 
     for (let key of Object.keys(query)) {
         if (!editableFields.includes(key)) {
             res.send({
                 "status": httpStatus.BAD_REQUEST,
-                "message": `Cannot modify the property '${key}' of user. Either the property cannot be modified or the property does not exist.`,
+                "message": `Cannot modify the property '${key}' of establishment. Either the property cannot be modified or the property does not exist.`,
                 "data": null
             });
             return;
         }
     }
 
-    // Update the entry of the user here
+    // Update the entry of the establishment here
    
     // Success
     res.send({
         "status": httpStatus.ACCEPTED,
-        "message": `Userdata of ${req.params.id} modified`,
+        "message": `Data of establishment ${req.params.id} modified`,
         "data": null
     })
-
 })
 
-// DELETE to delete user
+// DELETE to delete establishment
 // Contemplating if we should have this because it's not a feature we NEED
-
 
 module.exports = router;
