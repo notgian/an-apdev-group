@@ -26,9 +26,9 @@ router.get('/', async (req, res) => {
             OFFSET = offsetNum;
         else {
             res.send({
-                "status": httpStatus.BAD_REQUEST,
-                "message": "Malformed Query. The offset parameter must be a valid number.",
-                "data": null
+                status: httpStatus.BAD_REQUEST,
+                messages: "Malformed Query. The offset parameter must be a valid number.",
+                data: null
             });
             return;
         }
@@ -39,9 +39,9 @@ router.get('/', async (req, res) => {
             COUNT = countNum;
         else {
             res.send({
-                "status": httpStatus.BAD_REQUEST,
-                "message": "Malformed Query. The count parameter must be a valid number.",
-                "data": null
+                status: httpStatus.BAD_REQUEST,
+                messages: "Malformed Query. The count parameter must be a valid number.",
+                data: null
             });
             return;
         }
@@ -52,9 +52,9 @@ router.get('/', async (req, res) => {
             ORDERBY = order;
         else {
             res.send({
-                "status": httpStatus.BAD_REQUEST,
-                "message": `Malformed Query. The orderby value '${order}' is invalid.`,
-                "data": null
+                status: httpStatus.BAD_REQUEST,
+                messages: `Malformed Query. The orderby value '${order}' is invalid.`,
+                data: null
             });
             return;
         }
@@ -65,9 +65,9 @@ router.get('/', async (req, res) => {
     
     // Send the query
     res.send({
-        "status": httpStatus.OK,
-        "message": "OK",
-        "data": ["will include data here later"] // TODO: Replace this with the result of the query
+        status: httpStatus.OK,
+        messages: "OK",
+        data: ["will include data here later"] // TODO: Replace this with the result of the query
     })
 });
 
@@ -81,16 +81,16 @@ router.get('/:id', async (req, res) => {
     
     if (foundEst != undefined) {
         res.send({
-            "status": httpStatus.OK,
-            "message": "OK",
-            "data": foundEst
+            status: httpStatus.OK,
+            messages: "OK",
+            data: foundEst
         });
     } 
     else {
         res.send({
-            "status": httpStatus.NOT_FOUND,
-            "message": `Establishment with id '${estId}' not found.`,
-            "data": null
+            status: httpStatus.NOT_FOUND,
+            messages: `Establishment with id '${estId}' not found.`,
+            data: null
         });
     }
 });
@@ -107,15 +107,15 @@ router.post('/', async (req, res) => {
     // 200 success, 400 malformed request, 409 for conflict, 422 for special business rules
     if (estCreated) 
         res.send({
-            "status": httpStatus.CREATED,
-            "message": `Establishment successfully created.`,
-            "data": "return the establishment data here too"
+            status: httpStatus.CREATED,
+            messages: `Establishment successfully created.`,
+            data: "return the establishment data here too"
         });
     else
         res.send({
-            "status": errorCode,
-            "message": errorMessage,
-            "data": null
+            status: errorCode,
+            messages: errorMessage,
+            data: null
         });
 });
 
@@ -127,9 +127,9 @@ router.patch("/:id", async (req, res) => {
 
     if (!estFound) {
         res.send({
-            "status": httpStatus.NOT_FOUND,
-            "message": `The establishment with the id ${req.params.id} cannot be found!`,
-            "data": null
+            status: httpStatus.NOT_FOUND,
+            messages: `The establishment with the id ${req.params.id} cannot be found!`,
+            data: null
         }) ;
         return;
     }
@@ -147,9 +147,9 @@ router.patch("/:id", async (req, res) => {
     for (let key of Object.keys(query)) {
         if (!editableFields.includes(key)) {
             res.send({
-                "status": httpStatus.BAD_REQUEST,
-                "message": `Cannot modify the property '${key}' of establishment. Either the property cannot be modified or the property does not exist.`,
-                "data": null
+                status: httpStatus.BAD_REQUEST,
+                messages: `Cannot modify the property '${key}' of establishment. Either the property cannot be modified or the property does not exist.`,
+                data: null
             });
             return;
         }
@@ -159,9 +159,9 @@ router.patch("/:id", async (req, res) => {
    
     // Success
     res.send({
-        "status": httpStatus.ACCEPTED,
-        "message": `Data of establishment ${req.params.id} modified`,
-        "data": null
+        status: httpStatus.ACCEPTED,
+        messages: `Data of establishment ${req.params.id} modified`,
+        data: null
     })
 })
 
