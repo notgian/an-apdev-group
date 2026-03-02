@@ -1,32 +1,31 @@
 const mongoose = require('mongoose');
 
 const reviewSchema = new mongoose.Schema({
-  restaurant: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Restaurant', 
-    required: true 
-},
-  author: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-},
-  title: { 
-    type: String, 
-    required: true 
-}, 
-  text: { 
-    type: String, 
-    required: true 
-},  
-  media: { 
-    type: String 
-}, 
-  rating: { 
-    type: Number, 
-    min: 1, max: 5, 
+  restaurantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Restaurant',
     required: true
- }
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', 
+    required: true
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 0, 
+    max: 5  
+  },
+  comment: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  media: [{
+    type: String,
+    default: []
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Review', reviewSchema);
