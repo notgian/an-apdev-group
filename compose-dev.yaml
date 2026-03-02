@@ -29,6 +29,13 @@ services:
       dockerfile: dev.Dockerfile
     environment: 
       API_PORT: ${API_PORT}
+      # mongo stuff
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+      MONGO_ROOT_PASS: ${MONGO_ROOT_PASS}
+      APP_USER: ${APP_USER}
+      APP_PASS: ${APP_PASS}
+      APP_DB: ${APP_DB}
+      MONGODB_HOSTNAME: ${MONGO_HOSTNAME}
     ports: 
       - ${API_PORT}:${API_PORT}
     volumes:
