@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const qs = require('node:querystring'); 
 const httpStatus = require('http-status-codes').StatusCodes
-
+const User = require('../schema_models/userSchema.js');
 
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
-    // All routes in this file will be accessed via /api/v1/users
+// All routes in this file will be accessed via /api/v1/users
 
-// const User = require('../models/User');
 
 // GET Users
 router.get('/', async (req, res) => {
     var OFFSET = 0;
     var COUNT = 20;
-    var ORDERBY = 'name';
+    var ORDERBY = 'joindate';
 
     const orderbyValues = [
         'name',
         'joindate',
+        'followers',
         'reviews', // review count
     ];
 
@@ -33,6 +33,15 @@ router.get('/', async (req, res) => {
             });
             return;
         }
+
+        if (OFFSET < 0) {
+            res.send({
+                status: httpStatus.BAD_REQUEST,
+                messages: "Malformed Query. The offset parameter must be greater than 0.",
+                data: null
+            });
+            return;
+        }
     } 
     if ('count' in req.query) {
         let countNum = Number(req.query.count);
@@ -42,6 +51,15 @@ router.get('/', async (req, res) => {
             res.send({
                 status: httpStatus.BAD_REQUEST,
                 messages: "Malformed Query. The count parameter must be a valid number.",
+                data: null
+            });
+            return;
+        }
+
+        if (COUNT < 1) {
+            res.send({
+                status: httpStatus.BAD_REQUEST,
+                messages: "Malformed Query. The count parameter must be greater than 1.",
                 data: null
             });
             return;
@@ -61,14 +79,27 @@ router.get('/', async (req, res) => {
         }
     }
 
-    // Query for the users with the parameters
-    // Insert code here
+    let query = User.find({})
+        .select('-password')
+        .skip(OFFSET)       
+        .limit(COUNT)
+        .lean();
+   
+    if (ORDERBY == 'joindate') 
+        query.sort({createdAt: -1})
+    else if (ORDERBY == 'name') 
+        query.sort({username: 1})
+    // else if (ORDERBY == 'reviews') return
+    // else if (ORDERBY == 'followers') return
+    // TODO: add sorting by other means
+    else
+        query.sort({createdAt: -1})
+    let foundUsers = await query.exec()
 
-    // Send the query
     res.send({
         status: httpStatus.OK,
         messages: "OK",
-        data: ["will include data here later"] // TODO: Replace this with the result of the query
+        data: foundUsers 
 
     })
 });
