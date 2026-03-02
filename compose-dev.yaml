@@ -38,41 +38,47 @@ services:
       - api-network
       - mongo-network
 
-
   mongodb:
-    image: mongo:8.2.4
+    image: mongo:8.0
     container_name: mongodb
     hostname: ${MONGO_HOSTNAME}
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
       MONGO_INITDB_DATABASE: ${MONGO_ROOT_DB}
-    ports:
-      - ${MONGO_PORT}:${MONGO_PORT}
-    volumes:
-      - mongo-data:/data/db
-      - ./scripts:/docker-entrypoint-initdb.d
-    networks:
-      - mongo-network
 
-
-  mongo-setup:
-    image: mongo:8.2.4
-    container_name: mongo-setup
-    depends_on:
-      - mongodb
-    environment:
       MONGO_ROOT_USER: ${MONGO_ROOT_USER}
       MONGO_ROOT_PASS: ${MONGO_ROOT_PASS}
 
       APP_USER: ${APP_USER}
       APP_PASS: ${APP_PASS}
       APP_DB: ${APP_DB}
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
     volumes:
-      - ./scripts/mongo-setup.sh:/mongo-setup.sh  # Mount the script into the container
-    command: ["/bin/bash", "/mongo-setup.sh"]  # Run the script
+      - mongo-data:/data/db
+      - ./scripts/docker:/docker-entrypoint-initdb.d
     networks:
       - mongo-network
+
+  # mongo-setup:
+  #   image: mongo:8.0
+  #   container_name: mongo-setup
+  #   depends_on:
+  #     - mongodb
+  #   environment:
+  #     MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+  #     MONGO_ROOT_PASS: ${MONGO_ROOT_PASS}
+  #
+  #     APP_USER: ${APP_USER}
+  #     APP_PASS: ${APP_PASS}
+  #     APP_DB: ${APP_DB}
+  #   volumes:
+  #     - ./scripts/mongo-setup.sh:/mongo-setup.sh  # Mount the script into the container
+  #   command: ["/bin/bash", "/mongo-setup.sh"]  # Run the script
+  #   networks:
+  #     - mongo-network
 
 
 volumes:
