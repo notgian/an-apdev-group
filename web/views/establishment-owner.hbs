@@ -1,0 +1,39 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/establishment.css">
+{{/inline}}
+
+<main class="establishment-container">
+    <div class="establishment-left">
+        <img id="establishment-img" src="{{establishment.image}}" alt="{{establishment.name}}">
+        <div class="establishment-info">
+            <h2 id="establishment-name">{{establishment.name}}</h2>
+            <p id="establishment-rating">{{establishment.rating}}</p>
+            <p id="establishment-category">{{establishment.category}}</p>
+            <p id="establishment-location">{{establishment.location}}</p>
+            <p id="establishment-price">{{establishment.price}}</p>
+            <div class="establishment-about">
+                <h3>About</h3>
+                <p id="establishment-about">{{establishment.about}}</p>
+            </div>
+            <div class="establishment-hours">
+                <h3>Hours</h3>
+                <p id="establishment-hours">{{establishment.hours}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="establishment-right">
+        <h2>Reviews</h2>
+        <div id="reviews-list">
+            {{#each reviews}}
+                <div class="review">
+                <strong>{{user}}</strong> — {{rating}}
+                <p>{{review}}</p>
+                <button>Edit</button>
+                <button>Delete</button>
+                </div>
+            {{/each}}
+        </div>
+        <button id="view-more-btn">View More</button>
+    </div>
+</main>

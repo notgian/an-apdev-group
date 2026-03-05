@@ -6,8 +6,36 @@
         <title> {{ title }} </title>
         <link href="/css/style.css" rel="stylesheet">
         <script src="/scripts/script.js" defer></script>
+        {{{block "styles"}}}   <!-- placeholder for page-specific styles -->
     </head>
     <body>
+        <header class="main-header">
+        <div class="logo">6-7-Ate-9</div>
+        <nav class="nav-links">
+            <a href="/">Home</a>
+            <a href="/establishments">Establishments</a>
+            <a href="/profile">Profile</a>
+        </nav>
+
+        <!-- for pages with search bar and login container -->
+        {{#if searchBar}}
+            <div class="search-bar-container">
+            <form action="/search" method="get">
+                <input type="text" name="query" placeholder="Looking for...">
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+            </div>
+        {{/if}}
+
+        {{#if loginContainer}}
+            <div class="login-container">
+            <a href="/login">Login</a>
+            <a href="/signup">Sign Up</a>
+            </div>
+        {{/if}}
+        </header>
+
+        <!-- Main content will be injected here -->
         {{{ body }}}
     </body>
 </html>

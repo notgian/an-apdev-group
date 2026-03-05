@@ -1,0 +1,43 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/establishments.css">
+{{/inline}}
+
+<main class="content-container establishments-page">
+    <h2>DISCOVER PLACES TO EAT</h2>
+
+    <div id="establishment-list">
+        {{#each establishments}}
+            <div class="card">
+                <div class="card-left">
+                    <img src="{{establishment.image}}" alt="{{establishment.name}}" class="card-img">
+                    <div class="card-content">
+                        <h3>{{establishment.name}}</h3>
+                        <p><span class="stars">{{establishment.rating}}</span></p>
+                        <p>{{establishment.category}} • {{establishment.location}}</p>
+                        <p>{{establishment.price}}</p>
+                    </div>
+                </div>
+
+                <div class="card-right">
+                    <h4>Recent Reviews</h4>
+                        {{#each (slice establishment.reviews 0 3)}}
+                            <p>"{{this}}"</p>
+                        {{/each}}
+                    <button><a href="/establishment/{{establishment.name}}">Read more</a></button>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+
+<!--- not implemented (yet?) but this is where pagination would go 
+    <div id="pagination">
+        {{pagination}}
+    </div>
+--->
+
+    <div id="results-info">
+        Showing {{establishments.length}} results
+    </div>
+</main>
+
+
