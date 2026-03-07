@@ -2,8 +2,41 @@
 
 Will improve description here when we get to it.
 
-# Running with Docker
-The application suite can be run using docker. These commands MUST be executed in the root directory of the project (the same directory as this README file).
+# Running
+The application suite can be run using the provided application scripts
+```shell
+# script usage
+# ./scripts/start.[bat|ps1|sh] [prod|dev]
+
+# For Linux or Mac
+./scripts/start.sh prod
+./scripts/start.sh dev
+
+# For Windows PowerShell
+./scripts/start.ps1 prod
+./scripts/start.ps1 dev
+
+# For Windows CMD
+./scripts/start.bat prod
+./scripts/start.bat dev
+```
+
+It can also be stopped using the stop scripts
+
+```shell
+# Linux or Mac
+./scripts/stop.sh
+
+# Windows PowerShell
+./scripts/stop.ps1
+
+# Windows CMD
+./scripts/stop.bat
+
+```
+
+## Manual Running
+The application suite can be manually run using docker. These commands MUST be executed in the root directory of the project (the same directory as this README file).
 
 Build and run the docker containers with the following command:
 ```
