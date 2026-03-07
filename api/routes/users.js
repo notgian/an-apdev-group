@@ -3,6 +3,7 @@ const router = express.Router();
 const qs = require('node:querystring'); 
 const httpStatus = require('http-status-codes').StatusCodes
 const User = require('../schema_models/userSchema.js');
+const { default: mongoose } = require('mongoose');
 
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/users
@@ -108,11 +109,27 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const userId = req.params.id;
 
-    // Logic for searching for the user here let's say a user is found
-    // const foundUser = `imagine this is user data of user with id '${userId}'`
-    const foundUser = undefined;
+    // Testing ID for Cynthia_Schaden: 69a57b8a5c5c18d5e7f5dd60
+    
+    let userObjId = undefined
+    try {
+        new mongoose.Types.ObjectId(userId)
+    }
+    catch (err) {
+        res.send({
+            status: httpStatus.BAD_REQUEST,
+            messages: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
 
-    if (foundUser != undefined) {
+    let query = User.find({_id:userId})
+        .select('-password')
+        .lean();
+
+    const foundUser = await query.exec()
+
+    if (foundUser.length > 0) {
         res.send({
             status: httpStatus.OK,
             messages: "OK",
