@@ -6,13 +6,26 @@ const connectDB = require('./dbconnect')
 const User = require('./schema_models/userSchema.js');
 const Restaurant = require('./schema_models/restaurantSchema.js');
 const Reviews = require('./schema_models/reviewSchema.js');
+const Categories = require('./schema_models/categorySchema.js')
+
+const RESTAURANT_CATEGORIES = [
+  "Filipino", "Italian", "Japanese", "Mexican",
+  "Indian", "Chinese", "Thai", "French",
+  "Mediterranean", "American", "Middle Eastern", "Vietnamese",
+  "Korean", "Greek", "Brazilian", "Spanish",
+  "Steakhouse", "Seafood", "Sushi", "Pizza",
+  "Burgers", "BBQ", "Vegan", "Vegetarian",
+  "Bakery", "Cafe", "Fast Food", "Fine Dining",
+  "Casual Dining", "Diner", "Pub", "Bistro",
+  "Tapas", "Food Truck", "Breakfast & Brunch", "Dessert"
+];
 
 const generateUsers = async (count = 50) => {
     console.log('Generating new users')
     try {
         await User.deleteMany({});
         console.log('Old users cleared.');
-        
+
         let password = 'password'
         let saltRounds = 10;
 
@@ -30,7 +43,7 @@ const generateUsers = async (count = 50) => {
 
         await User.insertMany(users);
         console.log(`Successfully created ${count} users!`);
-        
+
         return users
 
     } catch (error) {
@@ -75,7 +88,7 @@ const generateRestaurants = async (ownerList, count = 10) => {
         await Restaurant.deleteMany({});
         console.log('Old restaurants cleared');
 
-        
+
         const restaurants = [];
         for (let i=0; i<count; i++) {
             const minPrice = parseFloat(faker.commerce.price({ min: 80, max: 400 }));
@@ -122,7 +135,7 @@ const generateReviews = async (users, restaurants, count = 10) => {
         while (i < count) {
             const randomUser = faker.helpers.arrayElement(users);
             const randomRestaurant = faker.helpers.arrayElement(restaurants);
-        
+
             const isDuplicate = reviews.some(review =>
                 review.userId.toString() === randomUser._id.toString() && 
                 review.restaurantId.toString() === randomRestaurant._id.toString()
@@ -147,7 +160,7 @@ const generateReviews = async (users, restaurants, count = 10) => {
                 helpful.push(usr._id);
                 x++
             }
-            
+
             x = 0;
             while (x < unhelpfulCount) {
                 let usr = users[Math.floor(Math.random()*users.length)];
@@ -164,7 +177,7 @@ const generateReviews = async (users, restaurants, count = 10) => {
                 comment: faker.lorem.paragraph(),
                 media: Array.from({ length: faker.number.int({ min: 0, max: 3 }) }, 
                     () => faker.image.url({ category: 'food' })),
-                
+
                 updatedAt: reviewDate,
                 edited: faker.datatype.boolean(0.1),
 
@@ -173,7 +186,7 @@ const generateReviews = async (users, restaurants, count = 10) => {
 
                 helpfulCount: helpfulCount,
                 unhelpfulCount: unhelpfulCount,
-                
+
                 ownerResponse: hasResponse ? {
                     ownerId: randomRestaurant.ownerId || faker.database.mongodbObjectId(),
                     comment: faker.lorem.sentences(2),
@@ -200,26 +213,50 @@ const generateReviews = async (users, restaurants, count = 10) => {
 
 };
 
+const createCategories = async (categoryList) => {
+    console.log('Creating categories for establishments...');
+    try {
+        await Categories.deleteMany({});
+        console.log('Cleared old categories.');
+
+        let categories = [];
+
+        for (let category of categoryList)
+            categories.push({name:category})
+
+        await Categories.insertMany(categories);
+        console.log(`Successfully created ${categories.length} categories!`);
+
+        return categories;
+    }
+
+    catch (error) {
+        console.log('Error creating categories: ', error)
+    }
+}
+
 const generateData = async () => {
     console.log('Connecting to database...')
     const userCount = 50;
     const rstCount = 10;
     const reviewCount = Math.round(userCount*rstCount / 2);
+    await connectDB();
 
-    await connectDB()
-    await generateUsers(userCount) 
+    await createCategories(RESTAURANT_CATEGORIES);
+
+    await generateUsers(userCount);
     const usrqry = User.find({})
         .limit(userCount);
     const users = await usrqry.exec();
 
-    await generateOwners(rstCount)
+    await generateOwners(rstCount);
     const ownqry = User.find({})
         .skip(userCount)
         .limit(rstCount);
     const owners = await ownqry.exec();
 
-    await generateRestaurants(owners, rstCount)
-    const rstqry = Restaurant.find({})
+    await generateRestaurants(owners, rstCount);
+    const rstqry = Restaurant.find({});
     const restaurants = await rstqry.exec();
 
     await generateReviews(users, restaurants, reviewCount);
