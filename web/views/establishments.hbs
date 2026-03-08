@@ -9,7 +9,7 @@
         {{#each establishments}}
             <div class="card">
                 <div class="card-left">
-                    <img src="{{this.image}}" alt="[{{this.name}} | establishment image]" class="card-img">
+                    <img src="{{this.imageSrc}}" alt="[{{this.name}} | establishment image]" class="card-img">
                     <div class="card-content">
                         <h3>{{this.name}}</h3>
                         <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
