@@ -1,3 +1,4 @@
+/*** Old Hardcoded Data (Keeping it here for now, but shall be removed when backend is implemented)
 const establishments = [
     { 
         name: "Mendokoro Ramba", 
@@ -92,6 +93,7 @@ const restaurantReviews = {
         { user: "Foodie_Carlos", rating: "★★★★★", review: "Chewy crust, flavorful sauce, and generous cheese." }
     ]
 };
+***/
 
 function redirectSearch() {
     const query = document.getElementById("search-input").value.trim();
@@ -106,65 +108,7 @@ function redirectFindLocal() {
     window.location.href = `search.html?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}&mode=local`;
 }
 
-function loadData() {
-    const grid = document.getElementById('establishment-grid');
-    const list = document.getElementById('establishment-list');
-
-    // For Home Page
-    if (grid) {
-        grid.innerHTML = ''; // Clear it first
-        establishments.forEach(item => {
-            const card = `
-                <div class="card">
-                <h3>${item.name}</h3>
-                <p><span class="stars">${item.rating}</span></p>
-                <p>${item.category} • ${item.location}</p>
-                <p>${item.price}</p>
-                <button onclick="goToEstablishment('${normalizeName(item.name)}')">Read Reviews</button>
-                </div>
-                `;
-            grid.innerHTML += card;
-        });
-    }
-
-    // For Establishments Page
-    if (list) {
-        list.innerHTML = ''; // Clear it first
-
-        establishments.forEach(item => {
-            // Get reviews for this restaurant
-            const reviews = restaurantReviews[item.name] || [];
-
-            // Build review HTML (limit to 2 for preview)
-            const reviewHTML = reviews.slice(0, 2).map(r => `
-                <p>"${r.review}"</p>
-                `).join("");
-
-            // Build card
-            const card = `
-                <div class="card">
-                <div class="card-left">
-                <img src="${item.image}" alt="${item.name}" class="card-img">
-                <div class="card-content">
-                <h3>${item.name}</h3>
-                <p><span class="stars">${item.rating}</span></p>
-                <p>${item.category} • ${item.location}</p>
-                <p>${item.price}</p>
-                </div>
-                </div>
-
-                <div class="card-right">
-                <h4>Recent Reviews</h4>
-                ${reviewHTML}
-                <button onclick="goToEstablishment('${normalizeName(item.name)}')">Read more</button>
-                </div>
-                </div>
-                `;
-
-            list.innerHTML += card;
-        });
-    }
-}
+/*** Removed loadData() ***/ 
 
 function checkLoginStatus() {
     const loggedOutView = document.getElementById('logged-out-view');
@@ -231,6 +175,7 @@ function simulateLogin() {
         alert("Please enter your credentials.");
     }
 }
+
 function logout() {
     // 1. Clear all stored user data (Simulating session clearance)
     localStorage.removeItem('isLoggedIn');
@@ -244,6 +189,7 @@ function logout() {
     // 3. Redirect to the Guest Home Page
     window.location.href = 'index.html';
 }
+
 // Function to run when the edit page loads
 function loadCurrentData() {
     const savedDesc = localStorage.getItem('description');
@@ -266,7 +212,7 @@ function saveProfileChanges() {
 
 // Update your existing window.onload
 window.onload = function() {
-    if (typeof loadData === "function") loadData();
+    /*** Removed the call to loadData() here ***/
     if (typeof checkLoginStatus === "function") checkLoginStatus();
     if (document.getElementById('edit-profile-form')) loadCurrentData();
 };
@@ -285,159 +231,55 @@ function goToEstablishment(name) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Search Page
-    if (document.getElementById("results-info")) {
-        const params = new URLSearchParams(window.location.search);
-        const query = params.get("query");
-        const location = params.get("location");
-        const mode = params.get("mode");
+    /*** Removed Search Page rendering logic (to be handled with search route and search.hbs) ***/
 
-        const list = document.getElementById("search-results-list");
-        const info = document.getElementById("results-info");
-        if (!list || !info) return;
+    /*** Removed Establishment Page rendering logic (to be handled with establishment route and establishment.hbs) ***/
+    // Reviews interactivity
+    const reviewsList = document.getElementById("reviews-list");
+    let visibleReviews = 2;
 
-        console.log('sdfsd')
-        list.innerHTML = "";
-        let results = [];
+    // Add review form
+    if (document.getElementById("review-form")) {
+        document.getElementById("review-form").addEventListener("submit", e => {
+            e.preventDefault();
+            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+            const user = localStorage.getItem("username");
+            const text = document.getElementById("review-text").value.trim();
 
-        console.log(results)
-        if (mode === "global") {
-            results = establishments.filter(e =>
-                e.name.toLowerCase().includes(query.toLowerCase()) ||
-                e.category.toLowerCase().includes(query.toLowerCase()) ||
-                e.location.toLowerCase().includes(query.toLowerCase())
-            );
-            info.innerHTML = `<h2>Searching for "${query}": ${results.length} result(s)</h2>`;
-        }
-
-        if (mode === "local") {
-            results = establishments.filter(e => {
-                const matchesQuery = query ? e.name.toLowerCase().includes(query.toLowerCase()) : true;
-                const matchesLocation = location ? e.location.toLowerCase().includes(location.toLowerCase()) : true;
-                return matchesQuery && matchesLocation;
-            });
-
-            if (query && location) {
-                info.innerHTML = `<h2>Searching "${query}" in "${location}": ${results.length} result(s)</h2>`;
-            } else if (query) {
-                info.innerHTML = `<h2>Searching for "${query}": ${results.length} result(s)</h2>`;
-            } else if (location) {
-                info.innerHTML = `<h2>Searching in "${location}": ${results.length} result(s)</h2>`;
+            if (!isLoggedIn) {
+                alert("You need to log in first to add a review.");
+                return;
             }
-        }
 
+            if (user && text) {
+                // Show confirmation
+                const msg = document.createElement("div");
+                msg.textContent = "Review posted!";
+                msg.className = "review-confirm";
+                document.getElementById("review-form").appendChild(msg);
+                setTimeout(() => msg.remove(), 2000);
 
-        if (results.length === 0) {
-            list.innerHTML = "<p>No results found.</p>";
-            return;
-        }
-
-        results.forEach(item => {
-            const reviews = restaurantReviews[item.name] || [];
-            const reviewHTML = reviews.slice(0, 2).map(r => `<p>"${r.review}"</p>`).join("");
-
-            const card = `
-                <div class="card">
-                <div class="card-left">
-                <img src="${item.image}" alt="${item.name}" class="card-img">
-                <div class="card-content">
-                <h3>${item.name}</h3>
-                <p><span class="stars">${item.rating}</span></p>
-                <p>${item.category} • ${item.location}</p>
-                <p>${item.price}</p>
-                </div>
-                </div>
-                <div class="card-right">
-                <h4>Recent Reviews</h4>
-                ${reviewHTML}
-                <button onclick="goToEstablishment('${normalizeName(item.name)}')">Read more</button>
-                </div>
-                </div>
-                `;
-            list.innerHTML += card;
+                // Clear field
+                document.getElementById("review-text").value = "";
+            }
         });
     }
 
-        // Establishment Page
-        if (document.getElementById("establishment-name")) { 
-            const params = new URLSearchParams(window.location.search);
-            const name = params.get("name");
-
-
-            if (name) {
-                const decodedName = decodeURIComponent(name);
-                document.title = `6-7-Ate-9 | ${decodedName}`;
-
-                const est = establishments.find(e => normalizeName(e.name) === decodedName);
-
-                if (est) {
-                    // Fill details
-                    document.getElementById("establishment-name").textContent = est.name;
-                    document.getElementById("establishment-img").src = est.image;
-                    document.getElementById("establishment-rating").innerHTML = `<span class="bold">Rating:</span> <span class="stars">${est.rating}</span>`;
-                    document.getElementById("establishment-category").innerHTML = `<span class="bold">Category:</span> ${est.category}`;
-                    document.getElementById("establishment-location").innerHTML = `<span class="bold">Location:</span> ${est.location}`;
-                    document.getElementById("establishment-price").innerHTML = `<span class="bold">Price:</span> ${est.price}`;
-                    document.getElementById("establishment-about").textContent = est.about || "No description available.";
-                    document.getElementById("establishment-hours").textContent = est.hours || "Hours not provided.";
-
-                    // Reviews
-                    const reviews = restaurantReviews[est.name] || [];
-                    const reviewsList = document.getElementById("reviews-list");
-                    let visibleReviews = 2;
-                    renderReviews(reviews, reviewsList, visibleReviews);
-
-                    // Add review form
-                    if (document.getElementById("review-form")) {
-
-                        document.getElementById("review-form").addEventListener("submit", e => {
-                            e.preventDefault();
-                            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-                            const user = localStorage.getItem("username");
-                            const text = document.getElementById("review-text").value.trim();
-
-                            if (!isLoggedIn) {
-                                alert("You need to log in first to add a review.");
-                                return;
-                            }
-
-                            if (user && text) {
-                                const alreadyReviewed = reviews.some(r => r.user === user);
-                                if (alreadyReviewed) {
-                                    alert("You’ve already submitted a review for this restaurant.");
-                                    return;
-                                }
-
-                                // Show confirmation
-                                const msg = document.createElement("div");
-                                msg.textContent = "Review posted!";
-                                msg.className = "review-confirm";
-                                document.getElementById("review-form").appendChild(msg);
-                                setTimeout(() => msg.remove(), 2000);
-
-                                const newReview = { user, review: text };
-                                reviews.unshift(newReview);
-                                renderReviews(reviews, reviewsList, visibleReviews);
-                                document.getElementById("review-text").value = "";
-                            }
-                        });
-                    }
-
-                    // View More / View Less toggle
-                    const viewBtn = document.getElementById("view-more-btn");
-                    viewBtn.addEventListener("click", () => {
-                        if (visibleReviews < reviews.length) {
-                            visibleReviews = reviews.length;
-                            renderReviews(reviews, reviewsList, visibleReviews);
-                            viewBtn.textContent = "View Less";
-                        } else {
-                            visibleReviews = 2;
-                            renderReviews(reviews, reviewsList, visibleReviews);
-                            viewBtn.textContent = "View More";
-                        }
-                    });
-                }
+    // View More / View Less toggle
+    const viewBtn = document.getElementById("view-more-btn");
+    if (viewBtn && reviewsList) {
+        viewBtn.addEventListener("click", () => {
+            const allReviews = reviewsList.querySelectorAll("p");
+            if (visibleReviews < allReviews.length) {
+                visibleReviews = allReviews.length;
+                allReviews.forEach(r => r.style.display = "block");
+                viewBtn.textContent = "View Less";
+            } else {
+                visibleReviews = 2;
+                allReviews.forEach((r, i) => r.style.display = i < 2 ? "block" : "none");
+                viewBtn.textContent = "View More";
             }
+        });
     }
 
     // Profile page
@@ -450,43 +292,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Render reviews helper
-function renderReviews(reviews, container, count) {
-    container.innerHTML = "";
-
-    const user = localStorage.getItem("username");
-
-    // Move logged-in user's review to the front
-    const sortedReviews = [
-        ...reviews.filter(r => r.user === user),
-        ...reviews.filter(r => r.user !== user)
-    ];
-
-    let currentUserName = localStorage.getItem('username');
-
-    if (currentUserName) {
-        const p = document.createElement("div");
-        p.innerHTML = `<span class="review-text"> <strong>${currentUserName}</strong> Nice! </span> <br /> <br /> <span class="user-review-actions"> <button class="review-edit-button">Edit Review</button> <button class="review-delete-button">Delete Review </span> </span> </span>`;
-        container.appendChild(p);
-    }
-
-    sortedReviews.slice(0, count).forEach(r => {
-        const p = document.createElement("div");
-        let truncReview = r.review.length > 40 ? r.review.substring(0, 37) + "..." : r.review
-        p.innerHTML = ` 
-            <span>
-                <strong>${r.user}:</strong> 
-                <span class="review-text"> 
-                    ${truncReview}" 
-                </span> 
-            </span> `;
-        if (document.getElementById("review-form"))
-            p.innerHTML += `<span class="review-marker"> <span class="review-mark-helpful"> 👍 ${Math.round(Math.random() * 99, 0)}</span> <span class="review-mark-unhelpful">👎 ${Math.round(Math.random() * 99, 0)}</span></span>`
-        else
-            p.innerHTML += `<br /> <br /> <span class="review-respond"> <button onclick="prompt('Write your response to ${r.user}')" >Respond</button> </span>`
-        container.appendChild(p);
-    });
-
-
-}
-
+/*** Removed review rendering logic (to be handled in establishment.hbs) ***/
