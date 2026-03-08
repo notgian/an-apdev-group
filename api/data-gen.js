@@ -84,6 +84,7 @@ const generateRestaurants = async (ownerList, count = 10) => {
             restaurants.push({
                 name: `${faker.company.name()} ${faker.helpers.arrayElement(['Kitchen', 'Bistro', 'Grill', 'Cafe', 'Diner'])}`,
                 description: faker.lorem.sentences(2),
+                imageSrc: 'http://127.0.0.1:4200/cdn/shaw.png',
                 location: {
                     street: faker.location.streetAddress(),
                     city: faker.location.city(),
