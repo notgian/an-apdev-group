@@ -5,6 +5,7 @@ const bcrpyt = require('bcrypt')
 const connectDB = require('./dbconnect')
 const User = require('./schema_models/userSchema.js');
 const Restaurant = require('./schema_models/restaurantSchema.js');
+const Reviews = require('./schema_models/reviewSchema.js');
 
 const generateUsers = async (count = 50) => {
     console.log('Generating new users')
@@ -29,6 +30,8 @@ const generateUsers = async (count = 50) => {
 
         await User.insertMany(users);
         console.log(`Successfully created ${count} users!`);
+        
+        return users
 
     } catch (error) {
         console.error('Error generating users: ', error);
@@ -78,13 +81,6 @@ const generateRestaurants = async (ownerList, count = 10) => {
             const minPrice = parseFloat(faker.commerce.price({ min: 80, max: 400 }));
             const maxPrice = parseFloat(faker.commerce.price({ min: Math.floor(minPrice * 1.5), max: 900 }));
 
-            const qry = User.find({username: ownerList[i].username })
-                .select('_id')
-                .lean();
-            
-            const ownerId = await qry.exec();
-            // console.log(ownerId[0]._id);
-
             restaurants.push({
                 name: `${faker.company.name()} ${faker.helpers.arrayElement(['Kitchen', 'Bistro', 'Grill', 'Cafe', 'Diner'])}`,
                 description: faker.lorem.sentences(2),
@@ -94,7 +90,7 @@ const generateRestaurants = async (ownerList, count = 10) => {
                     province: faker.location.state(),
                     zipCode: faker.location.zipCode()
                 },
-                ownerId: ownerId[0]._id,
+                ownerId: ownerList[i]._id,
                 priceRange: {
                     min: minPrice,
                     max: maxPrice
@@ -104,21 +100,98 @@ const generateRestaurants = async (ownerList, count = 10) => {
 
         await Restaurant.insertMany(restaurants);
         console.log(`Successfully created ${count} restaurants!`);
+
+        return restaurants
     }
     catch (error) {
         console.error('Error generating restaurants: ', error);
     }
 }
 
+// Must be run ONLY once users, owners, and restaurants are created
+const generateReviews = async (users, restaurants, count = 10) => {
+    console.log(`Generating ${count} reviews`)
+    try { 
+        await Reviews.deleteMany({});
+        console.log('Deleted old reviews')
+
+        const reviews = [];
+
+        let i = 0;
+        while (i < count) {
+            const randomUser = faker.helpers.arrayElement(users);
+            const randomRestaurant = faker.helpers.arrayElement(restaurants);
+        
+            const isDuplicate = reviews.some(review =>
+                review.userId.toString() === randomUser._id.toString() && 
+                review.restaurantId.toString() === randomRestaurant._id.toString()
+            );
+            if (isDuplicate) 
+                continue; 
+
+            const hasResponse = Math.random() < 0.3;
+            const reviewDate = faker.date.past();
+
+            const review = {
+                userId: randomUser._id || randomUser,
+                restaurantId: randomRestaurant._id || randomRestaurant,
+                rating: faker.number.int({ min: 1, max: 5 }),
+                comment: faker.lorem.paragraph(),
+                media: Array.from({ length: faker.number.int({ min: 0, max: 3 }) }, 
+                    () => faker.image.url({ category: 'food' })),
+                
+                updatedAt: reviewDate,
+                edited: faker.datatype.boolean(0.1),
+                
+                ownerResponse: hasResponse ? {
+                    ownerId: randomRestaurant.ownerId || faker.database.mongodbObjectId(),
+                    comment: faker.lorem.sentences(2),
+                    respondedAt: faker.date.between({ from: reviewDate, to: new Date() }),
+                    updatedAt: new Date()
+                } : undefined
+            };
+
+            reviews.push(review);
+
+            i++;
+        }
+
+        await Reviews.insertMany(reviews);
+        console.log(`Successfully created ${count} reviews!`);
+
+        return reviews;
+
+    }
+
+    catch (error) {
+        console.error('Error generating reviews: ', error);
+    }
+
+};
+
 const generateData = async () => {
     console.log('Connecting to database...')
     const userCount = 50;
     const rstCount = 10;
+    const reviewCount = 30;
 
     await connectDB()
     await generateUsers(userCount) 
-    const owners = await generateOwners(rstCount)
+    const usrqry = User.find({})
+        .limit(userCount);
+    const users = await usrqry.exec();
+
+    await generateOwners(rstCount)
+    const ownqry = User.find({})
+        .skip(userCount)
+        .limit(rstCount);
+    const owners = await ownqry.exec();
+
     await generateRestaurants(owners, rstCount)
+    const rstqry = Restaurant.find({})
+    const restaurants = await rstqry.exec();
+
+    await generateReviews(users, restaurants, reviewCount);
 
     process.exit(0)
 }
