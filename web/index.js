@@ -85,10 +85,12 @@ app.get('/establishments', async (req, res) => {
         ],
         js: [
             'js/script.js'
-        ]
+        ],
+        searchBar: true,
+        loginContainer: true
     }
     
-    res.render('index.hbs', renderData )
+    res.render('establishments.hbs', renderData )
 });
 
 app.get('/signup', async (req, res) => {

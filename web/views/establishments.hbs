@@ -9,22 +9,23 @@
         {{#each establishments}}
             <div class="card">
                 <div class="card-left">
-                    <img src="{{establishment.image}}" alt="{{establishment.name}}" class="card-img">
+                    <img src="{{this.image}}" alt="[{{this.name}} | establishment image]" class="card-img">
                     <div class="card-content">
-                        <h3>{{establishment.name}}</h3>
-                        <p><span class="stars">{{establishment.rating}}</span></p>
-                        <p>{{establishment.category}} • {{establishment.location}}</p>
-                        <p>{{establishment.price}}</p>
+                        <h3>{{this.name}}</h3>
+                        <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
+                        <p>Food • {{this.location.city}}</p> {{! NOTE/TODO: Restaurants currently have no categories. }}
+                        <p>₱{{this.priceRange.min}} - ₱{{this.priceRange.max}}</p>
                     </div>
                 </div>
 
-                <div class="card-right">
-                    <h4>Recent Reviews</h4>
-                        {{#each (slice establishment.reviews 0 3)}}
-                            <p>"{{this}}"</p>
-                        {{/each}}
-                    <button><a href="/establishment/{{establishment.name}}">Read more</a></button>
-                </div>
+                {{! I suggest not keeping this ngl just make them open the page instead to reduce the amount of api requests needed (reviews are not stored in the establishment and are stored in a separate document) }}
+                {{!-- <div class="card-right"> --}}
+                {{!--     <h4>Recent Reviews</h4> --}}
+                {{!--         {{#each (slice establishment.reviews 0 3)}} --}}
+                {{!--             <p>"{{this}}"</p> --}}
+                {{!--         {{/each}} --}}
+                {{!--     <button><a href="/establishment/{{establishment.name}}">Read more</a></button> --}}
+                {{!-- </div> --}}
             </div>
         {{/each}}
     </div>
