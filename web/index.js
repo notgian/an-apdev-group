@@ -64,9 +64,29 @@ app.get('/', async (req, res) => {
     res.render('index.hbs', renderData )
 })
 
-app.get('/profile')
-// app.get('/profile/:id')
+app.get('/establishments', async (req, res) => {
+    res.send('Page for establishments. Not yet implemented.')
+});
 
+app.get('/signup', async (req, res) => {
+    res.send('Page for signup. Not yet implemented.')
+});
+
+app.get('/login', async (req, res) => {
+    res.send('Page for login. Not yet implemented.')
+})
+
+app.get('/profile', async (req, res) => {
+    res.send('Page for profile(current user profile). Not yet implemented.')
+})
+
+app.get('/profile/edit', async (req, res) => {
+    res.send('Page for edit profile(current user profile). Not yet implemented.')
+})
+
+app.get('/profile/:id', async (req, res) => {
+    res.send('Page for profile(given id of user). Not yet implemented.')
+})
 
 app.use( (req, res, next) => {
     // Replace with 404 page

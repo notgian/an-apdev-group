@@ -68,16 +68,14 @@ app/
 └── README.md
 ```
 
-## Running the development build
-Using the command line:
-```
-docker compose -f "compose-dev.yaml" up --build --remove-orphans
-```
-To close the containers:
+## Generating Database Data
+There is a custom script that can generate data that can be run from w/in the docker container. Use the following command to run it:
 
+```shell
+docker exec -it express-api npm run datagen
 ```
-docker compose -f "compose-dev.yaml" down
-```
+
+Note that in its current state, not all numbers and data are realistic, which will be fixed in a future iteration of the script once it can use the API endpoints too.
 
 ### Note about the docker method
 The docker method that this repo is using right now causes the node modules to be *completely reinstalled* every single time you run it. This is kind of essential to make sure that our local files don't screw with it. With this in mind, this means that **it may not be possible to run the applications using the docker method when you are not connected to the internet**.
