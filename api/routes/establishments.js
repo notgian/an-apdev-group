@@ -6,18 +6,19 @@ const httpStatus = require('http-status-codes').StatusCodes
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/establishments
 
-// const Establishment = require('../models/Establishment');
+const Restaurant = require('../schema_models/restaurantSchema.js')
+const Reviews = require('../schema_models/reviewSchema.js')
 
 // GET Establishments
 router.get('/', async (req, res) => {
     var OFFSET = 0;
     var COUNT = 20;
-    var ORDERBY = 'name';
+    var ORDERBY = 'createDate';
 
     const orderbyValues = [
         'name',
+        'createDate',
         'rating',
-        'category', 
     ];
 
     if ('offset' in req.query) {
@@ -27,7 +28,16 @@ router.get('/', async (req, res) => {
         else {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: "Malformed Query. The offset parameter must be a valid number.",
+                message: "Malformed Query. The offset parameter must be a valid number.",
+                data: null
+            });
+            return;
+        }
+
+        if (OFFSET < 0) {
+            res.send({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The offset parameter must be greater than 0.",
                 data: null
             });
             return;
@@ -40,7 +50,16 @@ router.get('/', async (req, res) => {
         else {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: "Malformed Query. The count parameter must be a valid number.",
+                message: "Malformed Query. The count parameter must be a valid number.",
+                data: null
+            });
+            return;
+        }
+
+        if (COUNT < 1) {
+            res.send({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The count parameter must be greater than 1.",
                 data: null
             });
             return;
@@ -53,21 +72,32 @@ router.get('/', async (req, res) => {
         else {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: `Malformed Query. The orderby value '${order}' is invalid.`,
+                message: `Malformed Query. The orderby value '${order}' is invalid.`,
                 data: null
             });
             return;
         }
     }
 
-    // Query for the establishments with the parameters
-    // Insert code here
-    
-    // Send the query
+    let query = Restaurant.find({})
+        .skip(OFFSET)       
+        .limit(COUNT)
+        .lean();
+   
+    if (ORDERBY == 'createDate') 
+        query.sort({createdAt: -1})
+    else if (ORDERBY == 'name') 
+        query.sort({username: 1})
+    else if (ORDERBY == 'rating') 
+        query.sort({avgRating: 1})
+    else
+        query.sort({createdAt: -1})
+    let foundRstrs = await query.exec()
+
     res.send({
         status: httpStatus.OK,
-        messages: "OK",
-        data: ["will include data here later"] // TODO: Replace this with the result of the query
+        message: "OK",
+        data: foundRstrs
     })
 });
 

@@ -14,11 +14,13 @@ connectDB();
 
 // Import routes
 const userRoutes = require('./routes/users.js')
+const restaurantRoutes = require('./routes/establishments.js')
 
 // Routing for all API v1 stuff
-const apiRouterV1 = express.Router()
-apiRouterV1.use('/users', userRoutes)
-app.use('/api/v1', apiRouterV1) 
+const apiRouterV1 = express.Router();
+apiRouterV1.use('/users', userRoutes);
+apiRouterV1.use('/establishments', restaurantRoutes);
+app.use('/api/v1', apiRouterV1);
 // apiRouterV1.use() ...
 
 
