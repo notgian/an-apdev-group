@@ -112,8 +112,6 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const userId = req.params.id;
 
-    // Testing ID for Cynthia_Schaden: 69a57b8a5c5c18d5e7f5dd60
-    let userObjId = undefined
     try {
         new mongoose.Types.ObjectId(userId)
     }
@@ -265,8 +263,10 @@ router.patch("/:id", async (req, res) => {
 
 // TODO GET REVIEWS BY USER
 router.get("/reviews/:id", async (req, res) => {
-    // Find user first
     var userFound = true
+    // Find user first
+    
+        
     if (!userFound) {
         res.send({
             status: httpStatus.NOT_FOUND,
@@ -300,7 +300,6 @@ router.get("/reviews/:id", async (req, res) => {
             data: null
         }) ;
     }
-
 });
 
 // TODO MARK HELPFUL
