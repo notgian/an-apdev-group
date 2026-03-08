@@ -1,9 +1,11 @@
 const express = require('express');
-const router = express.Router();
 const qs = require('node:querystring'); 
 const httpStatus = require('http-status-codes').StatusCodes
-const User = require('../schema_models/userSchema.js');
+const bcrypt = require('bcrypt')
 const { default: mongoose } = require('mongoose');
+
+const router = express.Router();
+const User = require('../schema_models/userSchema.js');
 
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/users
@@ -110,7 +112,6 @@ router.get('/:id', async (req, res) => {
     const userId = req.params.id;
 
     // Testing ID for Cynthia_Schaden: 69a57b8a5c5c18d5e7f5dd60
-    
     let userObjId = undefined
     try {
         new mongoose.Types.ObjectId(userId)
@@ -148,26 +149,72 @@ router.get('/:id', async (req, res) => {
 
 // POST to create a new user
 router.post('/', async (req, res) => {
-    // const name = req.body.name
+    const username = req.body.username || false
+    const password = req.body.password || false
+    const description = ''
+    const role = 'user'
 
-    var userCreated = true
-
-    var errorCode = httpStatus.BAD_REQUEST // would only be set if error occurs
-    var errorMessage = "Request format is invalid. Please try again."  // same as above
-
-    // 200 success, 400 malformed request, 409 for conflict (i.e. email/username), 422 for specia business rules
-    if (userCreated) 
+    if (!username || !password) {
+        let missing = ''
+        if (!username && !password)
+            missing = 'username & password'
+        else if (!username)
+            missing = 'username'
+        else if (!password)
+            missing = 'password'
         res.send({
-            status: httpStatus.CREATED,
-            messages: `User successfully created.`,
-            data: "return the userdata here too"
-        });
-    else
-        res.send({
-            status: errorCode,
-            messages: errorMessage,
+            status: httpStatus.BAD_REQUEST,
+            messages: `Missing fields: ${missing}`,
             data: null
         });
+        return
+    }
+
+    // Check for username conflicts
+    let userCheck = await User.find({username:username})
+    if (userCheck.length > 0) {
+        res.send({
+            status: httpStatus.CONFLICT,
+            messages: `Username ${username} is already in use`,
+            data: null
+        });
+        return;
+    }
+
+    // 422 for special business rules
+    // not putting anything here, can add if needed but 
+    // we don't have any business rules for this I think
+    
+    // create user here 
+    const saltRounds = 10;
+    const hashedPass = bcrypt.hashSync(password, saltRounds);
+    try {
+        await User.create({
+            username: username,
+            password: hashedPass,
+            description: description,
+            role: role
+        });     
+        
+        let query = User.find({username: username})
+            .select('-password')
+            .lean();
+
+        const createdUser = await query.exec()
+
+        res.send({
+            status: httpStatus.CREATED,
+            messages: 'User created successfully.',
+            data: createdUser
+        });
+    }
+    catch (err) {
+        res.send({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            messages: `An error was encountered in creating the user. ${err.message}`,
+            data: null
+        });
+    }
 
 });
 

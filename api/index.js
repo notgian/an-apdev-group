@@ -6,6 +6,7 @@ const connectDB = require('./dbconnect')
 
 const port = process.env.API_PORT
 const app = express()
+app.use(express.json())
 
 
 // Initializes and caches the connection

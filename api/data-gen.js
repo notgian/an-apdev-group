@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { faker } = require('@faker-js/faker');
+const bcrpyt = require('bcrypt')
 
 const connectDB = require('./dbconnect')
 const User = require('./schema_models/userSchema.js');
@@ -9,12 +10,16 @@ const generateUsers = async (count = 50) => {
     try {
         await User.deleteMany({});
         console.log('Old users cleared.');
+        
+        let password = 'password'
+        let saltRounds = 10;
 
         const users = [];
         for (let i = 0; i < count; i++) {
+            let hashedPass = bcrpyt.hashSync(password, saltRounds)
             users.push({
                 username: faker.internet.username(),
-                password: 'password',
+                password: hashedPass,
                 avatar: faker.image.avatar(),
                 description: faker.person.bio(),
                 role: faker.helpers.arrayElement(['user', 'owner']),
