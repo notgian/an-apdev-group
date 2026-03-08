@@ -10,6 +10,10 @@ const restaurantSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    imageSrc: {
+        type: String,
+        required: true
+    },
     // WARNING: requires validation on the APPLICATION LEVEL
     // No checks can be added here w/o connecting to and 
     // accessing the DB from here so yeah ._.
