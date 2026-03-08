@@ -174,6 +174,7 @@ router.get("/reviews/:id", async (req, res) => {
     }
 });
 
+// Get establishment reviews
 // POST to create a new establishment
 // Don't really need as it's not part of specs
 

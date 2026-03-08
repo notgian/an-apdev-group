@@ -263,11 +263,49 @@ router.patch("/:id", async (req, res) => {
 
 // TODO GET REVIEWS BY USER
 router.get("/reviews/:id", async (req, res) => {
-    var userFound = true
-    // Find user first
-    
-        
-    if (!userFound) {
+    const userId = req.params.id;
+
+    try {
+        new mongoose.Types.ObjectId(userId)
+    }
+    catch (err) {
+        res.send({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+    let query = User.find({_id:userId})
+        .select('-password')
+        .lean();
+
+    const foundUser = await query.exec()
+
+    if (foundUser.length > 0) {
+        let qry = {userId: req.params.id}
+        // OPTIONAL restaurant filter
+        if ('rstid' in req.query) {
+            qry['restaurantId'] = req.query.rstid;
+        }
+        // Find and return their reviews
+        try {
+            const reviews = await Reviews.find(qry).lean()
+
+            res.send({
+                status: httpStatus.OK,
+                message: `OK`,
+                data: reviews
+            }) ;
+        } 
+        catch (err) {
+            res.send({
+                status: httpStatus.INTERNAL_SERVER_ERROR,
+                message: `Could not fetch user reviews ${err.message}`,
+                data: null
+            }) ;
+        }
+    } else {
         res.send({
             status: httpStatus.NOT_FOUND,
             message: `The user does not exist!`,
@@ -275,31 +313,7 @@ router.get("/reviews/:id", async (req, res) => {
         }) ;
         return;
     }
-
-    let qry = {userId: req.params.id}
-
-    // OPTIONAL restaurant filter
-    if ('rstid' in req.query) {
-        qry['restaurantId'] = req.query.rstid;
-    }
-
-    // Find and return their reviews
-    try {
-        const reviews = await Reviews.find(qry).lean()
-
-        res.send({
-            status: httpStatus.OK,
-            message: `OK`,
-            data: reviews
-        }) ;
-    } 
-    catch (err) {
-        res.send({
-            status: httpStatus.INTERNAL_SERVER_ERROR,
-            message: `Could not fetch user reviews ${err.message}`,
-            data: null
-        }) ;
-    }
+    var userFound = true
 });
 
 // TODO MARK HELPFUL
