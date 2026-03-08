@@ -15,29 +15,29 @@
     </head>
     <body>
         <header class="main-header">
-        <div class="logo">6-7-Ate-9</div>
-        <nav class="nav-links">
-            <a href="/">Home</a>
-            <a href="/establishments">Establishments</a>
-            <a href="/profile">Profile</a>
-        </nav>
+            <div class="logo">6-7-Ate-9</div>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/establishments">Establishments</a>
+                <a href="/profile">Profile</a>
+            </nav>
 
-        <!-- for pages with search bar and login container -->
-        {{#if searchBar}}
-            <div class="search-bar-container">
-            <form action="/search" method="get">
-                <input type="text" name="query" placeholder="Looking for...">
-                <button type="submit" class="search-btn">Search</button>
-            </form>
-            </div>
-        {{/if}}
+            <!-- for pages with search bar and login container -->
+            {{#if searchBar}}
+                <div class="search-bar-container">
+                <form action="/search" method="get">
+                    <input type="text" name="query" placeholder="Looking for...">
+                    <button type="submit" class="search-btn">Search</button>
+                </form>
+                </div>
+            {{/if}}
 
-        {{#if loginContainer}}
-            <div class="login-container">
-            <a href="/login">Login</a>
-            <a href="/signup">Sign Up</a>
-            </div>
-        {{/if}}
+            {{#if loginContainer}}
+                <div class="login-container">
+                    <a href="/login" class="login-btn">Log In</a>
+                    <a href="/signup" class="signup-btn">Sign Up</a>
+                </div>
+            {{/if}}
         </header>
 
         <!-- Main content will be injected here -->

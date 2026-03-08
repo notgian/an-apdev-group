@@ -39,7 +39,6 @@ app.use(express.static('./public'));
 // Homepage
 app.get('/', async (req, res) => {
     let rstrreq = (await axios.get(API_URL+'establishments'));
-
     let establishments;
     if (rstrreq.status != 200)
         establishments = new Array();
@@ -58,14 +57,38 @@ app.get('/', async (req, res) => {
         ],
         js: [
             'js/script.js'
-        ]
+        ],
+        searchBar: true,
+        loginContainer: true
     }
     
     res.render('index.hbs', renderData )
 })
 
 app.get('/establishments', async (req, res) => {
-    res.send('Page for establishments. Not yet implemented.')
+    let rstrreq = (await axios.get(API_URL+'establishments'));
+    let establishments;
+    if (rstrreq.status != 200)
+        establishments = new Array();
+    else if (rstrreq.data.status != 200)
+        establishments = new Array();
+    else {
+        establishments = rstrreq.data.data;
+    }
+
+    let renderData = {
+        title: '6-7-ate-9 | Establishments',
+        establishments: establishments,
+        css: [
+            'css/style.css',
+            'css/home.css'
+        ],
+        js: [
+            'js/script.js'
+        ]
+    }
+    
+    res.render('index.hbs', renderData )
 });
 
 app.get('/signup', async (req, res) => {
