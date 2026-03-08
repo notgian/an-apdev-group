@@ -15,14 +15,15 @@ connectDB();
 // Import routes
 const userRoutes = require('./routes/users.js')
 const restaurantRoutes = require('./routes/establishments.js')
+const cdnRoutes = require('./routes/cdn.js')
 
 // Routing for all API v1 stuff
 const apiRouterV1 = express.Router();
 apiRouterV1.use('/users', userRoutes);
 apiRouterV1.use('/establishments', restaurantRoutes);
 app.use('/api/v1', apiRouterV1);
-// apiRouterV1.use() ...
 
+app.use('/cdn', cdnRoutes)
 
 // Manual routing of stuff here if you want something to happen in the root route of the server ig
 app.use( ( req, res, next ) => {

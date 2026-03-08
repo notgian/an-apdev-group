@@ -40,6 +40,7 @@ services:
       - ${API_PORT}:${API_PORT}
     volumes:
       - ./api/:/app/api
+      - ./data/media:/app/data/media
       - /app/api/node_modules
     networks:
       - api-network
