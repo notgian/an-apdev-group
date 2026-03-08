@@ -6,6 +6,7 @@ const { default: mongoose } = require('mongoose');
 
 const router = express.Router();
 const User = require('../schema_models/userSchema.js');
+const Reviews = require('../schema_models/reviewSchema.js');
 
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/users
@@ -31,7 +32,7 @@ router.get('/', async (req, res) => {
         else {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: "Malformed Query. The offset parameter must be a valid number.",
+                message: "Malformed Query. The offset parameter must be a valid number.",
                 data: null
             });
             return;
@@ -40,7 +41,7 @@ router.get('/', async (req, res) => {
         if (OFFSET < 0) {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: "Malformed Query. The offset parameter must be greater than 0.",
+                message: "Malformed Query. The offset parameter must be greater than 0.",
                 data: null
             });
             return;
@@ -53,7 +54,7 @@ router.get('/', async (req, res) => {
         else {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: "Malformed Query. The count parameter must be a valid number.",
+                message: "Malformed Query. The count parameter must be a valid number.",
                 data: null
             });
             return;
@@ -62,7 +63,7 @@ router.get('/', async (req, res) => {
         if (COUNT < 1) {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: "Malformed Query. The count parameter must be greater than 1.",
+                message: "Malformed Query. The count parameter must be greater than 1.",
                 data: null
             });
             return;
@@ -75,7 +76,7 @@ router.get('/', async (req, res) => {
         else {
             res.send({
                 status: httpStatus.BAD_REQUEST,
-                messages: `Malformed Query. The orderby value '${order}' is invalid.`,
+                message: `Malformed Query. The orderby value '${order}' is invalid.`,
                 data: null
             });
             return;
@@ -101,7 +102,7 @@ router.get('/', async (req, res) => {
 
     res.send({
         status: httpStatus.OK,
-        messages: "OK",
+        message: "OK",
         data: foundUsers 
 
     })
@@ -119,7 +120,7 @@ router.get('/:id', async (req, res) => {
     catch (err) {
         res.send({
             status: httpStatus.BAD_REQUEST,
-            messages: `Invalid ID format: ${err.message}`,
+            message: `Invalid ID format: ${err.message}`,
             data: null
         });
     }
@@ -133,14 +134,14 @@ router.get('/:id', async (req, res) => {
     if (foundUser.length > 0) {
         res.send({
             status: httpStatus.OK,
-            messages: "OK",
+            message: "OK",
             data: foundUser
         });
     } 
     else {
         res.send({
             status: httpStatus.NOT_FOUND,
-            messages: `User with id '${userId}' not found.`,
+            message: `User with id '${userId}' not found.`,
             data: null
         });
     }
@@ -164,7 +165,7 @@ router.post('/', async (req, res) => {
             missing = 'password'
         res.send({
             status: httpStatus.BAD_REQUEST,
-            messages: `Missing fields: ${missing}`,
+            message: `Missing fields: ${missing}`,
             data: null
         });
         return
@@ -175,7 +176,7 @@ router.post('/', async (req, res) => {
     if (userCheck.length > 0) {
         res.send({
             status: httpStatus.CONFLICT,
-            messages: `Username ${username} is already in use`,
+            message: `Username ${username} is already in use`,
             data: null
         });
         return;
@@ -204,14 +205,14 @@ router.post('/', async (req, res) => {
 
         res.send({
             status: httpStatus.CREATED,
-            messages: 'User created successfully.',
+            message: 'User created successfully.',
             data: createdUser
         });
     }
     catch (err) {
         res.send({
             status: httpStatus.INTERNAL_SERVER_ERROR,
-            messages: `An error was encountered in creating the user. ${err.message}`,
+            message: `An error was encountered in creating the user. ${err.message}`,
             data: null
         });
     }
@@ -219,7 +220,7 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH to modify user data
-// Requires authentication tokens
+// TODO: Requires authentication tokens
 router.patch("/:id", async (req, res) => {
     // Find user first
     var userFound = true
@@ -227,7 +228,7 @@ router.patch("/:id", async (req, res) => {
     if (!userFound) {
         res.send({
             status: httpStatus.NOT_FOUND,
-            messages: `The user with the id ${req.params.id} cannot be found!`,
+            message: `The user with the id ${req.params.id} cannot be found!`,
             data: null
         }) ;
         return;
@@ -260,16 +261,55 @@ router.patch("/:id", async (req, res) => {
         data: null
     })
 
-})
+});
 
 // TODO GET REVIEWS BY USER
-//
+router.get("/reviews/:id", async (req, res) => {
+    // Find user first
+    var userFound = true
+    if (!userFound) {
+        res.send({
+            status: httpStatus.NOT_FOUND,
+            message: `The user does not exist!`,
+            data: null
+        }) ;
+        return;
+    }
+
+    // Find and return their reviews
+    try {
+        const reviews = await Reviews.find({userId: req.params.id}).lean()
+
+        res.send({
+            status: httpStatus.OK,
+            message: `OK`,
+            data: reviews
+        }) ;
+    } 
+    catch (err) {
+        res.send({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not fetch user reviews ${err.message}`,
+            data: null
+        }) ;
+    }
+
+});
+
 // TODO MARK HELPFUL
+// TODO: Requires authentication tokens
+
 // TODO MARK UNHELPFUL
+// TODO: Requires authentication tokens
+
 // TODO UNMARK
+// TODO: Requires authentication tokens
 
 // TODO FOLLOW
+// TODO: Requires authentication tokens
+
 // TODO UNFOLLOW
+// TODO: Requires authentication tokens
 
 // Batch get info of multiple users
 // router.post( '/batch',async (req, res) => {
