@@ -132,6 +132,30 @@ const generateReviews = async (users, restaurants, count = 10) => {
             const hasResponse = Math.random() < 0.3;
             const reviewDate = faker.date.past();
 
+            const helpfulCount = Math.round(Math.random() * users.length);
+            const unhelpfulCount = Math.round(Math.random() * (users.length - helpfulCount));
+
+            let helpful = []
+            let unhelpful = []
+
+            let x = 0;
+            while (x < helpfulCount) {
+                let usr = users[Math.floor(Math.random()*users.length)];
+                if (usr._id in helpful)
+                    continue;
+                helpful.push(usr._id);
+                x++
+            }
+            
+            x = 0;
+            while (x < unhelpfulCount) {
+                let usr = users[Math.floor(Math.random()*users.length)];
+                if (usr._id in helpful || usr._id in unhelpful)
+                    continue;
+                unhelpful.push(usr._id);
+                x++
+            }
+
             const review = {
                 userId: randomUser._id || randomUser,
                 restaurantId: randomRestaurant._id || randomRestaurant,
@@ -142,6 +166,12 @@ const generateReviews = async (users, restaurants, count = 10) => {
                 
                 updatedAt: reviewDate,
                 edited: faker.datatype.boolean(0.1),
+
+                helpfulVotes: helpful,
+                unhelpfulVotes: unhelpful, 
+
+                helpfulCount: helpfulCount,
+                unhelpfulCount: unhelpfulCount,
                 
                 ownerResponse: hasResponse ? {
                     ownerId: randomRestaurant.ownerId || faker.database.mongodbObjectId(),
@@ -173,7 +203,7 @@ const generateData = async () => {
     console.log('Connecting to database...')
     const userCount = 50;
     const rstCount = 10;
-    const reviewCount = 30;
+    const reviewCount = Math.round(userCount*rstCount / 2);
 
     await connectDB()
     await generateUsers(userCount) 

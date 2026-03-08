@@ -29,6 +29,13 @@ const reviewSchema = new mongoose.Schema({
 
     updatedAt: { type:  Date, default: Date.now },
     edited: { type: Boolean, default: false },
+    
+    helpfulVotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    unhelpfulVotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    
+    // Must be manually updated when adding/removing helpful or unhelpful votes
+    helpfulCount: { type: Number, default: 0 },
+    unhelpfulCount: { type: Number, default: 0 },
 
     // Handling of owner response timestamps is different
     ownerResponse: {
