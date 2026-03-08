@@ -159,19 +159,37 @@ router.get("/reviews/:id", async (req, res) => {
     const foundRstr = await query.exec()
 
     if (foundRstr.length > 0) {
-        res.send({
-            status: httpStatus.OK,
-            message: "OK",
-            data: foundRstr
-        });
-    } 
-    else {
+        let qry = {restaurantId: req.params.id}
+        // OPTIONAL user filter
+        if ('user' in req.query) {
+            qry['userId'] = req.query.user;
+        }
+        // Find and return the reviews
+        try {
+            const reviews = await Reviews.find(qry).lean()
+
+            res.send({
+                status: httpStatus.OK,
+                message: `OK`,
+                data: reviews
+            }) ;
+        } 
+        catch (err) {
+            res.send({
+                status: httpStatus.INTERNAL_SERVER_ERROR,
+                message: `Could not fetch establishment reviews ${err.message}`,
+                data: null
+            }) ;
+        }
+    } else {
         res.send({
             status: httpStatus.NOT_FOUND,
-            message: `Establishment with id '${rstrId}' not found.`,
+            message: `The establishment does not exist!`,
             data: null
-        });
+        }) ;
+        return;
     }
+    var userFound = true
 });
 
 // Get establishment reviews
