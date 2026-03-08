@@ -1,0 +1,73 @@
+/* Container to center the card on the screen */
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
+    padding: 20px; 
+    box-shadow: 3px 7px 18px rgba(240, 7, 108, 0.1);
+    text-align: center;
+    max-width: 5000px;
+}
+
+/* The Card Styling */
+.auth-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+h2 { color: #d3237a; margin-bottom: 10px; }
+
+.subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
+
+/* Input Styling */
+.input-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+input[type="text"], input[type="password"], textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+}
+
+/* Specific Checkbox Styling */
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 15px 0;
+    font-size: 13px;
+    color: #555;
+}
+
+/* The Main Pink Button */
+.btn-main {
+    width: 100%;
+    background-color: #d3237a;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-main:hover {
+    background-color: #ad1457;
+}

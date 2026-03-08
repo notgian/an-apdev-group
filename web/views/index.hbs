@@ -1,1 +1,34 @@
-<h1> Hello World!</h1>
+<header class="main-header">
+    <div class="logo">6-7-Ate-9</div>
+    <nav class="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="establishments.html">Establishments</a>
+        <a href="profile.html">Profile</a>
+    </nav>
+    <div class="login-container">
+        <a href="signup.html" class="signup-btn">Sign Up</a>
+        <a href="login.html" class="login-btn">Log In</a>
+    </div>
+</header>
+
+<section class="search-section">
+    <div class="search-bar-container">
+        <input type="text" placeholder="Looking for..." id="search-input">
+        <button type="button" class="search-btn" onclick="redirectSearch()">Search</button>
+    </div>
+</section>
+
+<main class="content-container">
+    <h2>TRENDING ESTABLISHMENTS</h2>
+    <div id="establishment-grid" class="grid">
+        {{#each establishments}}
+            <div class="card">
+                <h3>{{this.name}}</h3>
+                <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
+                <p>Food • {{this.location.city}}</p> {{! NOTE/TODO: Restaurants currently have no categories. }}
+                <p>₱{{this.priceRange.min}} - ₱{{this.priceRange.max}}</p>
+                <button onclick="goToEstablishment('${normalizeName(item.name)}')">Read Reviews</button>
+            </div>
+        {{/each}}
+    </div>
+</main>
