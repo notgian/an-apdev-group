@@ -10,6 +10,20 @@ const restaurantSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    // WARNING: requires validation on the APPLICATION LEVEL
+    // No checks can be added here w/o connecting to and 
+    // accessing the DB from here so yeah ._.
+    ownerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User', 
+        required: true
+    },
+    avgRating: {
+        type: Number,
+        min: -1,  // -1 means no ratings or no calculated avg ratings
+        max: 5.0,
+        default: -1
+    },
     location: {
         street: { 
             type: String, 

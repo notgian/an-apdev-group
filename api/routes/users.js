@@ -262,29 +262,38 @@ router.patch("/:id", async (req, res) => {
 
 })
 
+// TODO GET REVIEWS BY USER
+//
+// TODO MARK HELPFUL
+// TODO MARK UNHELPFUL
+// TODO UNMARK
+
+// TODO FOLLOW
+// TODO UNFOLLOW
+
 // Batch get info of multiple users
-router.post( '/batch',async (req, res) => {
-    const { ids, fields } = req.body;
-
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return res.send(
-            { 
-                status: httpStatus.BAD_REQUEST,
-                message: "Please provide an array of User IDs." 
-            });
-    }
-
-    // Get the list of users from db
-    // TODO: this
-    return res.send({
-        status: httpStatus.OK,
-        message: "OK",
-        data: {
-            count: 0,
-            users: ["Will include code for this in the future once database exists"]
-        }
-    });
-});
+// router.post( '/batch',async (req, res) => {
+//     const { ids, fields } = req.body;
+//
+//     if (!ids || !Array.isArray(ids) || ids.length === 0) {
+//         return res.send(
+//             { 
+//                 status: httpStatus.BAD_REQUEST,
+//                 message: "Please provide an array of User IDs." 
+//             });
+//     }
+//
+//     // Get the list of users from db
+//     // TODO: this
+//     return res.send({
+//         status: httpStatus.OK,
+//         message: "OK",
+//         data: {
+//             count: 0,
+//             users: ["Will include code for this in the future once database exists"]
+//         }
+//     });
+// });
 
 // DELETE to delete user
 // Contemplating if we should have this because it's not a feature we NEED
