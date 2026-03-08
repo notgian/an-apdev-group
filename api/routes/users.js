@@ -276,9 +276,16 @@ router.get("/reviews/:id", async (req, res) => {
         return;
     }
 
+    let qry = {userId: req.params.id}
+
+    // OPTIONAL restaurant filter
+    if ('rstid' in req.query) {
+        qry['restaurantId'] = req.query.rstid;
+    }
+
     // Find and return their reviews
     try {
-        const reviews = await Reviews.find({userId: req.params.id}).lean()
+        const reviews = await Reviews.find(qry).lean()
 
         res.send({
             status: httpStatus.OK,
