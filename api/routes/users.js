@@ -1,12 +1,19 @@
 const express = require('express');
 const qs = require('node:querystring'); 
-const httpStatus = require('http-status-codes').StatusCodes
+const bodyParser = require('body-parser');
+const httpStatus = require('http-status-codes').StatusCodes;
 const bcrypt = require('bcrypt')
 const { default: mongoose } = require('mongoose');
+const Busboy = require('busboy');
+const FormData = require('form-data');
+const axios = require('axios');
 
 const router = express.Router();
 const User = require('../schema_models/userSchema.js');
 const Reviews = require('../schema_models/reviewSchema.js');
+
+// body parser stuffs
+const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/users
@@ -88,7 +95,7 @@ router.get('/', async (req, res) => {
         .skip(OFFSET)       
         .limit(COUNT)
         .lean();
-   
+
     if (ORDERBY == 'joindate') 
         query.sort({createdAt: -1})
     else if (ORDERBY == 'name') 
@@ -147,7 +154,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST to create a new user
-router.post('/', async (req, res) => {
+router.post('/', urlencodedParser, async (req, res) => {
     const username = req.body.username || false
     const password = req.body.password || false
     const description = ''
@@ -183,7 +190,7 @@ router.post('/', async (req, res) => {
     // 422 for special business rules
     // not putting anything here, can add if needed but 
     // we don't have any business rules for this I think
-    
+
     // create user here 
     const saltRounds = 10;
     const hashedPass = bcrypt.hashSync(password, saltRounds);
@@ -194,7 +201,7 @@ router.post('/', async (req, res) => {
             description: description,
             role: role
         });     
-        
+
         let query = User.find({username: username})
             .select('-password')
             .lean();
@@ -220,26 +227,111 @@ router.post('/', async (req, res) => {
 // PATCH to modify user data
 // TODO: Requires authentication tokens
 router.patch("/:id", async (req, res) => {
-    // Find user first
-    var userFound = true
-
-    if (!userFound) {
+    // Authenticate user here
+    // TODO If user is not authenticated, return
+    let authenticated = true;
+    if (!authenticated) {
         res.send({
-            status: httpStatus.NOT_FOUND,
-            message: `The user with the id ${req.params.id} cannot be found!`,
+            status: httpStatus.FORBIDDEN,
+            message: `You are not authorized to make this request.`,
             data: null
-        }) ;
+        });
         return;
     }
 
-    // Next, check the querystring if all fields passed are valid fields
-    let query = req.query
+    // Verify id format
+    const userId = req.params.id;
+    try {
+        new mongoose.Types.ObjectId(userId)
+    }
+    catch (err) {
+        res.send({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+        return;
+    }
+
+    // Verify user exists
+    let usrqry = User.find({_id:userId})
+        .select('-password')
+        .lean();
+    const foundUser = await usrqry.exec()
+    if (foundUser.length < 1) {
+        res.send({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id '${userId}' not found.`,
+            data: null
+        });
+        return;
+    } 
+
+    // Check if all fields passed are valid fields
     const editableFields = [
         'name',
-        'email'
-    ]
+        'desc',
+    ];
+    const editableFileField = 'avatar';
+    
+    // Image data needs to be sent to api to update the avatar
+    const imageForm = new FormData();
+    let unknownFields = [];
+    let acceptedFields = [];
 
-    for (let key of Object.keys(query)) {
+    const bb = Busboy({ headers: req.headers });
+    bb.on('field', (name, val, info) => {
+        if (name == editableFileField) {
+            if (val == "")
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: `Field ${name} is empty.`,
+                    data: null
+                });
+            acceptedFields.push(name);
+        }
+        else
+            unknownFields.push(name);
+    });
+
+    bb.on('file', (name, file, info) => {
+        const { filename, encoding, mimeType } = info;
+        if (!(mimeType in ['image/png', 'image/jpeg']))
+            return res.send({
+                status: httpStatus.BAD_REQUEST,
+                message: `Unsupported mime type '${mimeType}' of avatar image.`,
+                data: null
+            });
+        
+        if (name in editableFields) {
+            acceptedFields.push(name);
+            imageForm.append('file', file, { filename });
+        }
+        else
+            unknownFields.push(name);
+    });
+    bb.on('close', async () => {
+        if (unknownFields.length > 0) {
+            return res.send({
+                status: httpStatus.BAD_REQUEST,
+                message: `Unknown fields ${unknownFields.join(', ')}.`,
+                data: null
+            });
+        }
+
+        // try to upload file to cdn, format is 'profile-{id}', overwrite
+        const uplRes = await axios.post('http://127.0.0.1/', imageForm, {
+            headers: imageForm.getHeaders()
+        })
+
+        console.log("STATUS: uplRes.data.status")
+         
+        
+        // if upload unsuccessful, abort,}
+    });
+    req.pipe(bb);
+
+    for (let key of Object.keys(req.body)) {
         if (!editableFields.includes(key)) {
             res.send({
                 status: httpStatus.BAD_REQUEST,
@@ -316,13 +408,31 @@ router.get("/reviews/:id", async (req, res) => {
     var userFound = true
 });
 
+// TODO USER CREATES REVIEW
+// TODO: Requires authentication tokens
+
+// TODO USER UPDATES REVIEW
+// TODO: Requires authentication tokens
+
+// TODO USER DELETES REVIEW
+// TODO: Requires authentication tokens
+
+// TODO OWNER CREATES REPLY
+// TODO: Requires authentication tokens
+
+// TODO OWNER UPADTES REPLY
+// TODO: Requires authentication tokens
+
+// TODDO OWNER DELETES REPLY
+// TODO: Requires authentication tokens
+
 // TODO MARK HELPFUL
 // TODO: Requires authentication tokens
 
 // TODO MARK UNHELPFUL
 // TODO: Requires authentication tokens
 
-// TODO UNMARK
+// TODO UNMARK HELPFUL/UNHELPFUL
 // TODO: Requires authentication tokens
 
 // TODO FOLLOW
@@ -331,29 +441,32 @@ router.get("/reviews/:id", async (req, res) => {
 // TODO UNFOLLOW
 // TODO: Requires authentication tokens
 
+// TODO LOGIN
+// SHALL RETURN JWT TOKEN
+
 // Batch get info of multiple users
 // router.post( '/batch',async (req, res) => {
-//     const { ids, fields } = req.body;
-//
-//     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-//         return res.send(
-//             { 
-//                 status: httpStatus.BAD_REQUEST,
-//                 message: "Please provide an array of User IDs." 
-//             });
-//     }
-//
-//     // Get the list of users from db
-//     // TODO: this
-//     return res.send({
-//         status: httpStatus.OK,
-//         message: "OK",
-//         data: {
-//             count: 0,
-//             users: ["Will include code for this in the future once database exists"]
-//         }
-//     });
-// });
+    //     const { ids, fields } = req.body;
+    //
+        //     if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            //         return res.send(
+                //             { 
+                    //                 status: httpStatus.BAD_REQUEST,
+                    //                 message: "Please provide an array of User IDs." 
+                    //             });
+            //     }
+    //
+        //     // Get the list of users from db
+    //     // TODO: this
+    //     return res.send({
+        //         status: httpStatus.OK,
+        //         message: "OK",
+        //         data: {
+            //             count: 0,
+            //             users: ["Will include code for this in the future once database exists"]
+            //         }
+        //     });
+    // });
 
 // DELETE to delete user
 // Contemplating if we should have this because it's not a feature we NEED

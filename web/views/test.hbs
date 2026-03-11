@@ -1,0 +1,25 @@
+{{ testdata }}
+
+<div class="form-container">
+    <div class="auth-card">
+        <h2>Edit Your Profile</h2>
+        <p class="subtitle">Update your photo and bio below.</p>
+        
+        <form id="edit-profile-form" action="/test" method="POST" enctype="multipart/form-data">
+            <div class="input-group">
+                <label for="edit-desc">Update Description</label>
+                <textarea name="desc" id="edit-desc" rows="4" placeholder="Tell the community about your food adventures..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="profile-pic">Change Profile Picture</label>
+                <input name="file" type="file" id="profile-pic" accept="image/*" class="file-input">
+            </div>
+
+            <div class="auth-buttons">
+                <input type="submit"/>
+                <a href="profile.html" class="login-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

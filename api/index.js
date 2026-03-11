@@ -27,7 +27,11 @@ app.use('/cdn', cdnRoutes)
 
 // Manual routing of stuff here if you want something to happen in the root route of the server ig
 app.use( ( req, res, next ) => {
-  res.status( 404 ).sendStatus(404);
+    res.status( 404 ).send({
+        status: 404,
+        message: '404 page not found.',
+        data: null
+  });
 });
 
 app.listen(port)
