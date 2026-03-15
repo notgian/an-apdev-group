@@ -265,8 +265,6 @@ app.post('/testmarkhelpful', async (req, res) => {
             {},
             { validateStatus: () => true }
         );
-
-
         res.status(200).json(reviewRes.data);
     }
     catch (err) {
@@ -274,7 +272,22 @@ app.post('/testmarkhelpful', async (req, res) => {
     }
 });
 
+app.post('/testmarkunhelpful', async (req, res) => {
+    let usrsURL = API_URL+'users'
+    const testUserId = '69ad961e4a1d38f3c1569a3f';
+    const testReviewId = '69ad961f4a1d38f3c1569a8d';
 
+    try {
+        const reviewRes = await axios.post(`${usrsURL}/${testUserId}/unhelpful/${testReviewId}`,
+            {},
+            { validateStatus: () => true }
+        );
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.send(err);
+    }
+});
 
 app.use( (req, res, next) => {
     // Replace with 404 page
