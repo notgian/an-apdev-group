@@ -10,6 +10,7 @@ const axios = require('axios');
 const multer = require('multer')
 const fs = require('fs');
 const path = require('path');
+const bcrpyt = require('bcrypt')
 
 const router = express.Router();
 const User = require('../schema_models/userSchema.js');
@@ -1351,6 +1352,43 @@ router.post('/:userId/unmark/:reviewId', async (req, res) => {
 
 // TODO LOGIN
 // SHALL RETURN JWT TOKEN
+router.post('/login', async (req, res) => {
+    const username = req.body.username || null;
+    const password = req.body.password || null;
+
+    if (username == null || password == null)
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Username or password are missing`,
+            data: null
+        });
+
+    const foundUser = await User.findOne({username: username})
+
+    if (foundUser == null)
+        return res.status(httpStatus.UNAUTHORIZED).json({
+            status: httpStatus.UNAUTHORIZED,
+            message: 'Invalid username or password.',
+            data: null
+        });
+    
+    const passMatch = await bcrypt.compare(password, foundUser.password);
+
+    if (!passMatch)
+        return res.status(httpStatus.UNAUTHORIZED).json({
+            status: httpStatus.UNAUTHORIZED,
+            message: 'Invalid username or password.',
+            data: null
+        });
+
+    // TODO: Generate JWT token here 
+    return res.status(httpStatus.OK).json({
+        status: httpStatus.OK,
+        message: 'Login successful',
+        data: null // JWT token gets passed back here
+    });
+
+});
 
 // Batch get info of multiple users
 // router.post( '/batch',async (req, res) => {

@@ -306,6 +306,21 @@ app.post('/testunmark', async (req, res) => {
     }
 });
 
+app.post('/testlogin', async (req, res) => {
+    let usrsURL = API_URL+'users'
+
+    try {
+        const reviewRes = await axios.post(`${usrsURL}/login`,
+            {username: req.body.username, password: req.body.password},
+            { validateStatus: () => true }
+        );
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.send(err);
+    }
+})
+
 app.use( (req, res, next) => {
     // Replace with 404 page
     res.status(404).send('Error 404 Not Found!')
