@@ -8,6 +8,7 @@ const FormData = require('form-data');
 const Busboy = require('busboy');
 const multer = require('multer')
 const { PassThrough } = require('stream');
+const path = require('path');
 
 const APP_PORT = process.env.WEB_PORT;
 const API_HOSTNAME = process.env.API_HOSTNAME;
@@ -40,9 +41,9 @@ const app = express();
 app.engine('hbs', hbs.engine({extname:'hbs'}));
 app.set('view engine', 'hbs');
 app.use(express.static('./public'));
+app.use(bodyParser.urlencoded({extended: true}))
 
-// manually pass middleware
-const urlencodedParser = bodyParser.urlencoded({extended: true})
+// const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // Homepage
 app.get('/', async (req, res) => {
@@ -130,6 +131,12 @@ app.get('/test', async (req,res) => {
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/test', upload.single('file'), async (req, res) => {
+    //
+    // SUPER IMPORTANT NOTE FOR THE UPLOADING OF USER IMAGES
+    // FOR SIMPLICITY, UPLOAD THE DATA FIRST TO THE CDN THROUGH THE WEBSERVER DIRECTLY
+    // WHEN UPLOAD IS SUCCESSFUL, USE THE NEW FILE NAME AS THE AVATAR INFO.
+    // SO THE PATCH ***SHOULD*** RECEIVE A STRING INSTEAD OF SOME MULTIPART FORM DATA!!!
+    //
     let qrystr = API_URL+'users/'
 
     try {
@@ -138,8 +145,8 @@ app.post('/test', upload.single('file'), async (req, res) => {
         }
 
         const form = new FormData();
-        form.append('file', req.file.buffer, {
-            filename: req.file.originalname,
+        form.append('profile', req.file.buffer, {
+            filename: "user_id_here"+path.extname(req.file.originalname),
             contentType: req.file.mimetype,
         });
 

@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
         callback(null, MEDIA_PATH);
     },
     filename: (req, file, callback) => {
-        callback(null, `profile-${file.fieldname + path.extname(file.originalname)}` );
+        callback(null, `${file.fieldname}_${file.originalname}` );
     }
 });
 
@@ -36,6 +36,9 @@ const upload = multer({
         const filetypesRegEx = RegExp(allowedFiletypes.join('|'), 'i')
         const mimetype = filetypesRegEx.test(file.mimetype);
         const extname = filetypesRegEx.test(path.extname(file.originalname).toLowerCase());
+
+        console.log(req.method == 'POST')
+        console.log(path.join(MEDIA_PATH, file.originalname))
 
         if (mimetype && extname)
             return callback(null, true);
@@ -67,8 +70,8 @@ router.get('/:filename', (req, res) => {
     });
 });
 
-// For uploading files, does not overwrite
-router.post('/', upload.single('file'), (req, res) => {
+// For uploading profile images. Overwrites.
+router.post('/', upload.single('profile'), (req, res) => {
     console.log('cdn upload attempt!')
     try {
         if (!req.file)
@@ -101,11 +104,5 @@ router.post('/', upload.single('file'), (req, res) => {
     }
     next();
 });
-
-// For uploading files, overwrite
-router.put('/', (req, res) => {
-
-});
-
 
 module.exports = router;
