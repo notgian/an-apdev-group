@@ -1118,7 +1118,7 @@ router.post('/:userId/helpful/:reviewId', async (req, res) => {
 
     if (markedUnhelpful) {
         newUnhelpful = newUnhelpful.filter(i => i!=userId);
-        newUnhelpfulCount = newUnhelpfulCount--
+        newUnhelpfulCount--
     }
 
     try {
@@ -1211,7 +1211,7 @@ router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
 
     if (markedHelpful) {
         newHelpful = newHelpful.filter(i => i!=userId);
-        newHelpfulCount = newHelpfulCount--
+        newHelpfulCount--
     }
 
     try {
@@ -1235,17 +1235,114 @@ router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
     catch (err) {
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             status: httpStatus.INTERNAL_SERVER_ERROR,
-            message: `Could not mark review as helpful. ${err}`,
+            message: `Could not mark review as unhelpful. ${err}`,
             data: null
         });
         
     }
 })
 
-
 // TODO UNMARK HELPFUL/UNHELPFUL
 // TODO: Requires authentication tokens
+router.post('/:userId/unmark/:reviewId', async (req, res) => {
+    const userId = req.params.userId;
+    const reviewId = req.params.reviewId;
+    
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(userId);
+        new mongoose.Types.ObjectId(reviewId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
 
+    // Verify users exist
+    let queryUser = User.findOne({_id:userId})
+        .select('-password')
+        .lean();
+    let queryReview = Reviews.findOne({_id:reviewId})
+        .lean();
+
+    const foundUser = await queryUser.exec();
+    const foundReview = await queryReview.exec();
+
+    if (foundUser == null) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id ${userId} not found.`,
+            data: null
+        });
+    } 
+
+    if (foundReview == null) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Review with id ${reviewId} not found.`,
+            data: null
+        });
+    } 
+    
+
+    // get updated helpful or unhelpful counts
+    const markedHelpful = foundReview.helpfulVotes.some(id => id == userId)
+    let newHelpful = foundReview.helpfulVotes
+    let newHelpfulCount = foundReview.helpfulCount
+    if (markedHelpful) {
+        newHelpful = newHelpful.filter(i => i!=userId);
+        newHelpfulCount--
+    }
+
+    const markedUnhelpful = foundReview.unhelpfulVotes.some(id => id == userId)
+    let newUnhelpful = foundReview.unhelpfulVotes
+    let newUnhelpfulCount = foundReview.unhelpfulCount
+    if (markedUnhelpful) {
+        newUnhelpful = newUnhelpful.filter(i => i!=userId);
+        newUnhelpfulCount--
+    }
+
+    if (markedHelpful) {
+        newHelpful = newHelpful.filter(i => i!=userId);
+        newHelpfulCount = newHelpfulCount--
+    }
+
+    if (!markedHelpful && !markedUnhelpful)
+        return res.status(httpStatus.CONFLICT).json({
+            status: httpStatus.CONFLICT,
+            message: `User has not marked review either helpful nor unhelpful.`,
+            data: null
+        });
+
+    try {
+        const updatedReview = await Reviews.findOneAndUpdate({_id:reviewId}, {
+            helpfulVotes: newHelpful,
+            helpfulCount: newHelpfulCount,
+            unhelpfulVotes: newUnhelpful,
+            unhelpfulCount: newUnhelpfulCount,
+        }, {
+            new: true,
+            lean: true
+        });
+
+        return res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: `Review successfully unmarked.`,
+            data: updatedReview
+        });
+    }
+    catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not unmark review. ${err}`,
+            data: null
+        });
+        
+    }
+})
 // TODO FOLLOW
 // TODO: Requires authentication tokens
 
