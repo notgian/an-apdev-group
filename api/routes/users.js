@@ -950,12 +950,110 @@ router.put('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     });
     return res.status(httpStatus.OK).json({
         status: httpStatus.OK,
-        message: `Ower ${ownerId} responded to user ${userId} successfully`,
+        message: `Ower ${ownerId} response to user ${userId} updated successfully`,
         data: updatedReview
     });
 })
+
 // TODDO OWNER DELETES REPLY
 // TODO: Requires authentication tokens
+router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
+    const ownerId = req.params.ownerid;
+    const userId = req.params.userid;
+    
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(ownerId);
+        new mongoose.Types.ObjectId(userId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+    // Verify users exist
+    let queryOwner = User.findOne({_id:ownerId})
+        .select('-password')
+        .lean();
+    let queryUser = User.findOne({_id:userId})
+        .select('-password')
+        .lean();
+    const foundOwner = await queryOwner.exec();
+    const foundUser = await queryUser.exec();
+
+    if (foundOwner == null) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Owner user with id ${ownerId} not found.`,
+            data: null
+        });
+    } 
+    else if (foundOwner.role != 'owner') {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `User with id ${userId} is not an owner.`,
+            data: null
+        });
+    }
+    
+    if (foundUser == null) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id ${userId} not found.`,
+            data: null
+        });
+    }
+
+    // Get establishment of owner
+    const rstrqry = Restaurant.findOne({ownerId: ownerId})
+        .lean();
+    const foundRstr = await rstrqry.exec();
+    if (foundRstr == null)
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Owner ${ownerId} does not own an establishment.`,
+            data: null
+        });
+
+    // Verify review and response exist.
+    const restaurantId = foundRstr._id;
+    const reviewFilter = {
+        userId: userId,
+        restaurantId: restaurantId
+    }
+
+    const foundReview = await Reviews.findOne(reviewFilter, 'ownerResponse') 
+
+    if (foundReview == null)
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User ${userId} does not have a review on the establishment ${restaurantId}.`,
+            data: null
+        });
+    if (foundReview.ownerResponse == undefined)
+        return res.status(httpStatus.CONFLICT).json({
+            status: httpStatus.CONFLICT,
+            message: `Owner ${ownerId} does not have a response to user ${userId}`,
+            data: null
+        });
+    
+    // Update review to delete
+    const updateReview = {
+        ownerResponse: undefined
+    }
+    const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {
+        new: false,       
+        runValidators: true 
+    });
+    return res.status(httpStatus.OK).json({
+        status: httpStatus.OK,
+        message: `Ower ${ownerId} response to user ${userId} deleted successfully`,
+        data: updatedReview
+    });
+});
 
 // TODO MARK HELPFUL
 // TODO: Requires authentication tokens
