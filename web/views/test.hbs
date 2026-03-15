@@ -19,9 +19,13 @@
         <h2>Review Media Upload</h2>
         <i>not working yet...</i>
 
-        <form action="/testreviewupload" method="POST" enctype="multipart/form-data">
-            <label for="review-media">Review Media</label> <br />
-            <input name="file" type="file" id="profile-pic" accept=".jpg, .jpeg, .png, .mp4, .mov, .avi, .mkv" multiple class="file-input"> <br />
+        <form action="/testreviewpost" method="POST" enctype="multipart/form-data">
+            <label for="rating">Rating</label> <br />
+            <input name="rating" type="number" value="4"/> <br />
+            <label for="comment">Comment</label> <br />
+            <textarea name="comment">This is a comment ig.</textarea><br />
+            <label for="media">Review Media</label> <br />
+            <input name="media" type="file" id="profile-pic" accept=".jpg, .jpeg, .png, .mp4, .mov, .avi, .mkv" multiple class="file-input"> <br />
             <input type="submit"/>
         </form>
     </div>

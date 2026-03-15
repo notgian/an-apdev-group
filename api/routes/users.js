@@ -13,6 +13,7 @@ const path = require('path');
 
 const router = express.Router();
 const User = require('../schema_models/userSchema.js');
+const Restaurant = require('../schema_models/restaurantSchema.js')
 const Reviews = require('../schema_models/reviewSchema.js');
 
 // body parser stuffs
@@ -33,11 +34,33 @@ const storage = multer.diskStorage({
     }
 });
 
-const MAX_FILESIZE_MB = 5;
+const MAX_FILESIZE_AVATAR_MB = 5;
+const MAX_FILESIZE_MEDIA_MB = 25;
 
-const upload = multer({ 
+const uploadAvatar = multer({ 
     storage: storage,
-    limits: { fileSize: MAX_FILESIZE_MB * 1024 * 1024 }, 
+    limits: { fileSize: MAX_FILESIZE_AVATAR_MB * 1024 * 1024 }, 
+    fileFilter: (req, file, callback) => {
+        const allowedFiletypes = [
+            'jpeg', 'jpg',
+            'png',
+        ]
+        const filetypesRegEx = RegExp(allowedFiletypes.join('|'), 'i')
+        const mimetype = filetypesRegEx.test(file.mimetype);
+        const extname = filetypesRegEx.test(path.extname(file.originalname).toLowerCase());
+
+        console.log(req.method == 'POST')
+        console.log(path.join(MEDIA_PATH, file.originalname))
+
+        if (mimetype && extname)
+            return callback(null, true);
+        callback(new Error(`Unsupported file type. Supposed filetypes are ${allowedFiletypes.join(', ')}`), false);
+    }
+});
+
+const uploadMedia = multer({ 
+    storage: storage,
+    limits: { fileSize: MAX_FILESIZE_MEDIA_MB * 1024 * 1024 }, 
     fileFilter: (req, file, callback) => {
         const allowedFiletypes = [
             'jpeg', 'jpg',
@@ -56,11 +79,6 @@ const upload = multer({
         callback(new Error(`Unsupported file type. Supposed filetypes are ${allowedFiletypes.join(', ')}`), false);
     }
 });
-
-
-// Boilerplate code is AI generated. Will replace with actual code once db is made.
-// All routes in this file will be accessed via /api/v1/users
-
 
 // GET Users
 router.get('/', async (req, res) => {
@@ -269,7 +287,7 @@ router.post('/', urlencodedParser, async (req, res) => {
 
 // PATCH to modify user data
 // TODO: Requires authentication tokens
-router.patch("/:id", upload.single('avatar'), async (req, res) => {
+router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
     // Authenticate user here
     // TODO If user is not authenticated, return
     let authenticated = true;
@@ -416,8 +434,122 @@ router.get("/reviews/:id", async (req, res) => {
 
 // TODO USER CREATES REVIEW
 // TODO: Requires authentication tokens
+router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, res) => {
+    // lowk too lazy to search for the right solution so have this
+    async function deleteMedia() {
+        for (let file of req.files) {
+            await fs.unlink(path.join(MEDIA_PATH, file.filename), (err) => {
+                console.log('Could not remove ' + file.filename);
+            })
+        }
+    }
 
-// TODO USER UPDATES REVIEW
+    const userId = req.params.userid;
+    const restaurantId = req.params.rstrid;
+    
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(userId);
+        new mongoose.Types.ObjectId(restaurantId);
+    }
+    catch (err) {
+        deleteMedia();
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+
+    // Verify user and rstr exist
+    let queryUser = User.find({_id:userId})
+        .select('-password')
+        .lean();
+    let queryRstr = Restaurant.find({_id:restaurantId})
+        .lean();
+    const foundUser = await queryUser.exec();
+    const foundRstr = await queryRstr.exec();
+
+    if (foundUser.length < 1) {
+        deleteMedia();
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id ${userId} not found.`,
+            data: null
+        });
+    }
+    if (foundRstr.length < 1) {
+        deleteMedia();
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Establishment with id ${restaurantId} not found.`,
+            data: null
+        });
+    }
+
+    // Check that the user does not already have a review in that establishment
+    let queryIfReviews = await Reviews.find({
+        userId: userId,
+        restaurantId: restaurantId
+    }).lean();
+
+    if (queryIfReviews.length > 0) {
+        deleteMedia();
+        return res.status(httpStatus.CONFLICT).json({
+            status: httpStatus.CONFLICT,
+            message: `User has already posted a review to the establishment.`,
+            data: null
+        });
+    }
+    
+    // Convert the uploaded filenames to the 
+    let mediaLocations = []
+    for (let file of req.files) {
+        let loc = `http://${process.env.API_PUBLIC_HOSTNAME}:${process.env.API_PORT}/cdn/${file.filename}`;
+        mediaLocations.push(loc);
+    }
+
+    // Create the review
+    let createObj = {
+        userId: userId,
+        restaurantId: restaurantId
+    }
+    createObj['rating'] = req.body['rating'];
+    createObj['comment'] = req.body['comment'];
+    if (mediaLocations.length > 0)
+        createObj['media'] = mediaLocations;
+
+    try {
+        const newReview = await Reviews.create(createObj);
+        return res.status(httpStatus.CREATED).json({
+            status: httpStatus.CREATED,
+            message: `Review created successfully.`,
+            data: newReview
+        });
+    } catch (err) {
+        deleteMedia();
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Error encountered in creating the review. ${err}.`,
+            data: null
+        });
+    }
+
+    
+
+}, (err, req, res, next) => {
+    if (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Error encountered in uploading media. ${err}.`,
+            data: null
+        });
+    }
+    next();
+});
+
+// TODO USER UPDATES REVIEW (ONLY supports editing the text)
 // TODO: Requires authentication tokens
 
 // TODO USER DELETES REVIEW

@@ -132,7 +132,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/testprofileedit', upload.single('file'), async (req, res) => {
     let usrsURL = API_URL+'users/'
-    let cdnURL = `http://${API_HOSTNAME}:${API_PORT}/cdn`
     const testUserId = '69ad961e4a1d38f3c1569a3f'
 
     const form = new FormData();
@@ -146,16 +145,55 @@ app.post('/testprofileedit', upload.single('file'), async (req, res) => {
     if (req.body['profile-desc'] && req.body['profile-desc'] != '')
         form.append('desc', req.body['profile-desc'])
 
-    // test for username edit
-    form.append('name', 'iam67');
-
-    const cdnRes = await axios.patch(usrsURL + testUserId, form, {
+    const editRes = await axios.patch(usrsURL + testUserId, form, {
         headers: { ...form.getHeaders() }
     });
 
-    res.status(200).json(cdnRes.data)
+    res.status(200).json(editRes.data)
 
 })
+
+app.post('/testreviewpost', upload.array('media'), async (req, res) => {
+    let usrsURL = API_URL+'users'
+    const testUserId = '69ad961e4a1d38f3c1569a3f'
+    const testRstrId = '69ad961e4a1d38f3c1569a80'
+
+    const form = new FormData();
+    const uplTime = Date.now();
+
+    for (let file of req.files) {
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        const fileId = btoa(String.fromCharCode(...bytes))
+                    .replace(/\+/g, 'a')
+                    .replace(/\//g, 'A')
+                    .replace(/=+$/, '');
+        const fileExt = path.extname(file.originalname);
+        const filename = `${fileId}_${uplTime}${fileExt}`
+
+        form.append('media', file.buffer, {
+            filename: filename,
+            contentType: file.mimetype,
+        }) 
+    }
+
+    if (req.body['rating'] && req.body['rating'] >= 0 && req.body['rating'] <= 5)
+        form.append('rating', req.body['rating'])
+    if (req.body['comment'] && req.body['comment'] != "")
+        form.append('comment', req.body['comment'])
+
+    try {
+        const reviewRes = await axios.post(`${usrsURL}/reviews/${testUserId}/${testRstrId}`, form, {
+            headers: { ...form.getHeaders() },
+            validateStatus: () => true
+        });
+
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.send(err);
+    }
+
+});
 
 app.use( (req, res, next) => {
     // Replace with 404 page
