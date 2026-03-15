@@ -653,8 +653,85 @@ router.put('/reviews/:userid/:rstrid', async (req, res) => {
 });
 
 // TODO USER DELETES REVIEW
+// IMPORTANT: DOES NOT CURRENTLY DELETE THE MEIDA ASSOCIATED WITH THE REVIEW
 // TODO: Requires authentication tokens
+router.delete('/reviews/:userid/:rstrid', async (req, res) => {
+    const userId = req.params.userid;
+    const restaurantId = req.params.rstrid;
+    
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(userId);
+        new mongoose.Types.ObjectId(restaurantId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
 
+    // Verify user and rstr exist
+    let queryUser = User.find({_id:userId})
+        .select('-password')
+        .lean();
+    let queryRstr = Restaurant.find({_id:restaurantId})
+        .lean();
+    const foundUser = await queryUser.exec();
+    const foundRstr = await queryRstr.exec();
+
+    if (foundUser.length < 1) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id ${userId} not found.`,
+            data: null
+        });
+    }
+    if (foundRstr.length < 1) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Establishment with id ${restaurantId} not found.`,
+            data: null
+        });
+    }
+
+    // Verify review exists
+    const foundReview = await Reviews.find({
+        userId: userId,
+        restaurantId: restaurantId
+    })
+
+    if (foundReview.length == 0) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User ${userId} does not have a review on the establishment ${restaurantId}.`,
+            data: null
+        });
+    }
+
+    // Delete the review
+    let filter = {userId:userId, restaurantId:restaurantId}
+    try {
+        let deletedReview = await Reviews.findOneAndDelete(filter, {
+            returnDocument: 'after',
+            lean: true
+        });
+
+        return res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: 'Successfully deleted review.',
+            data: deletedReview
+        });
+    }
+    catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: 'Could not delete the review.',
+            data: null
+        });
+    }
+});
 // TODO OWNER CREATES REPLY
 // TODO: Requires authentication tokens
 
