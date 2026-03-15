@@ -195,6 +195,32 @@ app.post('/testreviewpost', upload.array('media'), async (req, res) => {
 
 });
 
+app.post('/testreviewedit', async (req, res) => {
+    let usrsURL = API_URL+'users'
+    const testUserId = '69ad961e4a1d38f3c1569a3f'
+    const testRstrId = '69ad961e4a1d38f3c1569a80'
+
+    let rating = req.body.rating || undefined;
+    let comment = req.body.comment || undefined;
+
+    let form = FormData();
+    form.append('rating', rating);
+    form.append('comment', comment);
+
+    try {
+        const reviewRes = await axios.put(`${usrsURL}/reviews/${testUserId}/${testRstrId}`,
+            {rating: rating, comment: comment}, 
+            {validateStatus: () => true }
+        );
+
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.send(err);
+    }
+
+});
+
 app.use( (req, res, next) => {
     // Replace with 404 page
     res.status(404).send('Error 404 Not Found!')

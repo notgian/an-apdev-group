@@ -49,9 +49,6 @@ const uploadAvatar = multer({
         const mimetype = filetypesRegEx.test(file.mimetype);
         const extname = filetypesRegEx.test(path.extname(file.originalname).toLowerCase());
 
-        console.log(req.method == 'POST')
-        console.log(path.join(MEDIA_PATH, file.originalname))
-
         if (mimetype && extname)
             return callback(null, true);
         callback(new Error(`Unsupported file type. Supposed filetypes are ${allowedFiletypes.join(', ')}`), false);
@@ -70,9 +67,6 @@ const uploadMedia = multer({
         const filetypesRegEx = RegExp(allowedFiletypes.join('|'), 'i')
         const mimetype = filetypesRegEx.test(file.mimetype);
         const extname = filetypesRegEx.test(path.extname(file.originalname).toLowerCase());
-
-        console.log(req.method == 'POST')
-        console.log(path.join(MEDIA_PATH, file.originalname))
 
         if (mimetype && extname)
             return callback(null, true);
@@ -367,7 +361,6 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
     })
 }, (err, req, res, next) => {
     if (err) {
-        console.log(err)
         return res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Error encountered in uploading file. ${err}.`,
@@ -535,9 +528,6 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
             data: null
         });
     }
-
-    
-
 }, (err, req, res, next) => {
     if (err) {
         return res.status(httpStatus.BAD_REQUEST).json({
@@ -551,6 +541,116 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
 
 // TODO USER UPDATES REVIEW (ONLY supports editing the text)
 // TODO: Requires authentication tokens
+router.put('/reviews/:userid/:rstrid', async (req, res) => {
+    const userId = req.params.userid;
+    const restaurantId = req.params.rstrid;
+    
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(userId);
+        new mongoose.Types.ObjectId(restaurantId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+    // Verify user and rstr exist
+    let queryUser = User.find({_id:userId})
+        .select('-password')
+        .lean();
+    let queryRstr = Restaurant.find({_id:restaurantId})
+        .lean();
+    const foundUser = await queryUser.exec();
+    const foundRstr = await queryRstr.exec();
+
+    if (foundUser.length < 1) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id ${userId} not found.`,
+            data: null
+        });
+    }
+    if (foundRstr.length < 1) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Establishment with id ${restaurantId} not found.`,
+            data: null
+        });
+    }
+
+    // Verify review exists
+    const foundReview = await Reviews.find({
+        userId: userId,
+        restaurantId: restaurantId
+    })
+
+    if (foundReview.length == 0) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User ${userId} does not have a review on the establishment ${restaurantId}.`,
+            data: null
+        });
+    }
+
+    // Verify rating and description
+    const rating = req.body.rating;
+    const comment = req.body.comment;
+
+    let missingFields = []
+    if (!('rating' in req.body))
+        missingFields.push('rating');
+    if (!('comment' in req.body))
+        missingFields.push('comment');
+
+    if (!('rating' in req.body && 'comment' in req.body)) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Missing fields. ${missingFields.join(', ')}`,
+            data: null
+        });
+    }
+
+    if (rating < 0 || rating > 5)
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Invalid rating value. Rating must be between 0 and 5, inclusive.',
+            data: null
+        });
+
+    if (comment == "")
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Invalid comment value. Comment is an empty string.',
+            data: null
+        });
+
+    // Modify the review now
+    let filter = {userId:userId, restaurantId:restaurantId}
+    let updates = {rating: rating, comment: comment, edited: true}
+    try {
+        let updReview = await Reviews.findOneAndUpdate(filter, updates, {
+            returnDocument: 'after',
+            lean: true
+        });
+
+        return res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: 'Successfully updated review.',
+            data: updReview
+        });
+    }
+    catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: 'Could not modify the review.',
+            data: null
+        });
+    }
+});
 
 // TODO USER DELETES REVIEW
 // TODO: Requires authentication tokens
