@@ -235,6 +235,29 @@ app.post('/testreviewdelete', async (req, res) => {
 
 });
 
+app.post('/testreviewresponse', async (req, res) => {
+    let usrsURL = API_URL+'users'
+    const testUserId = '69ad961e4a1d38f3c1569a3f'
+    const testOwnerId = '69ad961e4a1d38f3c1569a73' // took this from my testdata
+
+    let comment = req.body.comment || undefined;
+
+    try {
+        const reviewRes = await axios.post(`${usrsURL}/reviews/owner_response/${testOwnerId}/${testUserId}`,
+            {comment: comment}, 
+            {validateStatus: () => true }
+        );
+
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.send(err);
+    }
+
+});
+
+
+
 app.use( (req, res, next) => {
     // Replace with 404 page
     res.status(404).send('Error 404 Not Found!')
