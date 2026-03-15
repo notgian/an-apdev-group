@@ -253,7 +253,25 @@ app.post('/testreviewresponse', async (req, res) => {
     catch (err) {
         res.send(err);
     }
+});
 
+app.post('/testmarkhelpful', async (req, res) => {
+    let usrsURL = API_URL+'users'
+    const testUserId = '69ad961e4a1d38f3c1569a3f';
+    const testReviewId = '69ad961f4a1d38f3c1569a8d';
+
+    try {
+        const reviewRes = await axios.post(`${usrsURL}/${testUserId}/helpful/${testReviewId}`,
+            {},
+            { validateStatus: () => true }
+        );
+
+
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.send(err);
+    }
 });
 
 

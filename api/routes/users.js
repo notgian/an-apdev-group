@@ -1057,6 +1057,99 @@ router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
 
 // TODO MARK HELPFUL
 // TODO: Requires authentication tokens
+router.post('/:userId/helpful/:reviewId', async (req, res) => {
+    const userId = req.params.userId;
+    const reviewId = req.params.reviewId;
+    
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(userId);
+        new mongoose.Types.ObjectId(reviewId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+    // Verify users exist
+    let queryUser = User.findOne({_id:userId})
+        .select('-password')
+        .lean();
+    let queryReview = Reviews.findOne({_id:reviewId})
+        .lean();
+
+    const foundUser = await queryUser.exec();
+    const foundReview = await queryReview.exec();
+
+
+    if (foundUser == null) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `User with id ${userId} not found.`,
+            data: null
+        });
+    } 
+
+    if (foundReview == null) {
+        return res.status(httpStatus.NOT_FOUND).json({
+            status: httpStatus.NOT_FOUND,
+            message: `Review with id ${reviewId} not found.`,
+            data: null
+        });
+    } 
+
+    const markedHelpful = foundReview.helpfulVotes.some(id => id == userId)
+    const markedUnhelpful = foundReview.unhelpfulVotes.some(id => id == userId)
+
+    // Check if already marked as helpful
+    if (markedHelpful)
+        return res.status(httpStatus.CONFLICT).json({
+            status: httpStatus.CONFLICT,
+            message: `User has already marked the review as helpful`,
+            data: null
+        });
+
+    // Update review to record and mark it as helpful
+    let newUnhelpful = foundReview.unhelpfulVotes
+    let newUnhelpfulCount = foundReview.unhelpfulCount
+
+    if (markedUnhelpful) {
+        newUnhelpful = newUnhelpful.filter(i => i!=userId);
+        newUnhelpfulCount = newUnhelpfulCount--
+    }
+
+    try {
+        const updatedReview = await Reviews.findOneAndUpdate({_id:reviewId}, {
+            unhelpfulVotes: newUnhelpful,
+            unhelpfulCount: newUnhelpfulCount,
+            helpfulVotes: foundReview.helpfulVotes.concat(new mongoose.Types.ObjectId(userId)),
+            helpfulCount: foundReview.helpfulCount + 1
+        }, {
+            new: true,
+            lean: true
+        });
+
+        return res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: `Review successfully marked helpful.`,
+            data: updatedReview
+        });
+    }
+    catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not mark review as helpful. ${err}`,
+            data: null
+        });
+        
+    }
+
+
+
+})
 
 // TODO MARK UNHELPFUL
 // TODO: Requires authentication tokens
