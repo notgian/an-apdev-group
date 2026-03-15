@@ -7,6 +7,9 @@ const { default: mongoose } = require('mongoose');
 const Busboy = require('busboy');
 const FormData = require('form-data');
 const axios = require('axios');
+const multer = require('multer')
+const fs = require('fs');
+const path = require('path');
 
 const router = express.Router();
 const User = require('../schema_models/userSchema.js');
@@ -14,6 +17,46 @@ const Reviews = require('../schema_models/reviewSchema.js');
 
 // body parser stuffs
 const urlencodedParser = bodyParser.urlencoded({extended: true})
+
+// multer for uploading files
+const MEDIA_PATH = '/app/data/media'
+
+// For file uploading
+const storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        if (!fs.existsSync(MEDIA_PATH))
+            fs.mkdirSync(MEDIA_PATH);
+        callback(null, MEDIA_PATH);
+    },
+    filename: (req, file, callback) => {
+        callback(null, `${file.fieldname}_${file.originalname}` );
+    }
+});
+
+const MAX_FILESIZE_MB = 5;
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: MAX_FILESIZE_MB * 1024 * 1024 }, 
+    fileFilter: (req, file, callback) => {
+        const allowedFiletypes = [
+            'jpeg', 'jpg',
+            'png',
+            'mp4', 'mov', 'avi', 'mkv'
+        ]
+        const filetypesRegEx = RegExp(allowedFiletypes.join('|'), 'i')
+        const mimetype = filetypesRegEx.test(file.mimetype);
+        const extname = filetypesRegEx.test(path.extname(file.originalname).toLowerCase());
+
+        console.log(req.method == 'POST')
+        console.log(path.join(MEDIA_PATH, file.originalname))
+
+        if (mimetype && extname)
+            return callback(null, true);
+        callback(new Error(`Unsupported file type. Supposed filetypes are ${allowedFiletypes.join(', ')}`), false);
+    }
+});
+
 
 // Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/users
@@ -226,7 +269,7 @@ router.post('/', urlencodedParser, async (req, res) => {
 
 // PATCH to modify user data
 // TODO: Requires authentication tokens
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", upload.single('avatar'), async (req, res) => {
     // Authenticate user here
     // TODO If user is not authenticated, return
     let authenticated = true;
@@ -245,12 +288,11 @@ router.patch("/:id", async (req, res) => {
         new mongoose.Types.ObjectId(userId)
     }
     catch (err) {
-        res.send({
+        return res.send({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
         });
-        return;
     }
 
     // Verify user exists
@@ -259,98 +301,62 @@ router.patch("/:id", async (req, res) => {
         .lean();
     const foundUser = await usrqry.exec()
     if (foundUser.length < 1) {
-        res.send({
+        return res.send({
             status: httpStatus.NOT_FOUND,
             message: `User with id '${userId}' not found.`,
             data: null
         });
-        return;
     } 
 
-    // Check if all fields passed are valid fields
+    // Initialize update object
+    let updates = {}
+
+    // Field Validation
     const editableFields = [
         'name',
         'desc',
     ];
-    const editableFileField = 'avatar';
-    
-    // Image data needs to be sent to api to update the avatar
-    const imageForm = new FormData();
-    let unknownFields = [];
-    let acceptedFields = [];
-
-    const bb = Busboy({ headers: req.headers });
-    bb.on('field', (name, val, info) => {
-        if (name == editableFileField) {
-            if (val == "")
-                return res.send({
-                    status: httpStatus.BAD_REQUEST,
-                    message: `Field ${name} is empty.`,
-                    data: null
-                });
-            acceptedFields.push(name);
-        }
-        else
-            unknownFields.push(name);
-    });
-
-    bb.on('file', (name, file, info) => {
-        const { filename, encoding, mimeType } = info;
-        if (!(mimeType in ['image/png', 'image/jpeg']))
-            return res.send({
-                status: httpStatus.BAD_REQUEST,
-                message: `Unsupported mime type '${mimeType}' of avatar image.`,
-                data: null
-            });
-        
-        if (name in editableFields) {
-            acceptedFields.push(name);
-            imageForm.append('file', file, { filename });
-        }
-        else
-            unknownFields.push(name);
-    });
-    bb.on('close', async () => {
-        if (unknownFields.length > 0) {
-            return res.send({
-                status: httpStatus.BAD_REQUEST,
-                message: `Unknown fields ${unknownFields.join(', ')}.`,
-                data: null
-            });
-        }
-
-        // try to upload file to cdn, format is 'profile-{id}', overwrite
-        const uplRes = await axios.post('http://127.0.0.1/', imageForm, {
-            headers: imageForm.getHeaders()
-        })
-
-        console.log("STATUS: uplRes.data.status")
-         
-        
-        // if upload unsuccessful, abort,}
-    });
-    req.pipe(bb);
 
     for (let key of Object.keys(req.body)) {
         if (!editableFields.includes(key)) {
-            res.send({
+            return res.send({
                 status: httpStatus.BAD_REQUEST,
                 message: `Cannot modify the property '${key}' of user. Either the property cannot be modified or the property does not exist.`,
                 data: null
             });
-            return;
         }
     }
 
+    if (req.body['name'] && req.body['name'] != '')
+        updates['username'] = req.body['name']
+    if (req.body['desc'] && req.body['desc'] != '')
+        updates['description'] = req.body['desc']
+
+    // Attempt to upload the file
+    if (req.file) {
+        const filename = `${req.file.fieldname}_${req.file.originalname}`
+        updates['avatar'] = `http://${process.env.API_PUBLIC_HOSTNAME}:${process.env.API_PORT}/cdn/${filename}`
+    }
+
     // Update the entry of the user here
+    let user = await User.findByIdAndUpdate(userId, updates)
 
     // Success
     res.send({
         status: httpStatus.ACCEPTED,
         message: `Userdata of ${req.params.id} modified`,
-        data: null
+        data: user
     })
-
+}, (err, req, res, next) => {
+    if (err) {
+        console.log(err)
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Error encountered in uploading file. ${err}.`,
+            data: null
+        });
+    }
+    next();
 });
 
 // TODO GET REVIEWS BY USER

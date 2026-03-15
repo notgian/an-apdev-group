@@ -130,42 +130,31 @@ app.get('/test', async (req,res) => {
 // THIS IS WHAT LETS US UPLOAD THE FILE IT TOOK ME 2 HOURS BRUH T_T
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.post('/test', upload.single('file'), async (req, res) => {
-    //
-    // SUPER IMPORTANT NOTE FOR THE UPLOADING OF USER IMAGES
-    // FOR SIMPLICITY, UPLOAD THE DATA FIRST TO THE CDN THROUGH THE WEBSERVER DIRECTLY
-    // WHEN UPLOAD IS SUCCESSFUL, USE THE NEW FILE NAME AS THE AVATAR INFO.
-    // SO THE PATCH ***SHOULD*** RECEIVE A STRING INSTEAD OF SOME MULTIPART FORM DATA!!!
-    //
-    let qrystr = API_URL+'users/'
+app.post('/testprofileedit', upload.single('file'), async (req, res) => {
+    let usrsURL = API_URL+'users/'
+    let cdnURL = `http://${API_HOSTNAME}:${API_PORT}/cdn`
+    const testUserId = '69ad961e4a1d38f3c1569a3f'
 
-    try {
-        if (!req.file) {
-            return res.status(400).send('No file uploaded.');
-        }
+    const form = new FormData();
 
-        const form = new FormData();
-        form.append('profile', req.file.buffer, {
-            filename: "user_id_here"+path.extname(req.file.originalname),
+    if (req.file)
+        form.append('avatar', req.file.buffer, {
+            filename: testUserId+path.extname(req.file.originalname),
             contentType: req.file.mimetype,
         });
 
-        let cdnURL = `http://${API_HOSTNAME}:${API_PORT}/cdn`
-        const apiResponse = await axios.post(cdnURL, form, {
-            headers: {
-                ...form.getHeaders(),
-            }
-        });
+    if (req.body['profile-desc'] && req.body['profile-desc'] != '')
+        form.append('desc', req.body['profile-desc'])
 
-        res.json(apiResponse.data);
+    // test for username edit
+    form.append('name', 'iam67');
 
-    } catch (error) {
-        console.error('Error forwarding file:', error.message);
-        res.status(500).json({ error: 'Failed to forward file to API' });
-    }
+    const cdnRes = await axios.patch(usrsURL + testUserId, form, {
+        headers: { ...form.getHeaders() }
+    });
 
-    // const testUserId = '69ad961e4a1d38f3c1569a3f'
-    // const formToAPI = new FormData();
+    res.status(200).json(cdnRes.data)
+
 })
 
 app.use( (req, res, next) => {

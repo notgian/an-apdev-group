@@ -65,44 +65,48 @@ router.get('/:filename', (req, res) => {
 
     res.sendFile(fileName, options, (err) => {
         if (err) {
-            res.status(404).json({ error: "Resource not found" });
+            res.status(404).json({ 
+                status: 404,
+                message: "Resoure not found",
+                data: null
+            });
         }
     });
 });
 
-// For uploading profile images. Overwrites.
-router.post('/', upload.single('profile'), (req, res) => {
-    console.log('cdn upload attempt!')
-    try {
-        if (!req.file)
-            return res.send({
-                status: httpStatus.BAD_REQUEST,
-                message: 'No file received.',
-                data: null
-            });
-
-        return res.send({
-            status: httpStatus.OK,
-            message: 'Media uploaded successfuly.',
-            data: null
-        });
-
-    } catch (error) {
-        return res.send({
-            status: httpStatus.INTERNAL_SERVER_ERROR,
-            message: `Internal error encountered. ${error.message}.`,
-            data: null
-        });
-    }
-}, (err, req, res, next) => {
-    if (err) {
-        return res.send({
-            status: httpStatus.BAD_REQUEST,
-            message: `Error encountered in uploading file. ${err}.`,
-            data: null
-        });
-    }
-    next();
-});
+// Actual upload functionality has been moved to the user.js route 
+// router.post('/', upload.single('profile'), (req, res) => {
+//     console.log('cdn upload attempt!')
+//     try {
+//         if (!req.file)
+//             return res.status(httpStatus.BAD_REQUEST).json({
+//                 status: httpStatus.BAD_REQUEST,
+//                 message: 'No file received.',
+//                 data: null
+//             });
+//
+//         return res.json({
+//             status: httpStatus.OK,
+//             message: 'Media uploaded successfuly.',
+//             data: {filename: `${req.file.fieldname}_${req.file.originalname}` }
+//         });
+//
+//     } catch (error) {
+//         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+//             status: httpStatus.INTERNAL_SERVER_ERROR,
+//             message: `Internal error encountered. ${error.message}.`,
+//             data: null
+//         });
+//     }
+// }, (err, req, res, next) => {
+//     if (err) {
+//         return res.status(httpStatus.BAD_REQUEST).json({
+//             status: httpStatus.BAD_REQUEST,
+//             message: `Error encountered in uploading file. ${err}.`,
+//             data: null
+//         });
+//     }
+//     next();
+// });
 
 module.exports = router;

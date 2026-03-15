@@ -8,6 +8,7 @@ services:
     environment:
       WEB_PORT: ${WEB_PORT}
       API_PORT: ${API_PORT}
+      API_PUBLIC_HOSTNAME: 127.0.0.1
       API_HOSTNAME: ${API_HOSTNAME}
       API_LOCATION: "localhost:4200"  # depracate this
     ports: 
@@ -28,6 +29,8 @@ services:
       context: ./api/.
       dockerfile: dev.Dockerfile
     environment: 
+      API_PUBLIC_HOSTNAME: 127.0.0.1  # typically the ip or domain name. Set to localhost for local deployment
+      API_HOSTNAME: ${API_HOSTNAME}
       API_PORT: ${API_PORT}
       # mongo stuff
       MONGO_ROOT_USER: ${MONGO_ROOT_USER}

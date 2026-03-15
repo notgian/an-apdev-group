@@ -2,24 +2,27 @@
 
 <div class="form-container">
     <div class="auth-card">
-        <h2>Edit Your Profile</h2>
-        <p class="subtitle">Update your photo and bio below.</p>
+        <h2>Profile Picture Upload Test</h2>
         
-        <form id="edit-profile-form" action="/test" method="POST" enctype="multipart/form-data">
-            <div class="input-group">
-                <label for="edit-desc">Update Description</label>
-                <textarea name="desc" id="edit-desc" rows="4" placeholder="Tell the community about your food adventures..."></textarea>
-            </div>
+        <form action="/testprofileedit" method="POST" enctype="multipart/form-data">
+            <label for="file">Profile Picture</label> <br />
+            <input name="file" type="file" id="profile-pic" accept="image/*" class="file-input"> <br />
 
-            <div class="input-group">
-                <label for="profile-pic">Change Profile Picture</label>
-                <input name="file" type="file" id="profile-pic" accept="image/*" class="file-input">
-            </div>
+            <label for="profile-desc">Description/Bio</label> <br />
+            <textarea name="profile-desc" placeholder="description here"></textarea> <br />
+            <input type="submit"/>
+        </form>
 
-            <div class="auth-buttons">
-                <input type="submit"/>
-                <a href="profile.html" class="login-btn">Cancel</a>
-            </div>
+        <hr />
+
+
+        <h2>Review Media Upload</h2>
+        <i>not working yet...</i>
+
+        <form action="/testreviewupload" method="POST" enctype="multipart/form-data">
+            <label for="review-media">Review Media</label> <br />
+            <input name="file" type="file" id="profile-pic" accept=".jpg, .jpeg, .png, .mp4, .mov, .avi, .mkv" multiple class="file-input"> <br />
+            <input type="submit"/>
         </form>
     </div>
 </div>
