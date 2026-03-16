@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
     var OFFSET = 0;
     var COUNT = 20;
     var ORDERBY = 'createDate';
+    var SEARCH = null;
 
     const orderbyValues = [
         'name',
@@ -81,7 +82,13 @@ router.get('/', async (req, res) => {
         }
     }
 
-    let query = Restaurant.find({})
+    let queryObj = {}
+    if ('search' in req.query) {
+        SEARCH = req.query.search
+        // queryObj['$text'] = {$search: SEARCH}
+        queryObj['name'] = {$regex: `.*${SEARCH}.*`, $options: 'i'}
+    }
+    let query = Restaurant.find(queryObj)
         .skip(OFFSET)       
         .limit(COUNT)
         .lean();
