@@ -80,6 +80,7 @@ router.get('/', async (req, res) => {
     var OFFSET = 0;
     var COUNT = 20;
     var ORDERBY = 'joindate';
+    var SEARCH = null;
 
     const orderbyValues = [
         'name',
@@ -146,7 +147,13 @@ router.get('/', async (req, res) => {
         }
     }
 
-    let query = User.find({})
+    let queryObj = {}
+    if ('search' in req.query) {
+        SEARCH = req.query.search
+        // queryObj['$text'] = {$search: SEARCH}
+        queryObj['username'] = {$regex: `.*${SEARCH}.*`, $options: 'i'}
+    }
+    let query = User.find(queryObj)
         .select('-password')
         .skip(OFFSET)       
         .limit(COUNT)
