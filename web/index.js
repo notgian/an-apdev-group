@@ -1,6 +1,7 @@
 const express = require('express');
 const hbs = require('express-handlebars');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const session = require('express-session');
 const http = require('http');
 const axios = require('axios');
 const Handlebars = require('handlebars');
@@ -68,14 +69,21 @@ app.get('/', async (req, res) => {
             'js/script.js'
         ],
         searchBar: true,
-        loginContainer: true
+        loginContainer: true,
+        user: req.session ? req.session.user : null
     }
 
     res.render('index.hbs', renderData )
 })
 
 app.get('/establishments', async (req, res) => {
-    let rstrreq = (await axios.get(API_URL+'establishments'));
+    // Pagination logic
+    const limit = 10;
+    let page = parseInt(req.query.page) || 1;
+    let offset = (page - 1) * limit;
+
+    // Added offset and count parameters to the API call
+    let rstrreq = (await axios.get(API_URL+'establishments', { params: { offset: offset, count: limit } }));
     let establishments;
     if (rstrreq.status != 200)
         establishments = new Array();
@@ -88,38 +96,160 @@ app.get('/establishments', async (req, res) => {
     let renderData = {
         title: '6-7-ate-9 | Establishments',
         establishments: establishments,
+        page: page,
+        nextPage: page + 1,
+        prevPage: page > 1 ? page - 1 : null,
         css: [
             'css/style.css',
-            'css/home.css'
+            'css/establishments.css' // Changed from home.css to establishments.css
         ],
         js: [
             'js/script.js'
         ],
         searchBar: true,
-        loginContainer: true
+        loginContainer: true,
+        user: req.session ? req.session.user : null
     }
 
     res.render('establishments.hbs', renderData )
 });
 
+app.get('/establishment/:id', async (req, res) => {
+    const estId = req.params.id;
+    try {
+        const estReq = await axios.get(`${API_URL}establishments/${estId}`, { validateStatus: () => true });
+        const revReq = await axios.get(`${API_URL}establishments/reviews/${estId}`, { validateStatus: () => true });
+
+        if (estReq.status !== 200) return res.status(404).send("Establishment not found");
+
+        const establishmentData = estReq.data.data[0];
+        const reviewsData = revReq.data.data;
+
+        let isOwner = false;
+        if (req.session && req.session.user && req.session.user._id === establishmentData.ownerId) {
+            isOwner = true;
+        }
+
+        const template = isOwner ? 'establishment-owner.hbs' : 'establishment.hbs';
+
+        res.render(template, {
+            title: establishmentData.name,
+            establishment: establishmentData,
+            reviews: reviewsData,
+            user: req.session ? req.session.user : null,
+            css: ['css/style.css', 'css/establishment.css'],
+            js: ['js/script.js'],
+            searchBar: true
+        });
+    } catch (error) {
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+app.get('/search', async (req, res) => {
+    const searchQuery = req.query.query || ''; 
+    try {
+        let searchReq = await axios.get(`${API_URL}establishments`, {
+            params: { search: searchQuery },
+            validateStatus: () => true
+        });
+        let results = searchReq.status === 200 ? searchReq.data.data : [];
+
+        res.render('search.hbs', {
+            title: 'Search Results',
+            query: searchQuery,
+            results: results,
+            user: req.session ? req.session.user : null,
+            css: ['css/style.css', 'css/search.css'],
+            js: ['js/script.js'],
+            searchBar: true
+        });
+    } catch (error) {
+        res.status(500).send("Search failed.");
+    }
+});
+
 app.get('/signup', async (req, res) => {
-    res.send('Page for signup. Not yet implemented.')
+    res.render('signup.html', 
+        { 
+            title: 'Sign Up', 
+            css: ['css/style.css', 'css/signlog.css'] 
+        });
 });
 
 app.get('/login', async (req, res) => {
-    res.send('Page for login. Not yet implemented.')
+    res.render('login.html', 
+        { 
+            title: 'Log In', 
+            css: ['css/style.css', 'css/signlog.css'] 
+        });
 })
 
 app.get('/profile', async (req, res) => {
     res.send('Page for profile(current user profile). Not yet implemented.')
 })
 
+app.post('/login', async (req, res) => {
+    try {
+        const loginRes = await axios.post(`${API_URL}users/login`, {
+            username: req.body.username,
+            password: req.body.password
+        }, { validateStatus: () => true });
+
+        if (loginRes.status === 200) {
+            const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
+            if (userReq.status === 200 && userReq.data.data.length > 0) {
+                req.session.user = userReq.data.data[0]; 
+            } else {
+                req.session.user = { username: req.body.username }; 
+            }
+            res.redirect('/'); 
+        } else {
+            res.status(401).send(loginRes.data.message || "Login failed");
+        }
+    } catch (error) {
+        res.status(500).send("Login error");
+    }
+});
+
+app.get('/profile', async (req, res) => {
+    if (!req.session || !req.session.user) return res.redirect('/login'); 
+    res.render('profile.html', {
+        title: 'My Profile',
+        user: req.session.user,
+        css: ['css/style.css', 'css/profile.css'],
+        js: ['js/script.js'],
+        searchBar: true
+    });
+})
+
 app.get('/profile/edit', async (req, res) => {
-    res.send('Page for edit profile(current user profile). Not yet implemented.')
+    if (!req.session || !req.session.user) return res.redirect('/login'); 
+    res.render('profile-edit.html', {
+        title: 'Edit Profile',
+        user: req.session.user,
+        css: ['css/style.css', 'css/profile-edit.css'],
+        js: ['js/script.js']
+    });
 })
 
 app.get('/profile/:id', async (req, res) => {
-    res.send('Page for profile(given id of user). Not yet implemented.')
+    const profileId = req.params.id;
+    try {
+        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
+        if (userReq.status !== 200) return res.status(404).send("User not found");
+
+        res.render('profile-other.hbs', {
+            title: 'User Profile',
+            profileData: userReq.data.data[0],
+            user: req.session ? req.session.user : null,
+            css: ['css/style.css', 'css/profile.css'],
+            js: ['js/script.js'],
+            searchBar: true
+        });
+    } catch (error) {
+        res.status(500).send("Error loading profile.");
+    }
 })
 
 // ONLY FOR TESTING. NOT TO BE INCLUDED LATER ON
