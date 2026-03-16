@@ -1,0 +1,31 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/profile-edit.css">
+{{/inline}}
+
+<main class="form-container">
+    <div class="auth-card">
+        <h2>Edit Your Profile</h2>
+        <p class="subtitle">Update your photo and bio below.</p>
+        
+        {{!-- enctype="multipart/form-data" is required for file uploads --}}
+        <form id="edit-profile-form" action="/profile/edit" method="POST" enctype="multipart/form-data">
+            
+            <div class="input-group">
+                <label for="profile-pic">Change Profile Picture</label>
+                <input type="file" name="avatar" id="profile-pic" accept="image/*" class="file-input">
+            </div>
+
+            <div class="input-group">
+                <label for="edit-desc">Update Description</label>
+                {{!-- Handlebars injects the existing description here --}}
+                <textarea name="description" id="edit-desc" rows="4" 
+                    placeholder="Tell the community about your food adventures...">{{user.description}}</textarea>
+            </div>
+
+            <div class="auth-buttons">
+                <button type="submit" class="signup-btn">Save Changes</button>
+                <a href="/profile" class="login-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>

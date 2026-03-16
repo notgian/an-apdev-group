@@ -1,0 +1,62 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/profile.css">
+{{/inline}}
+
+<main class="profile-layout-wrapper">
+    {{#if user}}
+        {{!-- Left Side: Main Profile Info --}}
+        <div id="logged-in-view">
+            <div class="user-header">
+                <img src="{{#if user.avatar}}{{user.avatar}}{{else}}/images/user-avatar.png{{/if}}" 
+                     id="profile-pic" class="avatar-large" alt="Profile Picture">
+                <h2 id="username-display">{{user.username}}</h2>
+                <p id="user-desc">{{#if user.description}}{{user.description}}{{else}}Love exploring hidden gems in Manila!{{/if}}</p>
+                <a href="/profile/edit" class="edit-btn">Edit Profile</a>
+            </div>
+
+            <div class="user-activity">
+                <h3>Latest Reviews</h3>
+                {{#each reviews}}
+                    <div class="review-item">
+                        "{{this.text}}" — <strong>{{this.establishmentName}}</strong>
+                    </div>
+                {{else}}
+                    <p class="review-item">No reviews posted yet.</p>
+                {{/each}}
+            </div>
+
+            <div class="profile-actions">
+                <button class="viewrev-btn">View All Reviews</button>
+                <form action="/logout" method="POST" style="display:inline;">
+                    <button type="submit" class="logout-btn">Log Out</button>
+                </form>
+            </div>
+        </div>
+
+        {{!-- Right Side: Sidebar --}}
+        <aside id="other-users" class="other-users">
+            <h3>Other Foodies to Follow</h3>
+            {{#each otherFoodies}}
+                <div class="user-card">
+                    <img src="{{this.avatar}}" class="avatar-med" alt="{{this.username}}">
+                    <p><a href="/profile/{{this.username}}">{{this.username}}</a></p>
+                    <button class="follow-btn">Follow</button>
+                </div>
+            {{else}}
+                <p>No other foodies found.</p>
+            {{/each}}
+        </aside>
+
+    {{else}}
+        {{!-- Logged Out View --}}
+        <div id="auth-div" class="auth-div">
+            <div id="logged-out-view" class="auth-prompt">
+                <p class="auth-prompt-text">Please log in to view your profile and activity.</p>
+                <div class="auth-buttons">
+                    <a href="/signup" class="signup-btn">Sign Up</a>
+                    <a href="/login" class="login-btn">Log In</a>
+                </div>  
+            </div>
+        </div>
+    {{/if}}
+</main>

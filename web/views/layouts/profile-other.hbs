@@ -1,0 +1,48 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/profile.css">
+{{/inline}}
+
+<main class="profile-layout-wrapper">
+    {{!-- Left Side: The Public Profile of the user being viewed --}}
+    <div id="logged-in-view">
+        <div class="user-header">
+            {{!-- Dynamically load the viewed user's data --}}
+            <img src="{{#if viewedUser.avatar}}{{viewedUser.avatar}}{{else}}/images/user-avatar.png{{/if}}" 
+                 id="profile-pic" class="avatar-large" alt="{{viewedUser.username}}'s Profile Picture">
+            <h2 id="username-display">{{viewedUser.username}}</h2>
+            <p id="user-desc">{{#if viewedUser.description}}{{viewedUser.description}}{{else}}Food explorer!{{/if}}</p>
+            
+            {{!-- Instead of Edit, a Public Profile usually has a Follow button --}}
+            <button class="edit-btn">Follow {{viewedUser.username}}</button>
+        </div>
+
+        <div class="user-activity">
+            <h3>Latest Reviews by {{viewedUser.username}}</h3>
+            {{#each viewedUserReviews}}
+                <div class="review-item">
+                    "{{this.text}}" — <strong>{{this.establishmentName}}</strong>
+                </div>
+            {{else}}
+                <p class="review-item">This user hasn't posted any reviews yet.</p>
+            {{/each}}
+        </div>
+
+        <div class="profile-actions">
+            <button class="viewrev-btn">View All Reviews</button>
+        </div>
+    </div>
+
+    {{!-- Right Side: Sidebar for suggestions --}}
+    <aside id="other-users" class="other-users">
+        <h3>Other Foodies to Follow</h3>
+        {{#each otherFoodies}}
+            <div class="user-card">
+                <img src="{{this.avatar}}" class="avatar-med" alt="{{this.username}}">
+                <p><a href="/profile/{{this.username}}">{{this.username}}</a></p>
+                <button class="follow-btn">Follow</button>
+            </div>
+        {{else}}
+            <p>No suggestions available.</p>
+        {{/each}}
+    </aside>
+</main>
