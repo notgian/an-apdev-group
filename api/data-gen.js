@@ -20,6 +20,159 @@ const RESTAURANT_CATEGORIES = [
   "Tapas", "Food Truck", "Breakfast & Brunch", "Dessert"
 ];
 
+const STATIC_RESTAURANTS = [
+    { 
+        name: "Mendokoro Ramba", 
+        description: "Known for its authentic tonkotsu broth, this ramen bar offers a minimalist counter-style dining experience. Guests enjoy watching chefs prepare steaming bowls right in front of them, creating a lively and immersive atmosphere. The bold flavors and unique setup make it a favorite among ramen enthusiasts.",
+        category: "Japanese", 
+        location: {
+            street: "10th Ave",
+            city: "Makati",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 500,
+            max: 700, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_mendokoro_ramba.jpg",
+    },
+    { 
+        name: "Manam Comfort Food", 
+        description: "This spot is famous for serving Filipino classics with a modern twist, offering both small and big portions to suit every appetite. Diners can enjoy beloved dishes like sisig and kare-kare, reimagined with creative flair. The cozy yet contemporary vibe makes it perfect for groups and family gatherings.",
+        category: "Filipino", 
+        location: {
+            street: "21st Ave",
+            city: "Makati",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 300,
+            max: 600, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_manam_comfort_food.jpg",
+    },
+    { 
+        name: "Wildflour Cafe", 
+        description: "A trendy bakery and cafe offering artisanal breads, pastries, and international comfort food. The stylish atmosphere makes it a popular spot for brunch, coffee dates, and casual meetings. With a menu that blends global flavors and local favorites, it has become a staple in the city’s dining scene.",
+        category: "Cafe", 
+        location: {
+            street: "Sta. Lucia",
+            city: "Pasig",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 700,
+            max: 1000, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_wildflour_cafe.jpg",
+    },
+    { 
+        name: "Din Tai Fung", 
+        description: "World-renowned for its xiao long bao, this Taiwanese restaurant is celebrated for hand-crafted dumplings and meticulous preparation. Each dish reflects a dedication to consistency and quality, making every visit memorable. Families and foodies alike enjoy the welcoming environment and authentic flavors.",
+        category: "Chinese", 
+        location: {
+            street: "Shaw Boulevard",
+            city: "Mandaluyong",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 400,
+            max: 700, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_din_tai_fung.jpg",
+    },
+    { 
+        name: "Gino's Brick Oven Pizza", 
+        description: "A casual Italian spot known for its brick oven pizzas and homemade burrata. Fresh ingredients and traditional techniques deliver rustic, flavorful dishes that keep guests coming back. With its laid-back vibe and hearty menu, it’s a favorite hangout for students and families in the area.",
+        category: "Italian", 
+        location: {
+            street: "Katipunan",
+            city: "Quezon City",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 500,
+            max: 800, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_ginos_brick_oven_pizza.jpg",
+    },
+    { 
+        name: "Mary Grace Cafe", 
+        description: "A beloved local chain known for its home-cooked meals and signature ensaymadas. The cafe's warm, quaint interiors, complete with handwritten notes under the glass tables, offer a nostalgic and cozy atmosphere perfect for afternoon tea and long conversations.",
+        category: "Cafe", 
+        location: {
+            street: "Greenbelt 2",
+            city: "Makati",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 400,
+            max: 800, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_mary_grace_cafe.jpg",
+    },
+    { 
+        name: "Locavore Kitchen", 
+        description: "Redefining Filipino cuisine, this restaurant focuses on locally grown ingredients and innovative flavor profiles. Famous for its Sizzling Sinigang, it offers a rustic and modern dining space that celebrates the richness of homegrown produce and creative culinary techniques.",
+        category: "Filipino", 
+        location: {
+            street: "Brixton St",
+            city: "Pasig",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 500,
+            max: 900, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_locavore_kitchen.jpg",
+    },
+    { 
+        name: "Nikkei", 
+        description: "An elegant fusion restaurant that explores the intersection of Japanese and Peruvian culinary traditions. Guests can enjoy fresh ceviche and artistic sushi rolls in a sophisticated, minimalist setting that emphasizes high-quality ingredients and delicate plating.",
+        category: "Japanese", 
+        location: {
+            street: "Rada St",
+            city: "Makati",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 800,
+            max: 1500, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_nikkei.jpg",
+    },
+    { 
+        name: "Ooma", 
+        description: "A bold and unconventional Japanese rice bar that puts a contemporary spin on traditional favorites. Known for its creative maki and taco-sushi, the restaurant features an edgy, industrial interior inspired by the Tsukiji fish market, offering a high-energy dining experience.",
+        category: "Japanese", 
+        location: {
+            street: "High Street Central",
+            city: "Taguig",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 450,
+            max: 750, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_ooma.jpg",
+    },
+    { 
+        name: "The Wholesome Table", 
+        description: "Dedicated to serving organic and mindfully sourced food, this establishment offers a menu free of processed ingredients and artificial flavors. The airy, garden-inspired interiors provide a refreshing backdrop for health-conscious diners looking for hearty, wholesome meals.",
+        category: "Healthy", 
+        location: {
+            street: "Salcedo Village",
+            city: "Makati",
+            province: "NCR",
+        },
+        priceRange: {
+            min: 600,
+            max: 1100, 
+        },
+        imageSrc: "http://localhost:4200/cdn/resto_the_wholesome_table.jpg",
+    },
+];
+
 const generateUsers = async (count = 50) => {
     console.log('Generating new users')
     try {
@@ -78,42 +231,30 @@ const generateOwners = async (count = 10) => {
     }
 };
 
-const generateRestaurants = async (ownerList, count = 10) => {
-    if (ownerList.length < count) {
-        console.log(`Provided owner list is too short ${ownerList.length} to generate ${count} restaurants`)
-        return
+const generateRestaurants = async (ownerList, restaurantList) => {
+    if (restaurantList.length > ownerList.length) {
+        console.log(`Provided owner list is too short ${ownerList.length} to generate ${restaurantList.length} restaurants. Some restaurants will not be generated.`)
     }
 
     try {
         await Restaurant.deleteMany({});
         console.log('Old restaurants cleared');
 
-
         const restaurants = [];
-        for (let i=0; i<count; i++) {
-            const minPrice = parseFloat(faker.commerce.price({ min: 80, max: 400 }));
-            const maxPrice = parseFloat(faker.commerce.price({ min: Math.floor(minPrice * 1.5), max: 900 }));
-
+        for (let i=0; i<ownerList.length; i++) {
+            let resto = restaurantList[i]
             restaurants.push({
-                name: `${faker.company.name()} ${faker.helpers.arrayElement(['Kitchen', 'Bistro', 'Grill', 'Cafe', 'Diner'])}`,
-                description: faker.lorem.sentences(2),
-                imageSrc: 'http://127.0.0.1:4200/cdn/test-shaw.png',
-                location: {
-                    street: faker.location.streetAddress(),
-                    city: faker.location.city(),
-                    province: faker.location.state(),
-                    zipCode: faker.location.zipCode()
-                },
+                name: resto.name,
+                description: resto.description,
+                imageSrc: resto.imageSrc,
+                location: resto.location,
                 ownerId: ownerList[i]._id,
-                priceRange: {
-                    min: minPrice,
-                    max: maxPrice
-                },
+                priceRange: resto.priceRange
             });
         }
 
         await Restaurant.insertMany(restaurants);
-        console.log(`Successfully created ${count} restaurants!`);
+        console.log(`Successfully created ${restaurants.length} restaurants!`);
 
         return restaurants
     }
@@ -255,7 +396,7 @@ const generateData = async () => {
         .limit(rstCount);
     const owners = await ownqry.exec();
 
-    await generateRestaurants(owners, rstCount);
+    await generateRestaurants(owners, STATIC_RESTAURANTS);
     const rstqry = Restaurant.find({});
     const restaurants = await rstqry.exec();
 
