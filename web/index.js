@@ -201,7 +201,12 @@ app.post('/login', async (req, res) => {
         }, { validateStatus: () => true });
 
         if (loginRes.status == 200) {
-            req.session.user = { username: req.body.username }; 
+            const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
+            if (userReq.status === 200 && userReq.data.data.length > 0) {
+                req.session.user = userReq.data.data[0]; 
+            } else {
+                req.session.user = { username: req.body.username }; 
+            }            
             res.redirect('/'); 
         } else {
             res.status(401).send(loginRes.data.message || "Login failed");

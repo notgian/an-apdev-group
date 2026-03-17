@@ -7,10 +7,10 @@
         {{!-- Left Side: Main Profile Info --}}
         <div id="logged-in-view">
             <div class="user-header">
-                <img src="{{#if user.avatar}}{{user.avatar}}{{else}}/images/user-avatar.png{{/if}}" 
+                <img src="{{user.avatar}}" 
                      id="profile-pic" class="avatar-large" alt="Profile Picture">
                 <h2 id="username-display">{{user.username}}</h2>
-                <p id="user-desc">{{#if user.description}}{{user.description}}{{else}}Love exploring hidden gems in Manila!{{/if}}</p>
+                <p id="user-desc">{{user.description}}</p>
                 <a href="/profile/edit" class="edit-btn">Edit Profile</a>
             </div>
 

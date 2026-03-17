@@ -39,7 +39,7 @@
         <div id="reviews-list">
             {{#each reviews}}
                 <div class="review">
-                    <strong>{{this.userId}}</strong> — {{this.rating}}
+                    <strong>{{this.userId.username}}</strong> — {{this.rating}}
                     <p>{{this.comment}}</p>
                 </div>
             {{/each}} 

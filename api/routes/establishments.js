@@ -166,14 +166,20 @@ router.get("/reviews/:id", async (req, res) => {
     const foundRstr = await query.exec()
 
     if (foundRstr.length > 0) {
-        let qry = {restaurantId: req.params.id}
+        let qry = {
+            restaurantId: req.params.id,
+        }
         // OPTIONAL user filter
         if ('user' in req.query) {
             qry['userId'] = req.query.user;
         }
         // Find and return the reviews
         try {
-            const reviews = await Reviews.find(qry).lean()
+            const reviewQry = Reviews.find(qry)
+                .populate('userId', ['username', 'avatar', 'role'])
+                .lean();
+
+            const reviews = await reviewQry.exec();
 
             res.send({
                 status: httpStatus.OK,
