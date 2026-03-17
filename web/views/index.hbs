@@ -2,10 +2,8 @@
   <link rel="stylesheet" href="/css/home.css">
 {{/inline}}
 
-{{!-- The Search Hero Section --}}
 <section class="search-section">
     <div class="search-bar-container">
-        {{!-- Real form for backend search functionality --}}
         <form action="/search" method="GET" style="display: flex; width: 100%; align-items: center;">
             <input type="text" name="q" placeholder="Looking for a restaurant or area..." id="search-input">
             <button type="submit" class="search-btn">Search</button>
@@ -18,18 +16,18 @@
     
     <div id="establishment-grid" class="grid">
         {{!-- This loop replaces the manual list and pulls 5+ items from your database --}}
-        {{#each establishments}}
-            <div class="user-card">
-                <img src="{{this.logo}}" class="avatar-small" alt="{{this.name}} logo">
-                <div class="est-details">
-                    <p><strong>{{this.name}}</strong></p>
-                    <p class="est-subtext">{{this.rating}} • {{this.category}} • {{this.location}} • {{this.price}}</p>
-                </div>
-                {{!-- Links to the specific establishment page your groupmate made --}}
-                <a href="/establishments/{{this.id}}" class="follow-btn">Read Reviews</a>
-            </div>
+        {{#if establishments}}
+            {{#each establishments}}
+                <div class="card">
+                    <h3>{{this.name}}</h3>
+                    <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
+                    <p>{{ this.category }} • {{this.location.city}}</p> {{! NOTE/TODO: Restaurants currently have no categories. }}
+                    <p>₱{{this.priceRange.min}} - ₱{{this.priceRange.max}}</p>
+                    <button onclick="window.location.href='/establishment/{{this._id}}';">Read Reviews</button>
+                </div>        
+            {{/each}}
         {{else}}
             <p class="empty-msg">No trending establishments at the moment.</p>
-        {{/each}}
+        {{/if}}
     </div>
 </main>
