@@ -4,22 +4,23 @@
 
 <main class="establishment-container">
     <div class="establishment-left">
-        <img id="establishment-img" src="{{establishment.image}}" alt="{{establishment.name}}">
+        <img id="establishment-img" src="{{establishment.imageSrc}}" alt="{{establishment.name}}">
         <div class="establishment-info">
             <h2 id="establishment-name">{{establishment.name}}</h2>
-            <p id="establishment-rating">{{establishment.rating}}</p>
+            <p id="establishment-rating">{{establishment.avgRating}}</p>
             <p id="establishment-category">{{establishment.category}}</p>
-            <p id="establishment-location">{{establishment.location}}</p>
-            <p id="establishment-price">{{establishment.price}}</p>
+            <p id="establishment-price">₱{{establishment.priceRange.min}}-{{establishment.priceRange.max}}</p>
+            <p id="establishment-location">{{establishment.location.city}} {{establishment.location.street}}</p>
 
             <div class="establishment-about">
                 <h3>About</h3>
-                <p id="establishment-about">{{establishment.about}}</p>
+                <p id="establishment-about">{{establishment.description}}</p>
             </div>
-            <div class="establishment-hours">
-                <h3>Hours</h3>
-                <p id="establishment-hours">{{establishment.hours}}</p>
-            </div>
+            {{! current db design does not have hours }}
+            {{!-- <div class="establishment-hours"> --}}
+            {{!--     <h3>Hours</h3> --}}
+            {{!--     <p id="establishment-hours">{{establishment.hours}}</p> --}}
+            {{!-- </div> --}}
         </div>
     </div>
 
@@ -38,8 +39,8 @@
         <div id="reviews-list">
             {{#each reviews}}
                 <div class="review">
-                <strong>{{user}}</strong> — {{rating}}
-                <p>{{review}}</p>
+                    <strong>{{this.userId}}</strong> — {{this.rating}}
+                    <p>{{this.comment}}</p>
                 </div>
             {{/each}} 
         </div>

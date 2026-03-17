@@ -51,10 +51,8 @@ app.use(session({
         maxAge: 30 * 60 * 60 * 1000, // Session expires in 30 days
         httpOnly: true,
         // secure: process.env.NODE_ENV === 'production'
-      }
+    }
 }))
-
-// const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // Homepage
 app.get('/', async (req, res) => {
@@ -72,11 +70,11 @@ app.get('/', async (req, res) => {
         title: '6-7-ate-9 | Home',
         establishments: establishments,
         css: [
-            'css/style.css',
-            'css/home.css'
+            '/css/style.css',
+            '/css/home.css'
         ],
         js: [
-            'js/script.js'
+            '/js/script.js'
         ],
         searchBar: true,
         loginContainer: true,
@@ -110,11 +108,11 @@ app.get('/establishments', async (req, res) => {
         nextPage: page + 1,
         prevPage: page > 1 ? page - 1 : null,
         css: [
-            'css/style.css',
-            'css/establishments.css' // Changed from home.css to establishments.css
+            '/css/style.css',
+            '/css/establishments.css' // Changed from home.css to establishments.css
         ],
         js: [
-            'js/script.js'
+            '/js/script.js'
         ],
         searchBar: true,
         loginContainer: true,
@@ -130,7 +128,7 @@ app.get('/establishment/:id', async (req, res) => {
         const estReq = await axios.get(`${API_URL}establishments/${estId}`, { validateStatus: () => true });
         const revReq = await axios.get(`${API_URL}establishments/reviews/${estId}`, { validateStatus: () => true });
 
-        if (estReq.status !== 200) return res.status(404).send("Establishment not found");
+        if (estReq.status != 200) return res.status(404).send("Establishment not found");
 
         const establishmentData = estReq.data.data[0];
         const reviewsData = revReq.data.data;
@@ -146,9 +144,9 @@ app.get('/establishment/:id', async (req, res) => {
             title: establishmentData.name,
             establishment: establishmentData,
             reviews: reviewsData,
-            user: req.session ? req.session.user : null,
-            css: ['css/style.css', 'css/establishment.css'],
-            js: ['js/script.js'],
+            user: req.session.user || null,
+            css: ['/css/style.css', '/css/establishment.css'],
+            js: ['/js/script.js'],
             searchBar: true
         });
     } catch (error) {
@@ -170,8 +168,8 @@ app.get('/search', async (req, res) => {
             query: searchQuery,
             results: results,
             user: req.session ? req.session.user : null,
-            css: ['css/style.css', 'css/search.css'],
-            js: ['js/script.js'],
+            css: ['/css/style.css', 'css/search.css'],
+            js: ['/js/script.js'],
             searchBar: true
         });
     } catch (error) {
@@ -183,7 +181,7 @@ app.get('/signup', async (req, res) => {
     res.render('signup.hbs', 
         { 
             title: 'Sign Up', 
-            css: ['css/style.css', 'css/signlog.css'] 
+            css: ['/css/style.css', 'css/signlog.css'] 
         });
 });
 
@@ -191,7 +189,7 @@ app.get('/login', async (req, res) => {
     res.render('login.hbs', 
         { 
             title: 'Log In', 
-            css: ['css/style.css', 'css/signlog.css'] 
+            css: ['/css/style.css', 'css/signlog.css'] 
         });
 })
 
@@ -219,8 +217,8 @@ app.get('/profile', async (req, res) => {
     res.render('profile.hbs', {
         title: 'My Profile',
         user: req.session.user,
-        css: ['css/style.css', 'css/profile.css'],
-        js: ['js/script.js'],
+        css: ['/css/style.css', 'css/profile.css'],
+        js: ['/js/script.js'],
         searchBar: true
     });
 })
@@ -230,8 +228,8 @@ app.get('/profile/edit', async (req, res) => {
     res.render('profile-edit.hbs', {
         title: 'Edit Profile',
         user: req.session.user,
-        css: ['css/style.css', 'css/profile-edit.css'],
-        js: ['js/script.js']
+        css: ['/css/style.css', 'css/profile-edit.css'],
+        js: ['/js/script.js']
     });
 })
 
@@ -245,8 +243,8 @@ app.get('/profile/:id', async (req, res) => {
             title: 'User Profile',
             profileData: userReq.data.data[0],
             user: req.session ? req.session.user : null,
-            css: ['css/style.css', 'css/profile.css'],
-            js: ['js/script.js'],
+            css: ['/css/style.css', 'css/profile.css'],
+            js: ['/js/script.js'],
             searchBar: true
         });
     } catch (error) {
@@ -296,9 +294,9 @@ app.post('/testreviewpost', upload.array('media'), async (req, res) => {
     for (let file of req.files) {
         const bytes = crypto.getRandomValues(new Uint8Array(16));
         const fileId = btoa(String.fromCharCode(...bytes))
-                    .replace(/\+/g, 'a')
-                    .replace(/\//g, 'A')
-                    .replace(/=+$/, '');
+            .replace(/\+/g, 'a')
+            .replace(/\//g, 'A')
+            .replace(/=+$/, '');
         const fileExt = path.extname(file.originalname);
         const filename = `${fileId}_${uplTime}${fileExt}`
 
@@ -353,7 +351,7 @@ app.post('/testreviewdelete', async (req, res) => {
     let usrsURL = API_URL+'users';
     const testUserId = '69ad961e4a1d38f3c1569a3f';
     const testRstrId = '69ad961e4a1d38f3c1569a80';
-    
+
     try {
         const reviewRes = await axios.delete(`${usrsURL}/reviews/${testUserId}/${testRstrId}`,
             {validateStatus: () => true }

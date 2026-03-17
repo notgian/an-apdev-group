@@ -159,7 +159,7 @@ const STATIC_RESTAURANTS = [
     { 
         name: "The Wholesome Table", 
         description: "Dedicated to serving organic and mindfully sourced food, this establishment offers a menu free of processed ingredients and artificial flavors. The airy, garden-inspired interiors provide a refreshing backdrop for health-conscious diners looking for hearty, wholesome meals.",
-        category: "Healthy", 
+        category: "Cafe", 
         location: {
             street: "Salcedo Village",
             city: "Makati",
@@ -378,6 +378,7 @@ const generateRestaurants = async (ownerList, restaurantList) => {
             restaurants.push({
                 name: resto.name,
                 description: resto.description,
+                category: resto.category,
                 imageSrc: resto.imageSrc,
                 location: resto.location,
                 ownerId: ownerList[i]._id,
@@ -510,7 +511,6 @@ const generateReviews = async (users, restaurants, count = 10) => {
         for (let resto_id in review_means) {
             await Restaurant.findByIdAndUpdate(resto_id, review_means[resto_id]);
         }
-
 
         return reviews;
 
