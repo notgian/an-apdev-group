@@ -43,6 +43,16 @@ app.engine('hbs', hbs.engine({extname:'hbs'}));
 app.set('view engine', 'hbs');
 app.use(express.static('./public'));
 app.use(bodyParser.urlencoded({extended: true}))
+app.use(session({
+    secret: 'secret-key-here',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 30 * 60 * 60 * 1000, // Session expires in 30 days
+        httpOnly: true,
+        // secure: process.env.NODE_ENV === 'production'
+      }
+}))
 
 // const urlencodedParser = bodyParser.urlencoded({extended: true})
 
@@ -185,10 +195,6 @@ app.get('/login', async (req, res) => {
         });
 })
 
-app.get('/profile', async (req, res) => {
-    res.send('Page for profile(current user profile). Not yet implemented.')
-})
-
 app.post('/login', async (req, res) => {
     try {
         const loginRes = await axios.post(`${API_URL}users/login`, {
@@ -196,23 +202,19 @@ app.post('/login', async (req, res) => {
             password: req.body.password
         }, { validateStatus: () => true });
 
-        if (loginRes.status === 200) {
-            const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
-            if (userReq.status === 200 && userReq.data.data.length > 0) {
-                req.session.user = userReq.data.data[0]; 
-            } else {
-                req.session.user = { username: req.body.username }; 
-            }
+        if (loginRes.status == 200) {
+            req.session.user = { username: req.body.username }; 
             res.redirect('/'); 
         } else {
             res.status(401).send(loginRes.data.message || "Login failed");
         }
     } catch (error) {
-        res.status(500).send("Login error");
+        res.status(500).send("Login error. " + error);
     }
 });
 
 app.get('/profile', async (req, res) => {
+    console.log(req.session, req.session.user)
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     res.render('profile.hbs', {
         title: 'My Profile',
