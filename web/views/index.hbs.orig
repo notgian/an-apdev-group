@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+<section class="search-section">
+    <div class="search-bar-container">
+        <input type="text" placeholder="Looking for..." id="search-input">
+        <button type="button" class="search-btn" onclick="redirectSearch()">Search</button>
+=======
 {{#*inline "styles"}}
   <link rel="stylesheet" href="/css/home.css">
 {{/inline}}
@@ -10,11 +16,26 @@
             <input type="text" name="q" placeholder="Looking for a restaurant or area..." id="search-input">
             <button type="submit" class="search-btn">Search</button>
         </form>
+>>>>>>> origin/front-hbs
     </div>
 </section>
 
 <main class="content-container">
     <h2>TRENDING ESTABLISHMENTS</h2>
+<<<<<<< HEAD
+    <div id="establishment-grid" class="grid">
+        {{#each establishments}}
+            <div class="card">
+                <h3>{{this.name}}</h3>
+                <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
+                <p>Food • {{this.location.city}}</p> {{! NOTE/TODO: Restaurants currently have no categories. }}
+                <p>₱{{this.priceRange.min}} - ₱{{this.priceRange.max}}</p>
+                <button onclick="goToEstablishment('${normalizeName(item.name)}')">Read Reviews</button>
+            </div>
+        {{/each}}
+    </div>
+</main>
+=======
     
     <div id="establishment-grid" class="grid">
         {{!-- This loop replaces the manual list and pulls 5+ items from your database --}}
@@ -33,3 +54,4 @@
         {{/each}}
     </div>
 </main>
+>>>>>>> origin/front-hbs

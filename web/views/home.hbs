@@ -1,0 +1,54 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/home.css">
+{{/inline}}
+
+{{!-- Header area that adapts to login state --}}
+<header class="main-header">
+    <div class="logo">6-7-Ate-9</div>
+    <nav class="nav-links">
+        <a href="/" class="active">Home</a>
+        <a href="/establishments">Establishments</a>
+        <a href="/profile">Profile</a>
+    </nav>
+    <div class="login-container">
+        {{#if user}}
+            {{!-- Show avatar if logged in --}}
+            <a href="/profile">
+                <img src="{{#if user.avatar}}{{user.avatar}}{{else}}/images/user-avatar.png{{/if}}" 
+                     class="avatar-small" alt="Profile">
+            </a>
+        {{else}}
+            {{!-- Show buttons if guest --}}
+            <a href="/signup" class="signup-btn">Sign Up</a>
+            <a href="/login" class="login-btn">Log In</a>
+        {{/if}}
+    </div>
+</header>
+
+<section class="search-section">
+    <div class="search-bar-container">
+        {{!-- Search form sends data to the backend search route --}}
+        <form action="/search" method="GET" style="display: flex; width: 100%;">
+            <input type="text" name="q" placeholder="Looking for..." id="search-input">
+            <button type="submit" class="search-btn">Search</button>
+        </form>
+    </div>
+</section>
+
+<main class="content-container">
+    <h2>TRENDING ESTABLISHMENTS</h2>
+    <div id="establishment-grid" class="grid">
+        {{#each establishments}}
+            <div class="user-card">
+                <img src="{{this.logo}}" class="avatar-small" alt="{{this.name}} logo">
+                <div class="est-details">
+                    <p><strong>{{this.name}}</strong></p>
+                    <p class="est-subtext">{{this.rating}} • {{this.category}} • {{this.location}} • {{this.price}}</p>
+                </div>
+                <a href="/establishments/{{this.id}}" class="follow-btn">Read Reviews</a>
+            </div>
+        {{else}}
+            <p>No trending establishments at the moment.</p>
+        {{/each}}
+    </div>
+</main>

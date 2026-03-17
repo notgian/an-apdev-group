@@ -1,0 +1,34 @@
+{{#*inline "styles"}}
+  <link rel="stylesheet" href="/css/signlog.css">
+{{/inline}}
+
+<main class="form-container">
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Log in to share your latest food trip.</p>
+        
+        <form id="login-form" action="/login" method="POST">
+            <div class="input-group">
+                <label for="login-username">Username</label>
+                {{!-- Added name="username" for backend access --}}
+                <input type="text" name="username" id="login-username" placeholder="Enter your username" required>
+            </div>
+
+            <div class="input-group">
+                <label for="login-password">Password</label>
+                {{!-- Added name="password" for backend access --}}
+                <input type="password" name="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+
+            <div class="remember-me">
+                {{!-- Added name="remember" for backend access --}}
+                <input type="checkbox" name="remember" id="remember-check">
+                <label for="remember-check">Keep me logged in for 3 weeks</label>
+            </div>
+
+            {{!-- Changed to type="submit" to trigger the backend route --}}
+            <button type="submit" class="btn-main">Log In</button>
+        </form>
+        <p class="footer-text">New here? <a href="/signup">Create an account</a></p>
+    </div>
+</main>
