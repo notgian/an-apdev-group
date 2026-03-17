@@ -485,6 +485,33 @@ const generateReviews = async (users, restaurants, count = 10) => {
         await Reviews.insertMany(reviews);
         console.log(`Successfully created ${count} reviews!`);
 
+        const review_means = reviews.reduce((acc, review) => {
+            const restId = review.restaurantId.toString();
+            
+            if (!acc[restId]) {
+                acc[restId] = { totalRating: 0, count: 0 };
+            }
+            
+            acc[restId].totalRating += review.rating;
+            acc[restId].count += 1;
+            
+            return acc;
+        }, {});
+
+        Object.keys(review_means).forEach(id => {
+            const data = review_means[id];
+            review_means[id] = { 
+                avgRating: Number((data.totalRating / data.count).toFixed(2)) 
+            };
+        });
+
+        console.log("Updating restaurant average ratings...");
+
+        for (let resto_id in review_means) {
+            await Restaurant.findByIdAndUpdate(resto_id, review_means[resto_id]);
+        }
+
+
         return reviews;
 
     }
