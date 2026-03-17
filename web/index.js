@@ -170,7 +170,7 @@ app.get('/search', async (req, res) => {
 });
 
 app.get('/signup', async (req, res) => {
-    res.render('signup.html', 
+    res.render('signup.hbs', 
         { 
             title: 'Sign Up', 
             css: ['css/style.css', 'css/signlog.css'] 
@@ -178,7 +178,7 @@ app.get('/signup', async (req, res) => {
 });
 
 app.get('/login', async (req, res) => {
-    res.render('login.html', 
+    res.render('login.hbs', 
         { 
             title: 'Log In', 
             css: ['css/style.css', 'css/signlog.css'] 
@@ -214,7 +214,7 @@ app.post('/login', async (req, res) => {
 
 app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
-    res.render('profile.html', {
+    res.render('profile.hbs', {
         title: 'My Profile',
         user: req.session.user,
         css: ['css/style.css', 'css/profile.css'],
@@ -225,7 +225,7 @@ app.get('/profile', async (req, res) => {
 
 app.get('/profile/edit', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
-    res.render('profile-edit.html', {
+    res.render('profile-edit.hbs', {
         title: 'Edit Profile',
         user: req.session.user,
         css: ['css/style.css', 'css/profile-edit.css'],
