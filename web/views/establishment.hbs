@@ -1,6 +1,3 @@
-{{#*inline "styles"}}
-  <link rel="stylesheet" href="/css/establishment.css">
-{{/inline}}
 
 <main class="establishment-container">
     <div class="establishment-left">
@@ -16,27 +13,36 @@
                 <h3>About</h3>
                 <p id="establishment-about">{{establishment.description}}</p>
             </div>
-            {{! current db design does not have hours }}
-            {{!-- <div class="establishment-hours"> --}}
-            {{!--     <h3>Hours</h3> --}}
-            {{!--     <p id="establishment-hours">{{establishment.hours}}</p> --}}
-            {{!-- </div> --}}
         </div>
     </div>
 
     <div class="establishment-right">
         {{#if userReview}}
         {{else}}
-        <form id="review-form">
-            <textarea id="review-title" placeholder="Title your review..."> </textarea>
-            <textarea id="review-text" placeholder="Write your review..."></textarea>
 
-            <div class="input-group">
-                <label for="review-media">Add media...</label> <br />
-                <input type="file" name="review-media" accept="image/*" class="file-input">
-            </div>
-            <button id="add-review-btn" type="submit">Add Review</button>
-        </form>
+            {{#if user}}
+            <form id="review-form" method="POST" action="/postreview/{{user._id}}/{{establishment._id}}" enctype="multipart/form-data">
+                <span class="review-rating star-rating-selector"> 
+                    <input type="hidden" name="rating" class="rating-value" value="" required="true" autocomplete="off"/>
+                    <span class="rating-text"></span>
+                    <span onclick="updateReviewRating(this, 1)" class="rating-stars stars">☆</span>
+                    <span onclick="updateReviewRating(this, 2)" class="rating-stars stars">☆</span>
+                    <span onclick="updateReviewRating(this, 3)" class="rating-stars stars">☆</span>
+                    <span onclick="updateReviewRating(this, 4)" class="rating-stars stars">☆</span>
+                    <span onclick="updateReviewRating(this, 5)" class="rating-stars stars">☆</span>
+                </span>
+
+                <textarea name="comment" id="review-text" placeholder="Write your review..."></textarea>
+
+                <div class="input-group">
+                    <label for="media">Add media...</label> <br />
+                    <input type="file" name="media" accept=".jpg, .jpeg, .png, .mp4, .mov, .avi, .mkv" class="file-input" multiple>
+                </div>
+                <button id="add-review-btn" type="submit">Add Review</button>
+            </form>
+            {{else}}
+            <h2> You need to login to post a review. </h2>
+            {{/if}}
         {{/if}}
 
         <div id="reviews-list">
@@ -58,14 +64,14 @@
                     <div class="review-comment">
                         <p class="review-comment-text">{{userReview.comment}}</p>
                         <div class="review-editarea">
-                            <span class="review-editarea-rating"> 
-                                <input type="hidden" class="review-editarea-rating-value" value="{{userReview.rating}}" autocomplete="off"/>
-                                <span class="review-editarea-rating-text"></span>
-                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 1)" class="review-editarea-star stars">★</span>
-                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 2)" class="review-editarea-star stars">★</span>
-                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 3)" class="review-editarea-star stars">★</span>
-                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 4)" class="review-editarea-star stars">★</span>
-                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 5)" class="review-editarea-star stars">★</span>
+                            <span class="review-rating star-rating-selector"> 
+                                <input type="hidden" name="rating" class="rating-value" value="{{userReview.rating}}" autocomplete="off"/>
+                                <span class="rating-text"></span>
+                                <span onclick="updateReviewRating(this, 1)" class="rating-stars stars">☆</span>
+                                <span onclick="updateReviewRating(this, 2)" class="rating-stars stars">☆</span>
+                                <span onclick="updateReviewRating(this, 3)" class="rating-stars stars">☆</span>
+                                <span onclick="updateReviewRating(this, 4)" class="rating-stars stars">☆</span>
+                                <span onclick="updateReviewRating(this, 5)" class="rating-stars stars">☆</span>
                             </span>
                             <textarea class="review-editarea-text"></textarea>
                             <button class="review-editarea-cancel" onclick="toggleReviewEdit('{{userReview.userId._id}}')">Cancel</button> 
@@ -82,116 +88,6 @@
                     </div>
                 </div>
 
-                <script>
-                    document.getElementById('review-delete').addEventListener('click', (e) => {
-                        const proceedDelete = confirm("Delete user review?")
-                        alert("relax, this don't work yet")
-                    });
-
-                    const toggleReviewEdit = (id) => {
-                        const userReview = document.getElementById(id);
-                        if (!userReview)
-                            return
-
-                        const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
-                        const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
-
-                        if (!userReviewText || !userReviewEditArea)
-                            return
-                        
-                        // Toggle editing on
-                        if (userReviewText.style.display != "none") {
-                            userReviewText.style.display = "none";
-                            userReviewEditArea.style.display = "block";
-                            userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.innerText
-                        } 
-                        // Toggle editing off
-                        else {
-                            userReviewText.style.display = "block";
-                            userReviewEditArea.style.display = "none";
-                        }
-
-                        updateReviewRating(id, -1);
-                    }
-
-                    const updateReviewRating = (id, rating) => {
-                        const userReview = document.getElementById(id);
-                        if (!userReview)
-                            return;
-
-                        const ratingValue = userReview.getElementsByClassName("review-editarea-rating-value")[0];
-                        const ratingText = userReview.getElementsByClassName("review-editarea-rating-text")[0];
-                        const ratingStars = userReview.getElementsByClassName("review-editarea-star");
-
-                        if (!ratingValue || !ratingText || !ratingStars)
-                            return
-
-                        if (rating < 1 || rating > 5)
-                            rating = ratingValue.value;
-
-                        for(i=0; i<5; i++) {
-                            let star = '☆'
-                            if (i < rating)                            
-                                star = '★';
-                            ratingStars[i].innerText = star;
-                        }
-
-                        ratingText.innerText = rating+"/5"
-                        ratingValue.value = rating
-                    }
-
-                    const saveReview = async (id) => {
-                        const userReview = document.getElementById(id);
-                        if (!userReview)
-                            return;
-
-                        const ratingValue = userReview.getElementsByClassName("review-editarea-rating-value")[0];
-                        const reviewBody = userReview.getElementsByClassName("review-editarea-text")[0];
-
-                        const rating = Number(ratingValue.value)
-                        const comment = reviewBody.value
-
-                        console.log(rating, comment)
-
-                        const editReq = await fetch('/editreview/{{userReview.userId._id}}/{{establishment._id}}', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({rating: rating, comment: comment}),
-                        })
-
-                        const editRes = await editReq.json()
-
-                        alert(editRes.message)
-                        toggleReviewEdit(id);
-
-                        if (editRes.status == 200) {
-                            let newRating = editRes.data.rating
-                            let newComment = editRes.data.comment
-
-                            let starsStr = ''
-                            for(i=0; i<5; i++) {
-                                let star = '☆'
-                                if (i < newRating)                            
-                                    star = '★';
-                                starsStr += star;
-                            }
-                            userReview.getElementsByClassName("star-rating")[0].innerText = starsStr;
-                            userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
-                        }
-                    }
-                </script>
-
-                <style>
-                    .review-editarea {
-                        width: 100%;
-                        display: none;
-                    }
-                    .review-editarea > textarea {
-                        width: 100%;
-                        resize: none;
-                        height: 5vh;
-                    }
-                </style>
             {{/if}}
 
             {{#each reviews}}
@@ -215,3 +111,115 @@
         <button id="view-more-btn">View More</button>
     </div>
 </main>
+
+
+<script defer>
+    const reviewDelete = document.getElementById('review-delete')
+    if (reviewDelete)
+        reviewDelete.addEventListener('click', (e) => {
+            const proceedDelete = confirm("Delete user review?")
+            alert("relax, this don't work yet")
+        });
+
+    const toggleReviewEdit = (id) => {
+        const userReview = document.getElementById(id);
+        if (!userReview)
+            return
+
+        const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
+        const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
+
+        if (!userReviewText || !userReviewEditArea)
+            return
+        
+        // Toggle editing on
+        if (userReviewText.style.display != "none") {
+            userReviewText.style.display = "none";
+            userReviewEditArea.style.display = "block";
+            userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.innerText
+        } 
+        // Toggle editing off
+        else {
+            userReviewText.style.display = "block";
+            userReviewEditArea.style.display = "none";
+        }
+
+        let starObj = userReview.getElementsByClassName("star-rating-selector")[0].getElementsByClassName("stars")[0]
+        updateReviewRating(starObj, -1);
+    }
+
+    const updateReviewRating = (star, rating) => {
+        let starsContainer = star.parentElement
+        console.log(starsContainer)
+        const ratingValue = starsContainer.getElementsByClassName("rating-value")[0];
+        const ratingText = starsContainer.getElementsByClassName("rating-text")[0];
+        const ratingStars = starsContainer.getElementsByClassName("rating-stars");
+
+        if (!ratingValue || !ratingText || !ratingStars)
+            return console.log(ratingValue)
+
+        if (rating < 1 || rating > 5)
+            rating = ratingValue.value;
+
+        for(i=0; i<5; i++) {
+            let star = '☆'
+            if (i < rating)                            
+                star = '★';
+            ratingStars[i].innerText = star;
+        }
+
+        ratingText.innerText = rating+"/5"
+        ratingValue.value = rating
+
+    }
+
+    const saveReview = async (id) => {
+        const userReview = document.getElementById(id);
+        if (!userReview)
+            return;
+
+        const ratingValue = userReview.getElementsByClassName("rating-value")[0];
+        const reviewBody = userReview.getElementsByClassName("review-editarea-text")[0];
+
+        const rating = Number(ratingValue.value)
+        const comment = reviewBody.value
+
+        const editReq = await fetch('/editreview/{{userReview.userId._id}}/{{establishment._id}}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({rating: rating, comment: comment}),
+        })
+
+        const editRes = await editReq.json()
+
+        alert(editRes.message)
+        toggleReviewEdit(id);
+
+        if (editRes.status == 200) {
+            let newRating = editRes.data.rating
+            let newComment = editRes.data.comment
+
+            let starsStr = ''
+            for(i=0; i<5; i++) {
+                let star = '☆'
+                if (i < newRating)                            
+                    star = '★';
+                starsStr += star;
+            }
+            userReview.getElementsByClassName("star-rating")[0].innerText = starsStr;
+            userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
+        }
+    }
+</script>
+
+<style>
+    .review-editarea {
+        width: 100%;
+        display: none;
+    }
+    .review-editarea > textarea {
+        width: 100%;
+        resize: none;
+        height: 5vh;
+    }
+</style>

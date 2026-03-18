@@ -164,6 +164,45 @@ app.get('/establishment/:id', async (req, res) => {
     }
 });
 
+app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) => {
+    const usrsURL = API_URL+'users/'
+    const form = new FormData();
+    const uplTime = Date.now();
+
+    for (let file of req.files) {
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        const fileId = btoa(String.fromCharCode(...bytes))
+            .replace(/\+/g, 'a')
+            .replace(/\//g, 'A')
+            .replace(/=+$/, '');
+        const fileExt = path.extname(file.originalname);
+        const filename = `${fileId}_${uplTime}${fileExt}`
+
+        form.append('media', file.buffer, {
+            filename: filename,
+            contentType: file.mimetype,
+        }) 
+    }
+
+    if (req.body['rating'] && req.body['rating'] >= 0 && req.body['rating'] <= 5)
+        form.append('rating', req.body['rating'])
+    if (req.body['comment'] && req.body['comment'] != "")
+        form.append('comment', req.body['comment'])
+
+    try {
+        const reviewRes = await axios.post(`${usrsURL}reviews/${req.params.userId}/${req.params.rstrId}`, form, {
+            headers: { ...form.getHeaders() },
+            validateStatus: () => true
+        });
+
+        if (reviewRes.status == 201)
+            res.redirect('/'+req.params.rstrId)
+    }
+    catch (err) {
+        res.status(500).send(err);
+    }
+})
+
 app.post('/editreview/:userId/:rstrId', async (req, res) => {
     const usrsURL = API_URL+'users/'
     const userId = req.params.userId;
