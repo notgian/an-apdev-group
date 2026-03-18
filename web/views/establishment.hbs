@@ -58,9 +58,18 @@
                     <div class="review-comment">
                         <p class="review-comment-text">{{userReview.comment}}</p>
                         <div class="review-editarea">
-                            <textarea></textarea>
+                            <span class="review-editarea-rating"> 
+                                <input type="hidden" class="review-editarea-rating-value" value="{{userReview.rating}}" autocomplete="off"/>
+                                <span class="review-editarea-rating-text"></span>
+                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 1)" class="review-editarea-star stars">★</span>
+                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 2)" class="review-editarea-star stars">★</span>
+                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 3)" class="review-editarea-star stars">★</span>
+                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 4)" class="review-editarea-star stars">★</span>
+                                <span onclick="updateReviewRating('{{userReview.userId._id}}', 5)" class="review-editarea-star stars">★</span>
+                            </span>
+                            <textarea class="review-editarea-text"></textarea>
                             <button class="review-editarea-cancel" onclick="toggleReviewEdit('{{userReview.userId._id}}')">Cancel</button> 
-                            <button class="review-editarea-save" onclick="saveReview({{userReview.userId._id}})">Save</button> 
+                            <button class="review-editarea-save" onclick="saveReview('{{userReview.userId._id}}')">Save</button> 
                         </div>
                     </div>
                     <div>
@@ -84,7 +93,6 @@
                         if (!userReview)
                             return
 
-
                         const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
                         const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
 
@@ -101,6 +109,74 @@
                         else {
                             userReviewText.style.display = "block";
                             userReviewEditArea.style.display = "none";
+                        }
+
+                        updateReviewRating(id, -1);
+                    }
+
+                    const updateReviewRating = (id, rating) => {
+                        const userReview = document.getElementById(id);
+                        if (!userReview)
+                            return;
+
+                        const ratingValue = userReview.getElementsByClassName("review-editarea-rating-value")[0];
+                        const ratingText = userReview.getElementsByClassName("review-editarea-rating-text")[0];
+                        const ratingStars = userReview.getElementsByClassName("review-editarea-star");
+
+                        if (!ratingValue || !ratingText || !ratingStars)
+                            return
+
+                        if (rating < 1 || rating > 5)
+                            rating = ratingValue.value;
+
+                        for(i=0; i<5; i++) {
+                            let star = '☆'
+                            if (i < rating)                            
+                                star = '★';
+                            ratingStars[i].innerText = star;
+                        }
+
+                        ratingText.innerText = rating+"/5"
+                        ratingValue.value = rating
+                    }
+
+                    const saveReview = async (id) => {
+                        const userReview = document.getElementById(id);
+                        if (!userReview)
+                            return;
+
+                        const ratingValue = userReview.getElementsByClassName("review-editarea-rating-value")[0];
+                        const reviewBody = userReview.getElementsByClassName("review-editarea-text")[0];
+
+                        const rating = Number(ratingValue.value)
+                        const comment = reviewBody.value
+
+                        console.log(rating, comment)
+
+                        const editReq = await fetch('/editreview/{{userReview.userId._id}}/{{establishment._id}}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({rating: rating, comment: comment}),
+                        })
+
+                        const editRes = await editReq.json()
+
+                        alert(editRes.message)
+                        toggleReviewEdit(id);
+
+                        if (editRes.status == 200) {
+                            let newRating = editRes.data.rating
+                            let newComment = editRes.data.comment
+
+                            let starsStr = ''
+                            for(i=0; i<5; i++) {
+                                let star = '☆'
+                                if (i < newRating)                            
+                                    star = '★';
+                                starsStr += star;
+                            }
+                            userReview.getElementsByClassName("star-rating")[0].innerText = starsStr;
+                            userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
                         }
                     }
                 </script>

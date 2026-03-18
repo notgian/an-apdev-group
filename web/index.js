@@ -34,7 +34,7 @@ Handlebars.registerHelper('renderStarsHTML', function(rating) {
         innerText = "★".repeat(roundedRating) + "☆".repeat(5 - roundedRating);
     }
 
-    return `<span class="stars${rating == -1 ? '-no-ratings' : ''}">${innerText}</span>`
+    return `<span class="stars${rating == -1 ? '-no-ratings' : ''} star-rating">${innerText}</span>`
 });
 
 // Application Proper
@@ -42,6 +42,7 @@ const app = express();
 app.engine('hbs', hbs.engine({extname:'hbs'}));
 app.set('view engine', 'hbs');
 app.use(express.static('./public'));
+app.use(express.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(session({
     secret: 'secret-key-here',
@@ -139,8 +140,6 @@ app.get('/establishment/:id', async (req, res) => {
         if (req.session.user) {
             userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
             reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
-
-            console.log(userReview)
         }
 
         let isOwner = false;
@@ -162,6 +161,31 @@ app.get('/establishment/:id', async (req, res) => {
         });
     } catch (error) {
         res.status(500).send("Internal Server Error" + error);
+    }
+});
+
+app.post('/editreview/:userId/:rstrId', async (req, res) => {
+    const usrsURL = API_URL+'users/'
+    const userId = req.params.userId;
+    const rstrId = req.params.rstrId;
+
+    let rating = req.body.rating || undefined;
+    let comment = req.body.comment || undefined;
+
+    let updatedReview = {}
+    if (rating) updatedReview['rating'] = rating;
+    if (comment) updatedReview['comment'] = comment;
+
+    try {
+        const reviewRes = await axios.put(`${usrsURL}reviews/${userId}/${rstrId}`,
+            updatedReview, 
+            {validateStatus: () => true }
+        );
+
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.status(500).send(err);
     }
 });
 
