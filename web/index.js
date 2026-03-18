@@ -132,7 +132,16 @@ app.get('/establishment/:id', async (req, res) => {
         if (estReq.status != 200) return res.status(404).send("Establishment not found");
 
         const establishmentData = estReq.data.data[0];
-        const reviewsData = revReq.data.data;
+        let reviewsData = revReq.data.data;
+
+        let userReview;
+        
+        if (req.session.user) {
+            userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
+            reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
+
+            console.log(userReview)
+        }
 
         let isOwner = false;
         if (req.session && req.session.user && req.session.user._id === establishmentData.ownerId) {
@@ -144,14 +153,15 @@ app.get('/establishment/:id', async (req, res) => {
         res.render(template, {
             title: establishmentData.name,
             establishment: establishmentData,
-            reviews: reviewsData,
+            userReview: userReview, //*specifically* if the user has a review of this establishment
+            reviews: reviewsData, // List of all reviews, separate from user
             user: req.session.user || null,
             css: ['/css/style.css', '/css/establishment.css'],
             js: ['/js/script.js'],
             searchBar: true
         });
     } catch (error) {
-        res.status(500).send("Internal Server Error");
+        res.status(500).send("Internal Server Error" + error);
     }
 });
 

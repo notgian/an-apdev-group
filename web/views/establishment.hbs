@@ -25,6 +25,8 @@
     </div>
 
     <div class="establishment-right">
+        {{#if userReview}}
+        {{else}}
         <form id="review-form">
             <textarea id="review-title" placeholder="Title your review..."> </textarea>
             <textarea id="review-text" placeholder="Write your review..."></textarea>
@@ -35,12 +37,101 @@
             </div>
             <button id="add-review-btn" type="submit">Add Review</button>
         </form>
+        {{/if}}
 
         <div id="reviews-list">
+            {{#if userReview}}
+                <div class="review" id="{{userReview.userId._id}}">
+                    <div style="display: flex; justify-content: space-between">
+                        <span>
+                            <strong>{{userReview.userId.username}}</strong> • {{#renderStarsHTML userReview.rating}}{{/renderStarsHTML}}
+                        </span>
+                        <span>
+                            <span id="review-delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </span>
+                            <span id="review-edit" onclick="toggleReviewEdit('{{userReview.userId._id}}')">
+                                <i class="fa-solid fa-pen"></i>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="review-comment">
+                        <p class="review-comment-text">{{userReview.comment}}</p>
+                        <div class="review-editarea">
+                            <textarea></textarea>
+                            <button class="review-editarea-cancel" onclick="toggleReviewEdit('{{userReview.userId._id}}')">Cancel</button> 
+                            <button class="review-editarea-save" onclick="saveReview({{userReview.userId._id}})">Save</button> 
+                        </div>
+                    </div>
+                    <div>
+                        <span>
+                            <i class="fa-regular fa-thumbs-up"></i> {{userReview.helpfulCount}}
+                        </span>
+                        <span>
+                            <i class="fa-regular fa-thumbs-down"></i> {{userReview.unhelpfulCount}}
+                        </span>
+                    </div>
+                </div>
+
+                <script>
+                    document.getElementById('review-delete').addEventListener('click', (e) => {
+                        const proceedDelete = confirm("Delete user review?")
+                        alert("relax, this don't work yet")
+                    });
+
+                    const toggleReviewEdit = (id) => {
+                        const userReview = document.getElementById(id);
+                        if (!userReview)
+                            return
+
+
+                        const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
+                        const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
+
+                        if (!userReviewText || !userReviewEditArea)
+                            return
+                        
+                        // Toggle editing on
+                        if (userReviewText.style.display != "none") {
+                            userReviewText.style.display = "none";
+                            userReviewEditArea.style.display = "block";
+                            userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.innerText
+                        } 
+                        // Toggle editing off
+                        else {
+                            userReviewText.style.display = "block";
+                            userReviewEditArea.style.display = "none";
+                        }
+                    }
+                </script>
+
+                <style>
+                    .review-editarea {
+                        width: 100%;
+                        display: none;
+                    }
+                    .review-editarea > textarea {
+                        width: 100%;
+                        resize: none;
+                        height: 5vh;
+                    }
+                </style>
+            {{/if}}
+
             {{#each reviews}}
                 <div class="review">
-                    <strong>{{this.userId.username}}</strong> — {{this.rating}}
-                    <p>{{this.comment}}</p>
+                    <div>
+                        <strong>{{this.userId.username}}</strong> • {{#renderStarsHTML this.rating}}{{/renderStarsHTML}}
+                        <p>{{this.comment}}</p>
+                    </div>
+                    <div>
+                        <span>
+                            <i class="fa-regular fa-thumbs-up"></i> {{this.helpfulCount}}
+                        </span>
+                        <span>
+                            <i class="fa-regular fa-thumbs-down"></i> {{this.unhelpfulCount}}
+                        </span>
+                    </div>
                 </div>
             {{/each}} 
         </div>
