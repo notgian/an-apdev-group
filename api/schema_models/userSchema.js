@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
         required: true 
     }, 
     avatar: { type: String, // picture ni user
-        default: 'images/user-avatar.png' 
+        default: `http://${process.env.API_PUBLIC_HOSTNAME}:${process.env.API_PORT}/cdn/user-avatar.png`
     }, 
     description: {  // about you
         type: String, 

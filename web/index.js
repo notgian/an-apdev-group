@@ -185,6 +185,59 @@ app.get('/signup', async (req, res) => {
         });
 });
 
+app.post('/signup', async (req, res) => {
+    try {
+        const signupRoute = `${API_URL}users/`
+
+        const signupRes = await axios.post(signupRoute, {
+            username: req.body.username,
+            password: req.body.password
+        }, { validateStatus: () => true });
+
+        const signupData = signupRes.data;
+       
+        // TODO: CHANGE THIS TO ONLY CHECK FOR 201 WHEN API ROUTES ARE FIXED
+        if (signupRes.status != 200 && signupRes.status != 201) {
+            return res.render('signup.hbs', { 
+                title: 'Sign Up', 
+                css: ['/css/style.css', '/css/signlog.css'],
+                error: signupData.message
+            });
+        }
+
+        // Attempt to login on success
+        // Using same params from req body since it's assumed nothing changed anw
+        // Yes it's necessary to make the api calls again bc later we'll have JWT tokens (hopefully)
+        const loginRes = await axios.post(`${API_URL}users/login`, {
+            username: req.body.username,
+            password: req.body.password
+        }, { validateStatus: () => true });
+
+        if (loginRes.status == 200) {
+            const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
+            if (userReq.status === 200 && userReq.data.data.length > 0) {
+                req.session.user = userReq.data.data[0]; 
+            } else {
+                req.session.user = { username: req.body.username }; 
+            }            
+            res.redirect('/'); 
+        } else {
+            res.render({ 
+                title: 'Sign Up', 
+                css: ['/css/style.css', '/css/signlog.css'],
+                error: "Signup successful, but login failed. Please login manually." 
+            });
+        }
+
+    } catch (err) {
+        res.render({ 
+            title: 'Sign Up', 
+            css: ['/css/style.css', '/css/signlog.css'],
+            error: "Error encountered signing in. Please try again" 
+        });
+    }
+})
+
 app.get('/login', async (req, res) => {
     res.render('login.hbs', 
         { 

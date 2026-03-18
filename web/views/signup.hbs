@@ -18,6 +18,12 @@
                 <input type="password" name="password" id="signup-password" placeholder="Min. 8 characters" required>
             </div>
 
+            {{#if error}}
+            {{! TODO FOR FRONTENT: ADD STYLES TO THIS }}
+                {{error}}
+
+            {{/if}}
+
             <button type="submit" class="btn-main">Sign Up</button>
         </form>
         <p class="footer-text">Already have an account? <a href="/login">Log In</a></p>
