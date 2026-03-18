@@ -35,15 +35,23 @@
             <button id="add-review-btn" type="submit">Add Review</button>
         </form>
 
-        <div id="reviews-list">
-            {{#each reviews}}
-                <div class="review">
-                <strong>{{user}}</strong> — {{rating}}
-                <p>{{review}}</p>
+        <div class="establishment-right">
+            <h2>Reviews</h2>
+            <div id="reviews-list">
+                {{#each reviews}}
+                <div class="review-item">
+                    <strong>{{user}}:</strong>
+                    <span class="review-text">{{review}}</span>
+                    <span class="review-marker">
+                    👍 {{likes}}
+                    👎 {{dislikes}}
+                    </span>
                 </div>
-            {{/each}} 
+                {{/each}}
+            </div>
+            <button id="view-more-btn">View More</button>
         </div>
-        
+   
         <button id="view-more-btn">View More</button>
     </div>
 </main>

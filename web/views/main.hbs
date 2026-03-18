@@ -12,9 +12,10 @@
         <header class="main-header">
         <div class="logo">6-7-Ate-9</div>
         <nav class="nav-links">
-            <a href="/">Home</a>
-            <a href="/establishments">Establishments</a>
-            <a href="/profile">Profile</a>
+            {{! NOTE: Each route handler should pass a flag (isHome, isEstablishments, isProfile) so the correct nav link gets the "active" class }}
+            <a href="/" class="{{#if isHome}}active{{/if}}">Home</a>
+            <a href="/establishments" class="{{#if isEstablishments}}active{{/if}}">Establishments</a>
+            <a href="/profile" class="{{#if isProfile}}active{{/if}}">Profile</a>
         </nav>
 
         <!-- for pages with search bar and login container -->
