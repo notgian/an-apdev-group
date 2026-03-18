@@ -32,7 +32,9 @@
                 </div>
             {{/if}}
 
-            {{#if loginContainer}}
+            {{#if user}}
+                    <a href="/logout" class="logout-btn">Log Out</a>
+            {{else}}
                 <div class="login-container">
                     <a href="/login" class="login-btn">Log In</a>
                     <a href="/signup" class="signup-btn">Sign Up</a>

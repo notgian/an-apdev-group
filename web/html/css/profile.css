@@ -191,18 +191,7 @@ body {
     cursor: pointer;
 }
 
-.logout-btn {
-    background-color: white;
-    color: #d3237a;
-    border: 2px solid #d3237a;
-    padding: 10px 25px;
-    border-radius: 25px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
 .edit-btn:hover { background-color: #ad1457; }
-.logout-btn:hover { background-color: #fce4ec; }
 
 /* Other Foodies Section */
 .other-users {

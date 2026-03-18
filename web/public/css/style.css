@@ -104,3 +104,40 @@ button {
     font-family: 'Helvetica', Arial, sans-serif; 
     color: #cb1877; 
 }
+
+.signup-btn {
+    background-color: #f7ebf1;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 2em;
+    cursor: pointer;
+    font-size: 1em; 
+    margin-right: 10px;
+    color: #d14d72;
+    text-decoration: none;
+}
+
+button,.login-btn {
+    background-color: #e64b98;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 2em;
+    cursor: pointer;
+    font-size: 1em; 
+    margin-left: 10px;
+    text-decoration: none;
+}
+
+.logout-btn {
+    background-color: white;
+    color: #d3237a;
+    border: 2px solid #d3237a;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.logout-btn:hover { background-color: #fce4ec; }

@@ -168,7 +168,7 @@ app.get('/search', async (req, res) => {
             query: searchQuery,
             results: results,
             user: req.session ? req.session.user : null,
-            css: ['/css/style.css', 'css/search.css'],
+            css: ['/css/style.css', '/css/search.css'],
             js: ['/js/script.js'],
             searchBar: true
         });
@@ -181,7 +181,7 @@ app.get('/signup', async (req, res) => {
     res.render('signup.hbs', 
         { 
             title: 'Sign Up', 
-            css: ['/css/style.css', 'css/signlog.css'] 
+            css: ['/css/style.css', '/css/signlog.css'] 
         });
 });
 
@@ -189,7 +189,7 @@ app.get('/login', async (req, res) => {
     res.render('login.hbs', 
         { 
             title: 'Log In', 
-            css: ['/css/style.css', 'css/signlog.css'] 
+            css: ['/css/style.css', '/css/signlog.css'] 
         });
 })
 
@@ -222,7 +222,7 @@ app.get('/profile', async (req, res) => {
     res.render('profile.hbs', {
         title: 'My Profile',
         user: req.session.user,
-        css: ['/css/style.css', 'css/profile.css'],
+        css: ['/css/style.css', '/css/profile.css'],
         js: ['/js/script.js'],
         searchBar: true
     });
@@ -233,7 +233,7 @@ app.get('/profile/edit', async (req, res) => {
     res.render('profile-edit.hbs', {
         title: 'Edit Profile',
         user: req.session.user,
-        css: ['/css/style.css', 'css/profile-edit.css'],
+        css: ['/css/style.css', '/css/profile-edit.css'],
         js: ['/js/script.js']
     });
 })
@@ -248,7 +248,7 @@ app.get('/profile/:id', async (req, res) => {
             title: 'User Profile',
             profileData: userReq.data.data[0],
             user: req.session ? req.session.user : null,
-            css: ['/css/style.css', 'css/profile.css'],
+            css: ['/css/style.css', '/css/profile.css'],
             js: ['/js/script.js'],
             searchBar: true
         });
