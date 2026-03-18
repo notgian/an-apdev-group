@@ -33,7 +33,9 @@
             {{/if}}
 
             {{#if user}}
-                    <a href="/logout" class="logout-btn">Log Out</a>
+                <form action="/logout" method="POST">
+                    <button onclick="this.submit()" class="logout-btn">Log Out</button> 
+                </form>
             {{else}}
                 <div class="login-container">
                     <a href="/login" class="login-btn">Log In</a>

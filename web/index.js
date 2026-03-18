@@ -279,8 +279,12 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/logout', async (req, res) => {
+    req.session.user = undefined;
+    res.redirect('/');
+})
+
 app.get('/profile', async (req, res) => {
-    console.log(req.session, req.session.user)
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     res.render('profile.hbs', {
         title: 'My Profile',
