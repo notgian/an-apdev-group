@@ -52,7 +52,8 @@ app.use(session({
         httpOnly: true,
         // secure: process.env.NODE_ENV === 'production'
     }
-}))
+}));
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Homepage
 app.get('/', async (req, res) => {
@@ -286,23 +287,69 @@ app.post('/logout', async (req, res) => {
 
 app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
-    res.render('profile.hbs', {
-        title: 'My Profile',
-        user: req.session.user,
-        css: ['/css/style.css', '/css/profile.css'],
-        js: ['/js/script.js'],
-        searchBar: true
-    });
+    try {
+        const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
+        if (userReq.status !== 200) return res.status(404).send("User not found");
+
+        res.render('profile.hbs', {
+            title: 'My Profile',
+            user: userReq.data.data,
+            css: ['/css/style.css', '/css/profile.css'],
+            js: ['/js/script.js'],
+            searchBar: true
+        });
+    } catch (err) {
+        res.status(500).send("Something went wrong..." + err);
+    }
+
 })
 
 app.get('/profile/edit', async (req, res) => {
-    if (!req.session || !req.session.user) return res.redirect('/login'); 
+    if (!req.session || !req.session.user) 
+        return res.redirect('/login'); 
     res.render('profile-edit.hbs', {
         title: 'Edit Profile',
         user: req.session.user,
         css: ['/css/style.css', '/css/profile-edit.css'],
         js: ['/js/script.js']
     });
+})
+
+app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
+    if (!req.session || !req.session.user)
+        return res.redirect('/login')
+
+    const usrsURL = API_URL+'users/';
+    const userId = req.session.user._id;
+    const form = new FormData();
+
+    if (req.file)
+        form.append('avatar', req.file.buffer, {
+            filename: userId+path.extname(req.file.originalname),
+            contentType: req.file.mimetype,
+        });
+
+    if (req.body['description'] && req.body['description'] != '')
+        form.append('desc', req.body['description'])
+
+    const editRes = await axios.patch(usrsURL + userId, form, {
+        headers: { ...form.getHeaders() },
+        validateStatus: () => true
+    });
+
+    if (editRes.status == 202)
+        return res.redirect('/profile');
+
+    return res.json(editRes.data)
+
+    res.render('profile-edit.hbs', {
+        title: 'Edit Profile',
+        user: req.session.user,
+        css: ['/css/style.css', '/css/profile-edit.css'],
+        js: ['/js/script.js'],
+        message: editRes.data.message
+    });
+
 })
 
 app.get('/profile/:id', async (req, res) => {
@@ -330,11 +377,10 @@ app.get('/test', async (req,res) => {
 })
 
 // THIS IS WHAT LETS US UPLOAD THE FILE IT TOOK ME 2 HOURS BRUH T_T
-const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/testprofileedit', upload.single('file'), async (req, res) => {
     let usrsURL = API_URL+'users/'
-    const testUserId = '69ad961e4a1d38f3c1569a3f'
+    const testUserId = '69b9867133850b1e8b2c1fd3'
 
     const form = new FormData();
 

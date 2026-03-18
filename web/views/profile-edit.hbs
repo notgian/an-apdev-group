@@ -6,6 +6,13 @@
     <div class="auth-card">
         <h2>Edit Your Profile</h2>
         <p class="subtitle">Update your photo and bio below.</p>
+
+        {{#if message}}
+        {{! TODO FOR FRONTENT: style this }}
+        <div>
+            {{message}}
+        </div>
+        {{/if}}
         
         {{!-- enctype="multipart/form-data" is required for file uploads --}}
         <form id="edit-profile-form" action="/profile/edit" method="POST" enctype="multipart/form-data">
@@ -17,7 +24,6 @@
 
             <div class="input-group">
                 <label for="edit-desc">Update Description</label>
-                {{!-- Handlebars injects the existing description here --}}
                 <textarea name="description" id="edit-desc" rows="4" 
                     placeholder="Tell the community about your food adventures...">{{user.description}}</textarea>
             </div>

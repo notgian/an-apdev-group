@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const httpStatus = require('http-status-codes').StatusCodes;
 const bcrypt = require('bcrypt')
 const { default: mongoose } = require('mongoose');
-const Busboy = require('busboy');
 const FormData = require('form-data');
 const axios = require('axios');
 const multer = require('multer')
@@ -94,7 +93,7 @@ router.get('/', async (req, res) => {
         if (!isNaN(offsetNum))
             OFFSET = offsetNum;
         else {
-            res.send({
+            res.status(httpStatus.BAD_REQUEST).json({
                 status: httpStatus.BAD_REQUEST,
                 message: "Malformed Query. The offset parameter must be a valid number.",
                 data: null
@@ -103,7 +102,7 @@ router.get('/', async (req, res) => {
         }
 
         if (OFFSET < 0) {
-            res.send({
+            res.status(httpStatus.BAD_REQUEST).json({
                 status: httpStatus.BAD_REQUEST,
                 message: "Malformed Query. The offset parameter must be greater than 0.",
                 data: null
@@ -116,7 +115,7 @@ router.get('/', async (req, res) => {
         if (!isNaN(countNum)) 
             COUNT = countNum;
         else {
-            res.send({
+            res.status(httpStatus.BAD_REQUEST).json({
                 status: httpStatus.BAD_REQUEST,
                 message: "Malformed Query. The count parameter must be a valid number.",
                 data: null
@@ -125,7 +124,7 @@ router.get('/', async (req, res) => {
         }
 
         if (COUNT < 1) {
-            res.send({
+            res.status(httpStatus.BAD_REQUEST).json({
                 status: httpStatus.BAD_REQUEST,
                 message: "Malformed Query. The count parameter must be greater than 1.",
                 data: null
@@ -138,7 +137,7 @@ router.get('/', async (req, res) => {
         if (orderbyValues.includes(order)) 
             ORDERBY = order;
         else {
-            res.send({
+            res.status(httpStatus.BAD_REQUEST).json({
                 status: httpStatus.BAD_REQUEST,
                 message: `Malformed Query. The orderby value '${order}' is invalid.`,
                 data: null
@@ -170,7 +169,7 @@ router.get('/', async (req, res) => {
         query.sort({createdAt: -1})
     let foundUsers = await query.exec()
 
-    res.send({
+    res.status(httpStatus.OK).json({
         status: httpStatus.OK,
         message: "OK",
         data: foundUsers 
@@ -186,28 +185,28 @@ router.get('/:id', async (req, res) => {
         new mongoose.Types.ObjectId(userId)
     }
     catch (err) {
-        res.send({
+        res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
         });
     }
 
-    let query = User.find({_id:userId})
+    let query = User.findOne({_id:userId})
         .select('-password')
         .lean();
 
     const foundUser = await query.exec()
 
-    if (foundUser.length > 0) {
-        res.send({
+    if (foundUser != null) {
+        res.status(httpStatus.OK).json({
             status: httpStatus.OK,
             message: "OK",
             data: foundUser
         });
     } 
     else {
-        res.send({
+        res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
             message: `User with id '${userId}' not found.`,
             data: null
@@ -231,7 +230,7 @@ router.post('/', urlencodedParser, async (req, res) => {
             missing = 'username'
         else if (!password)
             missing = 'password'
-        res.send({
+        res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Missing fields: ${missing}`,
             data: null
@@ -242,7 +241,7 @@ router.post('/', urlencodedParser, async (req, res) => {
     // Check for username conflicts
     let userCheck = await User.find({username:username})
     if (userCheck.length > 0) {
-        res.send({
+        res.status(httpStatus.CONFLICT).json({
             status: httpStatus.CONFLICT,
             message: `Username ${username} is already in use`,
             data: null
@@ -271,14 +270,14 @@ router.post('/', urlencodedParser, async (req, res) => {
 
         const createdUser = await query.exec()
 
-        res.send({
+        res.status(httpStatus.CREATED).json({
             status: httpStatus.CREATED,
             message: 'User created successfully.',
             data: createdUser
         });
     }
     catch (err) {
-        res.send({
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             status: httpStatus.INTERNAL_SERVER_ERROR,
             message: `An error was encountered in creating the user. ${err.message}`,
             data: null
@@ -294,7 +293,7 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
     // TODO If user is not authenticated, return
     let authenticated = true;
     if (!authenticated) {
-        res.send({
+        res.status(httpStatus.FORBIDDEN).json({
             status: httpStatus.FORBIDDEN,
             message: `You are not authorized to make this request.`,
             data: null
@@ -308,7 +307,7 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
         new mongoose.Types.ObjectId(userId)
     }
     catch (err) {
-        return res.send({
+        return res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
@@ -321,7 +320,7 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
         .lean();
     const foundUser = await usrqry.exec()
     if (foundUser.length < 1) {
-        return res.send({
+        return res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
             message: `User with id '${userId}' not found.`,
             data: null
@@ -339,13 +338,14 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
 
     for (let key of Object.keys(req.body)) {
         if (!editableFields.includes(key)) {
-            return res.send({
+            return res.status(httpStatus.BAD_REQUEST).json({
                 status: httpStatus.BAD_REQUEST,
                 message: `Cannot modify the property '${key}' of user. Either the property cannot be modified or the property does not exist.`,
                 data: null
             });
         }
     }
+
 
     if (req.body['name'] && req.body['name'] != '')
         updates['username'] = req.body['name']
@@ -362,12 +362,13 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
     let user = await User.findByIdAndUpdate(userId, updates)
 
     // Success
-    res.send({
+    res.status(httpStatus.ACCEPTED).json({
         status: httpStatus.ACCEPTED,
         message: `Userdata of ${req.params.id} modified`,
         data: user
     })
 }, (err, req, res, next) => {
+    console.log(err.stack)
     if (err) {
         return res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
@@ -386,7 +387,7 @@ router.get("/reviews/:id", async (req, res) => {
         new mongoose.Types.ObjectId(userId)
     }
     catch (err) {
-        res.send({
+        res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
@@ -409,21 +410,21 @@ router.get("/reviews/:id", async (req, res) => {
         try {
             const reviews = await Reviews.find(qry).lean()
 
-            res.send({
+            res.status(httpStatus.OK).json({
                 status: httpStatus.OK,
                 message: `OK`,
                 data: reviews
             }) ;
         } 
         catch (err) {
-            res.send({
+            res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
                 status: httpStatus.INTERNAL_SERVER_ERROR,
                 message: `Could not fetch user reviews ${err.message}`,
                 data: null
             }) ;
         }
     } else {
-        res.send({
+        res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
             message: `The user does not exist!`,
             data: null
@@ -1402,7 +1403,8 @@ router.post('/login', async (req, res) => {
     //     const { ids, fields } = req.body;
     //
         //     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            //         return res.send(
+            //         return res.status(s).json(
+                //             {send(
                 //             { 
                     //                 status: httpStatus.BAD_REQUEST,
                     //                 message: "Please provide an array of User IDs." 
@@ -1411,7 +1413,7 @@ router.post('/login', async (req, res) => {
     //
         //     // Get the list of users from db
     //     // TODO: this
-    //     return res.send({
+    //     return res.status(httpStatus.OK).json({
         //         status: httpStatus.OK,
         //         message: "OK",
         //         data: {
