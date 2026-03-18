@@ -196,7 +196,7 @@ app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) 
         });
 
         if (reviewRes.status == 201)
-            res.redirect('/'+req.params.rstrId)
+            res.redirect('/establishment/'+req.params.rstrId)
     }
     catch (err) {
         res.status(500).send(err);
@@ -227,6 +227,21 @@ app.post('/editreview/:userId/:rstrId', async (req, res) => {
         res.status(500).send(err);
     }
 });
+
+app.delete('/deletereview/:userId/:rstrId', async (req, res) => {
+    const usrsURL = API_URL+'users/'
+
+    try {
+        const reviewRes = await axios.delete(`${usrsURL}reviews/${req.params.userId}/${req.params.rstrId}`,
+            {validateStatus: () => true }
+        );
+
+        res.status(200).json(reviewRes.data);
+    }
+    catch (err) {
+        res.status(500).send(err);
+    }
+})
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.query || ''; 

@@ -114,12 +114,20 @@
 
 
 <script defer>
+    {{#if userReview}}
     const reviewDelete = document.getElementById('review-delete')
     if (reviewDelete)
-        reviewDelete.addEventListener('click', (e) => {
+        reviewDelete.addEventListener('click', async (e) => {
             const proceedDelete = confirm("Delete user review?")
-            alert("relax, this don't work yet")
+            const deleteReq = await fetch('/deletereview/{{userReview.userId._id}}/{{userReview.restaurantId}}', {
+                method: 'DELETE',
+            });
+
+            const deleteRes = await deleteReq.json();
+            alert(deleteRes.message);
+            window.location.reload();
         });
+    {{/if}}
 
     const toggleReviewEdit = (id) => {
         const userReview = document.getElementById(id);
