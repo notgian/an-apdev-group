@@ -209,10 +209,20 @@ app.post('/login', async (req, res) => {
             }            
             res.redirect('/'); 
         } else {
-            res.status(401).send(loginRes.data.message || "Login failed");
+            res.render('login.hbs', 
+                { 
+                    title: 'Log In', 
+                    css: ['/css/style.css', '/css/signlog.css'],
+                    error: loginRes.data.message || "Login failed"
+                });
         }
     } catch (error) {
-        res.status(500).send("Login error. " + error);
+        res.render('login.hbs', 
+            { 
+                title: 'Log In', 
+                css: ['/css/style.css', '/css/signlog.css'],
+                error: "Encountered an error logging in. Please try again."
+            });
     }
 });
 
