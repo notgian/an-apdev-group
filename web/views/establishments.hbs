@@ -1,13 +1,9 @@
-{{#*inline "styles"}}
-  {{!-- <link rel="stylesheet" href="/css/establishments.css"> --}}
-{{/inline}}
-
 <main class="content-container establishments-page">
     <h2>DISCOVER PLACES TO EAT</h2>
 
     <div id="establishment-list">
         {{#each establishments}}
-            <div class="card">
+            <div class="card" onclick='window.location.href="/establishment/{{this._id}}"'>
                 <div class="card-left">
                     <img src="{{this.imageSrc}}" alt="[{{this.name}} | establishment image]" class="card-img">
                     <div class="card-content">

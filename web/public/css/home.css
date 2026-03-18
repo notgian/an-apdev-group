@@ -15,7 +15,7 @@
     color: #cb1877; 
 }
 
-.search-bar-container {
+.search-bar-container-home {
     display: flex;
     background: white;
     padding: 10px;
@@ -23,7 +23,7 @@
     border: 1px solid #d4d4d4;
 }
 
-.search-btn{
+.search-btn-home{
     background-color: #ad1457;
     color: white;
     border: none;
