@@ -24,7 +24,7 @@
 
         <div id="reviews-list">
             {{#each reviews}}
-                <div class="review">
+                <div class="review" data-author="{{this.userId._id}}">
                     <div>
                         <strong>{{this.userId.username}}</strong> • {{#renderStarsHTML this.rating}}{{/renderStarsHTML}}
                         <p>{{this.comment}}</p>
@@ -68,9 +68,9 @@
                             <textarea class="response-comment-input" placeholder="Write your reply here..." name="comment"></textarea> <br />
                             <button class="response-comment-cancel">Cancel</button>
                             {{#if this.ownerResponse}}
-                                <button class="response-comment-reply">Save</button>
+                                <button class="response-comment-reply" onclick="saveOwnerReply(this)">Save</button>
                             {{else}}
-                                <button class="response-comment-reply">Reply</button>
+                                <button class="response-comment-reply" onclick="sendOwnerReply(this)">Reply</button>
                             {{/if}}
                         </div>
                 </div>
@@ -254,6 +254,33 @@
             alert('Chill, it don\'t work yet.');
 
         });
+    }
+
+    const sendOwnerReply = async (e) => {
+        const review = e.parentElement.parentElement;
+        const usrId = review.getAttribute('data-author');
+        
+        const responseEditor = review.getElementsByClassName('review-response-input')[0];
+        const textarea = responseEditor.getElementsByTagName('textarea')[0];
+
+        const replyReq = await fetch(`/respond/${usrId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({comment: textarea.value}),
+        });
+
+        const replyRes = await replyReq.json();
+
+        if (replyRes.status == 200) {
+            alert("Sucessfully responded to user!");
+            window.location.reload();
+        }
+
+
+    }
+
+    function saveOwnerReply(e) {
+       console.log(e) 
     }
 
 </script>

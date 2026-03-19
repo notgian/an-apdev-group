@@ -852,7 +852,7 @@ router.post('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     });
     return res.status(httpStatus.OK).json({
         status: httpStatus.OK,
-        message: `Ower ${ownerId} responded to user ${userId} successfully`,
+        message: `Owner ${ownerId} responded to user ${userId} successfully`,
         data: updatedReview
     });
 })
