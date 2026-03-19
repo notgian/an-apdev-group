@@ -524,6 +524,7 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
         const apiRes = await axios.post(`${API_URL}users/${userId}/${markop}/${reviewId}`, {}, {
             validateStatus: () => true 
         });
+
         res.status(apiRes.status).json(apiRes.data);
     } catch (error) {
         console.error("Error marking review:", error);

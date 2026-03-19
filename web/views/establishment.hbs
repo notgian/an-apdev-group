@@ -48,7 +48,7 @@
 
         <div id="reviews-list">
             {{#if userReview}}
-                <div class="review" id="{{userReview.userId._id}}">
+                <div class="review" id="{{userReview.userId._id}}" data-author="{{userReview.userId._id}}" data-reviewid="{{userReview._id}}">
                     <div style="display: flex; justify-content: space-between">
                         <span>
                             <strong>{{userReview.userId.username}}</strong> • {{#renderStarsHTML userReview.rating}}{{/renderStarsHTML}}
@@ -80,11 +80,13 @@
                         </div>
                     </div>
                     <div>
-                        <span class="mark-helpful">
-                            <i class="fa-regular fa-thumbs-up"></i> {{userReview.helpfulCount}}
+                        <span onclick="markReview(this, 'helpful')">
+                            <i class="fa-regular fa-thumbs-up"></i>
+                            <span class="review-helpful-count"> {{userReview.helpfulCount}} </span>
                         </span>
-                        <span class="mark-unhelpful">
-                            <i class="fa-regular fa-thumbs-down"></i> {{userReview.unhelpfulCount}}
+                        <span onclick="markReview(this, 'unhelpful')">
+                            <i class="fa-regular fa-thumbs-down"></i>
+                            <span class="review-unhelpful-count"> {{userReview.unhelpfulCount}} </span>
                         </span>
                     </div>
                 </div>
@@ -92,17 +94,19 @@
             {{/if}}
 
             {{#each reviews}}
-                <div class="review">
+                <div class="review" data-author="{{this.userId._id}}" data-reviewid="{{this._id}}">
                     <div>
                         <strong>{{this.userId.username}}</strong> • {{#renderStarsHTML this.rating}}{{/renderStarsHTML}}
                         <p>{{this.comment}}</p>
                     </div>
                     <div>
-                        <span>
-                            <i class="fa-regular fa-thumbs-up"></i> {{this.helpfulCount}}
+                        <span onclick="markReview(this, 'helpful')">
+                            <i class="fa-regular fa-thumbs-up"></i>
+                            <span class="review-helpful-count"> {{this.helpfulCount}} </span>
                         </span>
-                        <span>
-                            <i class="fa-regular fa-thumbs-down"></i> {{this.unhelpfulCount}}
+                        <span onclick="markReview(this, 'unhelpful')">
+                            <i class="fa-regular fa-thumbs-down"></i>
+                            <span class="review-unhelpful-count"> {{this.unhelpfulCount}} </span>
                         </span>
                     </div>
 
@@ -228,6 +232,28 @@
             userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
         }
     }
+
+    const markReview = async (e, action) => {
+        // Yes it's scuffed, again, no, I won't fix this.
+        const review = e.parentElement.parentElement;
+        const rid = review.getAttribute('data-reviewid');
+
+        const markReq = await fetch(`/review/${action}/${rid}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        const markRes = await markReq.json();
+
+        if (markRes.status == 200) {
+            const newHelpfulCount = markRes.data.helpfulCount;
+            const newUnhelpfulCount = markRes.data.unhelpfulCount;
+
+            e.parentElement.getElementsByClassName('review-helpful-count')[0].innerText = newHelpfulCount;
+            e.parentElement.getElementsByClassName('review-unhelpful-count')[0].innerText = newUnhelpfulCount;
+        }
+    }
+
 </script>
 
 <style>

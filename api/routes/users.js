@@ -368,7 +368,6 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
         data: user
     })
 }, (err, req, res, next) => {
-    console.log(err.stack)
     if (err) {
         return res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
@@ -1067,8 +1066,8 @@ router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
 // TODO MARK HELPFUL
 // TODO: Requires authentication tokens
 router.post('/:userid/helpful/:reviewid', async (req, res) => {
-    const userId = req.params.userId;
-    const reviewId = req.params.reviewId;
+    const userId = req.params.userid;
+    const reviewId = req.params.reviewid;
     
     // Verify ID formats
     try {
@@ -1093,7 +1092,6 @@ router.post('/:userid/helpful/:reviewid', async (req, res) => {
     const foundUser = await queryUser.exec();
     const foundReview = await queryReview.exec();
 
-
     if (foundUser == null) {
         return res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
@@ -1113,29 +1111,33 @@ router.post('/:userid/helpful/:reviewid', async (req, res) => {
     const markedHelpful = foundReview.helpfulVotes.some(id => id == userId)
     const markedUnhelpful = foundReview.unhelpfulVotes.some(id => id == userId)
 
-    // Check if already marked as helpful
-    if (markedHelpful)
-        return res.status(httpStatus.CONFLICT).json({
-            status: httpStatus.CONFLICT,
-            message: `User has already marked the review as helpful`,
-            data: null
-        });
-
-    // Update review to record and mark it as helpful
+    let newHelpful = foundReview.helpfulVotes
+    let newHelpfulCount = foundReview.helpfulCount
     let newUnhelpful = foundReview.unhelpfulVotes
     let newUnhelpfulCount = foundReview.unhelpfulCount
 
-    if (markedUnhelpful) {
-        newUnhelpful = newUnhelpful.filter(i => i!=userId);
-        newUnhelpfulCount--
+    // Unmark instead if already marked as helpful
+    if (markedHelpful) {
+        newHelpful = newHelpful.filter(i => i!=userId);
+        newHelpfulCount--;
+    } 
+    // Update review to record and mark it as helpful
+    else {
+        if (markedUnhelpful) {
+            newUnhelpful = newUnhelpful.filter(i => i!=userId);
+            newUnhelpfulCount--
+        }
+
+        newHelpful = newHelpful.concat(new mongoose.Types.ObjectId(userId))
+        newHelpfulCount++;
     }
 
     try {
         const updatedReview = await Reviews.findOneAndUpdate({_id:reviewId}, {
             unhelpfulVotes: newUnhelpful,
             unhelpfulCount: newUnhelpfulCount,
-            helpfulVotes: foundReview.helpfulVotes.concat(new mongoose.Types.ObjectId(userId)),
-            helpfulCount: foundReview.helpfulCount + 1
+            helpfulVotes: newHelpful,
+            helpfulCount: newHelpfulCount
         }, {
             returnDocument: 'after',
             lean: true
@@ -1159,9 +1161,9 @@ router.post('/:userid/helpful/:reviewid', async (req, res) => {
 
 // TODO MARK UNHELPFUL
 // TODO: Requires authentication tokens
-router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
-    const userId = req.params.userId;
-    const reviewId = req.params.reviewId;
+router.post('/:userid/unhelpful/:reviewid', async (req, res) => {
+    const userId = req.params.userid;
+    const reviewId = req.params.reviewid;
     
     // Verify ID formats
     try {
@@ -1207,20 +1209,25 @@ router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
     const markedUnhelpful = foundReview.unhelpfulVotes.some(id => id == userId)
 
     // Check if already marked as helpful
-    if (markedUnhelpful)
-        return res.status(httpStatus.CONFLICT).json({
-            status: httpStatus.CONFLICT,
-            message: `User has already marked the review as unhelpful`,
-            data: null
-        });
-
-    // Update review to record and mark it as helpful
     let newHelpful = foundReview.helpfulVotes
     let newHelpfulCount = foundReview.helpfulCount
+    let newUnhelpful = foundReview.unhelpfulVotes
+    let newUnhelpfulCount = foundReview.unhelpfulCount
 
-    if (markedHelpful) {
-        newHelpful = newHelpful.filter(i => i!=userId);
-        newHelpfulCount--
+    // Unmark instead if already marked as unhelpful
+    if (markedUnhelpful) {
+        newUnhelpful = newHelpful.filter(i => i!=userId);
+        newUnhelpfulCount--;
+    } 
+    // Update review to record and mark it as unhelpful
+    else {
+        if (markedHelpful) {
+            newHelpful = newHelpful.filter(i => i!=userId);
+            newHelpfulCount--
+        }
+
+        newUnhelpful = newUnhelpful.concat(new mongoose.Types.ObjectId(userId))
+        newUnhelpfulCount++;
     }
 
     try {
@@ -1228,8 +1235,8 @@ router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
             helpfulVotes: newHelpful,
             helpfulCount: newHelpfulCount,
 
-            unhelpfulVotes: foundReview.unhelpfulVotes.concat(new mongoose.Types.ObjectId(userId)),
-            unhelpfulCount: foundReview.unhelpfulCount + 1
+            unhelpfulVotes: newUnhelpful,
+            unhelpfulCount: newUnhelpfulCount
         }, {
             returnDocument: 'after',
             lean: true
@@ -1253,9 +1260,9 @@ router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
 
 // TODO UNMARK HELPFUL/UNHELPFUL
 // TODO: Requires authentication tokens
-router.post('/:userId/unmark/:reviewId', async (req, res) => {
-    const userId = req.params.userId;
-    const reviewId = req.params.reviewId;
+router.post('/:userid/unmark/:reviewid', async (req, res) => {
+    const userId = req.params.userid;
+    const reviewId = req.params.reviewid;
     
     // Verify ID formats
     try {
