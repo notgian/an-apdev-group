@@ -1069,7 +1069,7 @@ router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
 
 // TODO MARK HELPFUL
 // TODO: Requires authentication tokens
-router.post('/:userId/helpful/:reviewId', async (req, res) => {
+router.post('/:userid/helpful/:reviewid', async (req, res) => {
     const userId = req.params.userId;
     const reviewId = req.params.reviewId;
     

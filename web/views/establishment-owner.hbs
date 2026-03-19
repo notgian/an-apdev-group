@@ -1,43 +1,166 @@
-{{#*inline "styles"}}
-  <link rel="stylesheet" href="/css/establishment.css">
-{{/inline}}
-
 <main class="establishment-container">
     <div class="establishment-left">
-        <img id="establishment-img" src="{{establishment.image}}" alt="{{establishment.name}}">
+        <img id="establishment-img" src="{{establishment.imageSrc}}" alt="{{establishment.name}}">
         <div class="establishment-info">
             <h2 id="establishment-name">{{establishment.name}}</h2>
-            <p id="establishment-rating">{{establishment.rating}}</p>
+            <p id="establishment-rating">{{establishment.avgRating}}</p>
             <p id="establishment-category">{{establishment.category}}</p>
-            <p id="establishment-location">{{establishment.location}}</p>
-            <p id="establishment-price">{{establishment.price}}</p>
+            <p id="establishment-price">₱{{establishment.priceRange.min}}-{{establishment.priceRange.max}}</p>
+            <p id="establishment-location">{{establishment.location.city}} {{establishment.location.street}}</p>
+
             <div class="establishment-about">
                 <h3>About</h3>
-                <p id="establishment-about">{{establishment.about}}</p>
-            </div>
-            <div class="establishment-hours">
-                <h3>Hours</h3>
-                <p id="establishment-hours">{{establishment.hours}}</p>
+                <p id="establishment-about">{{establishment.description}}</p>
             </div>
         </div>
     </div>
 
     <div class="establishment-right">
-    <h2>Reviews</h2>
-    <div id="reviews-list">
-        {{#each reviews}}
-        <div class="review-item">
-            <strong>{{user}}:</strong>
-            <span class="review-text">{{review}}</span>
-            <span class="review-marker">
-                <button class="like-btn">👍 {{likes}}</button>
-                <button class="dislike-btn">👎 {{dislikes}}</button>
-            </span>
-            <button class="review-edit-button" data-id="{{_id}}">Edit</button>
-            <button class="review-delete-button" data-id="{{_id}}">Delete</button>
+        {{#if user}}
+        {{else}}
+            <h2> You need to login to post a review. </h2>
+        {{/if}}
+
+        <div id="reviews-list">
+            {{#each reviews}}
+                <div class="review">
+                    <div>
+                        <strong>{{this.userId.username}}</strong> • {{#renderStarsHTML this.rating}}{{/renderStarsHTML}}
+                        <p>{{this.comment}}</p>
+                    </div>
+                    <div>
+                        <span>
+                            <i class="fa-regular fa-thumbs-up"></i> {{this.helpfulCount}}
+                        </span>
+                        <span>
+                            <i class="fa-regular fa-thumbs-down"></i> {{this.unhelpfulCount}}
+                        </span>
+                    </div>
+                </div>
+            {{/each}} 
         </div>
-        {{/each}}
-    </div>
-    <button id="view-more-btn">View More</button>
+        
+        <button id="view-more-btn">View More</button>
     </div>
 </main>
+
+
+<script defer>
+    {{#if userReview}}
+    const reviewDelete = document.getElementById('review-delete')
+    if (reviewDelete)
+        reviewDelete.addEventListener('click', async (e) => {
+            const proceedDelete = confirm("Delete user review?")
+            const deleteReq = await fetch('/deletereview/{{userReview.userId._id}}/{{userReview.restaurantId}}', {
+                method: 'DELETE',
+            });
+
+            const deleteRes = await deleteReq.json();
+            alert(deleteRes.message);
+            window.location.reload();
+        });
+    {{/if}}
+
+    const toggleReviewEdit = (id) => {
+        const userReview = document.getElementById(id);
+        if (!userReview)
+            return
+
+        const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
+        const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
+
+        if (!userReviewText || !userReviewEditArea)
+            return
+        
+        // Toggle editing on
+        if (userReviewText.style.display != "none") {
+            userReviewText.style.display = "none";
+            userReviewEditArea.style.display = "block";
+            userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.innerText
+        } 
+        // Toggle editing off
+        else {
+            userReviewText.style.display = "block";
+            userReviewEditArea.style.display = "none";
+        }
+
+        let starObj = userReview.getElementsByClassName("star-rating-selector")[0].getElementsByClassName("stars")[0]
+        updateReviewRating(starObj, -1);
+    }
+
+    const updateReviewRating = (star, rating) => {
+        let starsContainer = star.parentElement
+        console.log(starsContainer)
+        const ratingValue = starsContainer.getElementsByClassName("rating-value")[0];
+        const ratingText = starsContainer.getElementsByClassName("rating-text")[0];
+        const ratingStars = starsContainer.getElementsByClassName("rating-stars");
+
+        if (!ratingValue || !ratingText || !ratingStars)
+            return console.log(ratingValue)
+
+        if (rating < 1 || rating > 5)
+            rating = ratingValue.value;
+
+        for(i=0; i<5; i++) {
+            let star = '☆'
+            if (i < rating)                            
+                star = '★';
+            ratingStars[i].innerText = star;
+        }
+
+        ratingText.innerText = rating+"/5"
+        ratingValue.value = rating
+
+    }
+
+    const saveReview = async (id) => {
+        const userReview = document.getElementById(id);
+        if (!userReview)
+            return;
+
+        const ratingValue = userReview.getElementsByClassName("rating-value")[0];
+        const reviewBody = userReview.getElementsByClassName("review-editarea-text")[0];
+
+        const rating = Number(ratingValue.value)
+        const comment = reviewBody.value
+
+        const editReq = await fetch('/editreview/{{userReview.userId._id}}/{{establishment._id}}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({rating: rating, comment: comment}),
+        })
+
+        const editRes = await editReq.json()
+
+        alert(editRes.message)
+        toggleReviewEdit(id);
+
+        if (editRes.status == 200) {
+            let newRating = editRes.data.rating
+            let newComment = editRes.data.comment
+
+            let starsStr = ''
+            for(i=0; i<5; i++) {
+                let star = '☆'
+                if (i < newRating)                            
+                    star = '★';
+                starsStr += star;
+            }
+            userReview.getElementsByClassName("star-rating")[0].innerText = starsStr;
+            userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
+        }
+    }
+</script>
+
+<style>
+    .review-editarea {
+        width: 100%;
+        display: none;
+    }
+    .review-editarea > textarea {
+        width: 100%;
+        resize: none;
+        height: 5vh;
+    }
+</style>
+
