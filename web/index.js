@@ -469,21 +469,34 @@ app.get('/profile/:id', async (req, res) => {
 })
 
 app.post('/review/:markop/:reviewId', async (req, res) => {
-    // '/:userid/helpful/:reviewid'
-    const validOperations = [
-        'helpful', 'unhelpful', 'unmark'
-    ];
+    if (!req.session || !req.session.user) {
+        return res.status(401).json({
+            status: 401,
+            message: "You must be logged in to vote on reviews."
+        });
+    }
 
-    if (!validOperations.includes(req.params.markop)) {
-        res.status(400).send("Invalid review operation.");
+    const validOperations = ['helpful', 'unhelpful', 'unmark'];
+    const markop = req.params.markop;
+
+    if (!validOperations.includes(markop)) {
+        return res.status(400).json({
+            status: 400,
+            message: "Invalid review operation."
+        });
     }
 
     const reviewId = req.params.reviewId;
+    const userId = req.session.user._id;
 
     try {
-
+        const apiRes = await axios.post(`${API_URL}users/${userId}/${markop}/${reviewId}`, {}, {
+            validateStatus: () => true 
+        });
+        res.status(apiRes.status).json(apiRes.data);
     } catch (error) {
-        res.status(500).send("Error marking review helpful");
+        console.error("Error marking review:", error);
+        res.status(500).send("error marking review helpful/unhelpful.");
     }
 });
 
