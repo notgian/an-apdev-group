@@ -379,8 +379,12 @@ app.get('/profile', async (req, res) => {
         const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
         if (userReq.status !== 200) return res.status(404).send("User not found");
 
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${req.session.user._id}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
+
         res.render('profile.hbs', {
             title: 'My Profile',
+            reviews: reviews,
             user: userReq.data.data,
             css: ['/css/style.css', '/css/profile.css'],
             js: ['/js/script.js'],
@@ -446,9 +450,14 @@ app.get('/profile/:id', async (req, res) => {
         const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
         if (userReq.status !== 200) return res.status(404).send("User not found");
 
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
+
+
         res.render('profile-other.hbs', {
             title: 'User Profile',
             profileData: userReq.data.data,
+            reviews: reviews,
             user: req.session ? req.session.user : null,
             css: ['/css/style.css', '/css/profile.css'],
             js: ['/js/script.js'],
@@ -458,6 +467,38 @@ app.get('/profile/:id', async (req, res) => {
         res.status(500).send("Error loading profile.");
     }
 })
+
+app.post('/review/:markop/:reviewId', async (req, res) => {
+    // '/:userid/helpful/:reviewid'
+    const validOperations = [
+        'helpful', 'unhelpful', 'unmark'
+    ];
+
+    if (!validOperations.includes(req.params.markop)) {
+        res.status(400).send("Invalid review operation.");
+    }
+
+    const reviewId = req.params.reviewId;
+
+    try {
+
+    } catch (error) {
+        res.status(500).send("Error marking review helpful");
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ONLY FOR TESTING. NOT TO BE INCLUDED LATER ON
 app.get('/test', async (req,res) => {

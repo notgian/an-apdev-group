@@ -7,22 +7,21 @@
     <div id="logged-in-view">
         <div class="user-header">
             <img src="{{profileData.avatar}}" 
-                 id="profile-pic" class="avatar-large" alt="{{viewedUser.username}}'s Profile Picture">
-            <h2 id="username-display">{{viewedUser.username}}</h2>
-            <p id="user-desc">{{#if viewedUser.description}}{{viewedUser.description}}{{else}}Food explorer!{{/if}}</p>
+                 id="profile-pic" class="avatar-large" alt="{{profileData.username}}'s Profile Picture">
+            <h2 id="username-display">{{profileData.username}}</h2>
+            <p id="user-desc">{{profileData.description}}</p>
             
-            {{!-- Instead of Edit, a Public Profile usually has a Follow button --}}
-            <button class="edit-btn">Follow {{viewedUser.username}}</button>
+            <button class="edit-btn">Follow</button>
         </div>
 
         <div class="user-activity">
-            <h3>Latest Reviews by {{viewedUser.username}}</h3>
-            {{#each viewedUserReviews}}
+            <h3>Latest Reviews by {{profileData.username}}</h3>
+            {{#each reviews}}
                 <div class="review-item">
-                    "{{this.text}}" — <strong>{{this.establishmentName}}</strong>
+                    <strong>{{this.restaurantId.name}}</strong> {{#renderStarsHTML this.rating}}{{/renderStarsHTML}} <br /> "{{this.comment}}"
                 </div>
             {{else}}
-                <p class="review-item">This user hasn't posted any reviews yet.</p>
+                <p class="review-item">No reviews posted yet.</p>
             {{/each}}
         </div>
 

@@ -18,7 +18,7 @@
                 <h3>Latest Reviews</h3>
                 {{#each reviews}}
                     <div class="review-item">
-                        "{{this.text}}" — <strong>{{this.establishmentName}}</strong>
+                        <strong>{{this.restaurantId.name}}</strong> {{#renderStarsHTML this.rating}}{{/renderStarsHTML}} <br /> "{{this.comment}}"
                     </div>
                 {{else}}
                     <p class="review-item">No reviews posted yet.</p>

@@ -408,7 +408,9 @@ router.get("/reviews/:id", async (req, res) => {
         }
         // Find and return their reviews
         try {
-            const reviews = await Reviews.find(qry).lean()
+            const reviews = await Reviews.find(qry)
+                .populate('restaurantId')
+                .lean()
 
             res.status(httpStatus.OK).json({
                 status: httpStatus.OK,
@@ -494,7 +496,8 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
     let queryIfReviews = await Reviews.find({
         userId: userId,
         restaurantId: restaurantId
-    }).lean();
+    })
+        .lean();
 
     if (queryIfReviews.length > 0) {
         deleteMedia();
