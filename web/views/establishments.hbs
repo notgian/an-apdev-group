@@ -19,11 +19,12 @@
             <p class="establishment-hours">Open from {{this.hours}}</p>
 
             <p class="establishment-about">
-                “{{truncate this.about 100}}”
+                {{!-- “{{truncate this.about 100}}” --}}
+                “{{this.description}}”
             </p>
 
             <button>
-                <a href="/establishment/{{this.name}}">Read More</a>
+                <a href="/establishment/{{this._id}}">Read More</a>
             </button>
             </div>
         </div>
