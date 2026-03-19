@@ -249,10 +249,26 @@
 
     const deleteReplies = document.getElementsByClassName('response-delete')
     for (let delReply of deleteReplies) {
-        delReply.addEventListener('click', (e) => {
+        delReply.addEventListener('click', async (e) => {
             const deleteConfirm = confirm('Delete reply?');
-            alert('Chill, it don\'t work yet.');
+            if (!deleteConfirm)
+                return
 
+            const review = e.target.parentElement.parentElement.parentElement.parentElement
+            const usrId = review.getAttribute('data-author');
+
+            const delReq = await fetch(`/respond/${usrId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const delRes = await delReq.json();
+
+            if (delRes.status == 200) {
+                alert("Sucessfully deleted response!");
+                window.location.reload();
+            } else {
+                alert(replyRes.message);
+            }
         });
     }
 
@@ -274,7 +290,10 @@
         if (replyRes.status == 200) {
             alert("Sucessfully responded to user!");
             window.location.reload();
+        } else {
+            alert(replyRes.message);
         }
+
     }
 
     const saveOwnerReply = async (e) => {

@@ -1050,15 +1050,16 @@ router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     
     // Update review to delete
     const updateReview = {
-        ownerResponse: undefined
+        ownerResponse: null
     }
-    const updatedReview = await Reviews.findOneAndDelete(reviewFilter, {
-        new: false,       
+    const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {
+        returnDocument: 'after',       
         runValidators: true 
     });
+
     return res.status(httpStatus.OK).json({
         status: httpStatus.OK,
-        message: `Ower ${ownerId} response to user ${userId} deleted successfully`,
+        message: `Owner ${ownerId} response to user ${userId} deleted successfully`,
         data: updatedReview
     });
 });

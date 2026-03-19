@@ -558,7 +558,30 @@ app.put('/respond/:userId', async (req, res) => {
     }
 })
 
+app.delete('/respond/:userId', async (req, res) => {
+    if (!req.session || !req.session.user)
+        return res.redirect('/login')
+    if (req.session.user.role != "owner")
+        return res.status(403).json({message: "Only an owner can create a response to reviews in an establishment."})
+    
+    const ownerId = req.session.user._id;
+    const userId = req.params.userId;
 
+    const apiEndpoint = API_URL+`users/reviews/owner_response/${ownerId}/${userId}`;
+
+    try {
+        const delRes = await axios.delete(apiEndpoint, {}, {
+            validateStatus: () => true
+        });
+
+        if (delRes.status == 200)
+            res.status(200).json(delRes.data)
+        else 
+            res.status(delRes.status).json(delRes.data)
+    } catch (error) {
+        res.status(500).json({message: "Error. " + error.stack});
+    }
+})
 
 
 
