@@ -1,3 +1,4 @@
+
 <main class="establishment-container">
     <div class="establishment-left">
         <img id="establishment-img" src="{{establishment.imageSrc}}" alt="{{establishment.name}}">
@@ -18,7 +19,7 @@
     <div class="establishment-right">
         {{#if user}}
         {{else}}
-            <h2> You need to login to post a review. </h2>
+        <h2> You need to login to post a review. </h2>
         {{/if}}
 
         <div id="reviews-list">
@@ -28,14 +29,50 @@
                         <strong>{{this.userId.username}}</strong> • {{#renderStarsHTML this.rating}}{{/renderStarsHTML}}
                         <p>{{this.comment}}</p>
                     </div>
-                    <div>
-                        <span>
-                            <i class="fa-regular fa-thumbs-up"></i> {{this.helpfulCount}}
+                    <div class="review-actions">
+                        <span class="review-actions-left">
+                            <span>
+                                <i class="fa-regular fa-thumbs-up"></i> {{this.helpfulCount}}
+                            </span>
+                            <span>
+                                <i class="fa-regular fa-thumbs-down"></i> {{this.unhelpfulCount}}
+                            </span>
                         </span>
-                        <span>
-                            <i class="fa-regular fa-thumbs-down"></i> {{this.unhelpfulCount}}
+                        <span class="review-actions-right">
+                            <span class="review-reply">
+                                Reply
+                            </span>
                         </span>
                     </div>
+
+                    {{#if this.ownerResponse}}
+                        <div class="review-response review-response-body">
+                            <p> 
+                                <strong>{{this.ownerResponse.ownerId.username}} </strong> 
+                            
+                                <span class="response-delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </span>
+                                <span class="response-edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </span>
+
+                                <br />
+                                <span class="response-body-text">
+                                    {{this.ownerResponse.comment}}
+                                </span>
+                            </p>
+                        </div>
+                    {{/if}}
+                        <div class="review-response review-response-input">
+                            <textarea class="response-comment-input" placeholder="Write your reply here..." name="comment"></textarea> <br />
+                            <button class="response-comment-cancel">Cancel</button>
+                            {{#if this.ownerResponse}}
+                                <button class="response-comment-reply">Save</button>
+                            {{else}}
+                                <button class="response-comment-reply">Reply</button>
+                            {{/if}}
+                        </div>
                 </div>
             {{/each}} 
         </div>
@@ -90,7 +127,6 @@
 
     const updateReviewRating = (star, rating) => {
         let starsContainer = star.parentElement
-        console.log(starsContainer)
         const ratingValue = starsContainer.getElementsByClassName("rating-value")[0];
         const ratingText = starsContainer.getElementsByClassName("rating-text")[0];
         const ratingStars = starsContainer.getElementsByClassName("rating-stars");
@@ -150,9 +186,82 @@
             userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
         }
     }
+
+    /* Review Reply Exclusive Stuff */
+
+    const respInps = document.getElementsByClassName('response-comment-input')
+    for (let textarea of respInps) {
+        textarea.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+    
+    // Show Reply Editor 
+    const showReplies = document.getElementsByClassName('review-reply')
+    for (let rply of showReplies) {
+        rply.addEventListener('click', (e) => {
+            // yes this is scuffed, no I will not fix this
+            const review = e.target.parentElement.parentElement.parentElement;
+
+            const responseBody = review.getElementsByClassName('review-response-body')[0];
+            const responseEditor = review.getElementsByClassName('review-response-input')[0];
+            responseEditor.style.display = "block";
+
+            if (responseBody) {
+                const responseText = responseBody.getElementsByClassName('response-body-text')[0].innerText;
+                responseEditor.getElementsByTagName('textarea')[0].value = responseText;
+                responseBody.style.display = "none";
+            }
+        })
+    }
+
+    const cancelReplies = document.getElementsByClassName('response-comment-cancel')
+    for (let cancel of cancelReplies) {
+        cancel.addEventListener('click', (e) => {
+            const review = e.target.parentElement.parentElement;
+
+            const responseBody = review.getElementsByClassName('review-response-body')[0];
+            const responseEditor = review.getElementsByClassName('review-response-input')[0];
+            responseEditor.style.display = "none";
+
+            if (responseBody) 
+                responseBody.style.display = "block";
+        });
+    }
+
+    const editReplies = document.getElementsByClassName('response-edit')
+    for (let edit of editReplies) {
+        edit.addEventListener('click', (e) => {
+            const review = e.target.parentElement.parentElement.parentElement.parentElement;
+
+            const responseBody = review.getElementsByClassName('review-response-body')[0];
+            const responseEditor = review.getElementsByClassName('review-response-input')[0];
+            responseEditor.style.display = "block";
+
+            if (responseBody) {
+                const responseText = responseBody.getElementsByClassName('response-body-text')[0].innerText;
+                responseEditor.getElementsByTagName('textarea')[0].value = responseText;
+                responseBody.style.display = "none";
+            }
+        });
+    }
+
+    const deleteReplies = document.getElementsByClassName('response-delete')
+    for (let delReply of deleteReplies) {
+        delReply.addEventListener('click', (e) => {
+            const deleteConfirm = confirm('Delete reply?');
+            alert('Chill, it don\'t work yet.');
+
+        });
+    }
+
 </script>
 
 <style>
+    .review-response {
+        margin-left: 1em;
+    }
     .review-editarea {
         width: 100%;
         display: none;
@@ -162,5 +271,23 @@
         resize: none;
         height: 5vh;
     }
+    .review-actions-right {
+        margin-left: 1em;
+    }
+    .response-comment-input{
+        outline: none;
+        border: none;
+        border-bottom: 1px black solid;
+        height: auto;
+        resize: none;
+        width: 100%;
+        min-height: 20px
+        scrollHeight: 20px;
+        max-height: 300px;
+    }
+    .review-response-input {
+        display: none;
+    }
 </style>
+
 

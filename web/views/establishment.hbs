@@ -104,6 +104,15 @@
                             <i class="fa-regular fa-thumbs-down"></i> {{this.unhelpfulCount}}
                         </span>
                     </div>
+
+                    {{#if this.ownerResponse}}
+                        <div class="review-response">
+                            <p> 
+                                <strong>{{this.ownerResponse.ownerId.username}} </strong> <br />
+                                {{this.ownerResponse.comment}}
+                            </p>
+                        </div>
+                    {{/if}}
                 </div>
             {{/each}} 
         </div>
@@ -221,6 +230,9 @@
 </script>
 
 <style>
+    .review-response {
+        margin-left: 1em;
+    }
     .review-editarea {
         width: 100%;
         display: none;

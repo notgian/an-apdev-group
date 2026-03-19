@@ -177,6 +177,13 @@ router.get("/reviews/:id", async (req, res) => {
         try {
             const reviewQry = Reviews.find(qry)
                 .populate('userId', ['username', 'avatar', 'role'])
+                .populate({
+                    path: 'ownerResponse',
+                    populate: {
+                        path: 'ownerId',
+                        model: 'User'
+                    }
+                })
                 .lean();
 
             const reviews = await reviewQry.exec();
