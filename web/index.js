@@ -448,7 +448,7 @@ app.get('/profile/:id', async (req, res) => {
 
         res.render('profile-other.hbs', {
             title: 'User Profile',
-            profileData: userReq.data.data[0],
+            profileData: userReq.data.data,
             user: req.session ? req.session.user : null,
             css: ['/css/style.css', '/css/profile.css'],
             js: ['/js/script.js'],

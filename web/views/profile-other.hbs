@@ -6,8 +6,7 @@
     {{!-- Left Side: The Public Profile of the user being viewed --}}
     <div id="logged-in-view">
         <div class="user-header">
-            {{!-- Dynamically load the viewed user's data --}}
-            <img src="{{#if viewedUser.avatar}}{{viewedUser.avatar}}{{else}}/images/user-avatar.png{{/if}}" 
+            <img src="{{profileData.avatar}}" 
                  id="profile-pic" class="avatar-large" alt="{{viewedUser.username}}'s Profile Picture">
             <h2 id="username-display">{{viewedUser.username}}</h2>
             <p id="user-desc">{{#if viewedUser.description}}{{viewedUser.description}}{{else}}Food explorer!{{/if}}</p>
