@@ -23,17 +23,21 @@
     </div>
 
     <div class="establishment-right">
-        <h2>Reviews</h2>
-        <div id="reviews-list">
-            {{#each reviews}}
-                <div class="review">
-                <strong>{{user}}</strong> — {{rating}}
-                <p>{{review}}</p>
-                <button>Edit</button>
-                <button>Delete</button>
-                </div>
-            {{/each}}
+    <h2>Reviews</h2>
+    <div id="reviews-list">
+        {{#each reviews}}
+        <div class="review-item">
+            <strong>{{user}}:</strong>
+            <span class="review-text">{{review}}</span>
+            <span class="review-marker">
+                <button class="like-btn">👍 {{likes}}</button>
+                <button class="dislike-btn">👎 {{dislikes}}</button>
+            </span>
+            <button class="review-edit-button" data-id="{{_id}}">Edit</button>
+            <button class="review-delete-button" data-id="{{_id}}">Delete</button>
         </div>
-        <button id="view-more-btn">View More</button>
+        {{/each}}
+    </div>
+    <button id="view-more-btn">View More</button>
     </div>
 </main>
