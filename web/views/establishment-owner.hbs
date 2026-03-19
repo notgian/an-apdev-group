@@ -275,12 +275,31 @@
             alert("Sucessfully responded to user!");
             window.location.reload();
         }
-
-
     }
 
-    function saveOwnerReply(e) {
-       console.log(e) 
+    const saveOwnerReply = async (e) => {
+        const review = e.parentElement.parentElement;
+        const usrId = review.getAttribute('data-author');
+        
+        const responseEditor = review.getElementsByClassName('review-response-input')[0];
+        const textarea = responseEditor.getElementsByTagName('textarea')[0];
+
+        const replyReq = await fetch(`/respond/${usrId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({comment: textarea.value}),
+        });
+
+        const replyRes = await replyReq.json();
+
+        console.log(replyRes)
+
+        if (replyRes.status == 200) {
+            alert("Sucessfully updated response!");
+            window.location.reload();
+        } else {
+            alert(replyRes.message);
+        }
     }
 
 </script>

@@ -847,7 +847,7 @@ router.post('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
         }
     }
     const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {
-        new: true,       
+        returnDocument: 'after',       
         runValidators: true 
     });
     return res.status(httpStatus.OK).json({
@@ -944,20 +944,16 @@ router.put('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
             message: `User ${userId} does not have a review on the establishment ${restaurantId}.`,
             data: null
         });
-    if (foundReview.ownerResponse != undefined)
-        return res.status(httpStatus.CONFLICT).json({
-            status: httpStatus.CONFLICT,
-            message: `Owner ${ownerId} already has a response to the user ${userId}`,
-            data: null
-        });
 
     const updateReview = {
         ownerResponse: {
+            ownerId: ownerId,
             comment: comment,
+            respondedAt: foundReview.ownerResponse.respondedAt
         }
     }
     const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {
-        new: true,       
+        returnDocument: 'after',       
         runValidators: true 
     });
     return res.status(httpStatus.OK).json({
@@ -1056,7 +1052,7 @@ router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     const updateReview = {
         ownerResponse: undefined
     }
-    const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {
+    const updatedReview = await Reviews.findOneAndDelete(reviewFilter, {
         new: false,       
         runValidators: true 
     });
@@ -1140,7 +1136,7 @@ router.post('/:userid/helpful/:reviewid', async (req, res) => {
             helpfulVotes: foundReview.helpfulVotes.concat(new mongoose.Types.ObjectId(userId)),
             helpfulCount: foundReview.helpfulCount + 1
         }, {
-            new: true,
+            returnDocument: 'after',
             lean: true
         });
 
@@ -1234,7 +1230,7 @@ router.post('/:userId/unhelpful/:reviewId', async (req, res) => {
             unhelpfulVotes: foundReview.unhelpfulVotes.concat(new mongoose.Types.ObjectId(userId)),
             unhelpfulCount: foundReview.unhelpfulCount + 1
         }, {
-            new: true,
+            returnDocument: 'after',
             lean: true
         });
 
@@ -1336,7 +1332,7 @@ router.post('/:userId/unmark/:reviewId', async (req, res) => {
             unhelpfulVotes: newUnhelpful,
             unhelpfulCount: newUnhelpfulCount,
         }, {
-            new: true,
+            returnDocument: 'after',
             lean: true
         });
 
