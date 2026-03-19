@@ -37,6 +37,23 @@ Handlebars.registerHelper('renderStarsHTML', function(rating) {
     return `<span class="stars${rating == -1 ? '-no-ratings' : ''} star-rating">${innerText}</span>`
 });
 
+Handlebars.registerHelper('truncate', function (str, len) {
+    if (typeof str !== 'string') return str;
+    if (str.length > len) {
+        let truncated = str.substring(0, len);
+        let lastSpace = truncated.lastIndexOf(' ');
+        if (lastSpace > 0) truncated = truncated.substring(0, lastSpace);
+        return truncated + '...';
+    }
+    return str;
+});
+
+
+Handlebars.registerHelper('normalizeName', function (str) {
+    if (typeof str !== 'string') return str;
+    return str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+});
+
 // Application Proper
 const app = express();
 app.engine('hbs', hbs.engine({extname:'hbs'}));
@@ -244,25 +261,39 @@ app.delete('/deletereview/:userId/:rstrId', async (req, res) => {
 })
 
 app.get('/search', async (req, res) => {
-    const searchQuery = req.query.query || ''; 
+    const searchTerm = req.query.query || ''; 
+
     try {
         let searchReq = await axios.get(`${API_URL}establishments`, {
-            params: { search: searchQuery },
+            params: { 
+                search: searchTerm 
+            },
             validateStatus: () => true
         });
-        let results = searchReq.status === 200 ? searchReq.data.data : [];
+
+        let results = [];
+        if (searchReq.status === 200 && searchReq.data.status === 200) {
+            results = searchReq.data.data;
+        }
 
         res.render('search.hbs', {
-            title: 'Search Results',
-            query: searchQuery,
+            title: '6-7-ate-9 | Search Results',
+            query: searchTerm, 
             results: results,
             user: req.session ? req.session.user : null,
-            css: ['/css/style.css', '/css/search.css'],
-            js: ['/js/script.js'],
-            searchBar: true
+            css: [
+                '/css/style.css', 
+                '/css/search.css'
+            ],
+            js: [
+                '/js/script.js'
+            ],
+            searchBar: true,
+            loginContainer: req.session.user ? false : true
         });
     } catch (error) {
-        res.status(500).send("Search failed.");
+        console.error("Search Error:", error);
+        res.status(500).send("An error occurred during search.");
     }
 });
 
