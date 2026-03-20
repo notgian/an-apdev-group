@@ -1,0 +1,45 @@
+body {
+  background-color: #f5e5ef;
+}
+
+.error-page {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.error-img {
+  width:200px;
+  height:200px;
+}
+
+.error-code {
+  font-size: 80px;
+  color: #d14d72;
+  margin: 0;
+}
+
+.error-title {
+  font-size: 28px;
+  color: #555;
+  margin: 10px 0;
+}
+
+.error-message {
+  font-size: 16px;
+  color: #777;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #d14d72;
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.back-btn:hover {
+  background-color: #b93a5f;
+}
