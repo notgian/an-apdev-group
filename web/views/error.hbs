@@ -1,12 +1,28 @@
 <main class="error-page">
     <img src="/images/error-img.png" alt="Error Image" class="error-img">
 
-    <h1 class="error-code">404</h1>
+    <h1 class="error-code">
+        {{#if error_code}}
+            {{error_code}}
+        {{else}}
+            Uh oh...
+        {{/if}}
+    </h1>
 
-    <h2 class="error-title">Page Not Found</h2>
+    <h2 class="error-title">
+        {{#if error_title}}
+            {{error_title}}
+        {{else}}
+            Something went wrong...
+        {{/if}}
+    </h2>
 
     <p class="error-message">
-        The page you are looking for doesn't exist or another error occurred.
+        {{#if error_message}}
+            {{error_message}}
+        {{else}}
+            The page you are looking for doesn't exist or another error occurred.
+        {{/if}}
     </p>
 
     <a href="/" class="back-btn">Back to Home</a>

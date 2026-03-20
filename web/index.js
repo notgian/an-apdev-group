@@ -147,7 +147,7 @@ app.get('/establishment/:id', async (req, res) => {
         const estReq = await axios.get(`${API_URL}establishments/${estId}`, { validateStatus: () => true });
         const revReq = await axios.get(`${API_URL}establishments/reviews/${estId}`, { validateStatus: () => true });
 
-        if (estReq.status != 200) return res.status(404).send("Establishment not found");
+        if (estReq.status != 200) throw Error()
 
         const establishmentData = estReq.data.data[0];
         let reviewsData = revReq.data.data;
@@ -177,7 +177,22 @@ app.get('/establishment/:id', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        res.status(500).send("Internal Server Error" + error);
+        res.status(500).render('error.hbs', {
+            title: '6-7-ate-9 | Error',
+            css: [
+                '/css/style.css',
+                '/css/error.css' // Changed from home.css to establishments.css
+            ],
+            js: [
+                '/js/script.js'
+            ],
+            searchBar: true,
+            loginContainer: true,
+            error_code: "Uh oh...",
+            error_title: "Something went wrong...",
+            error_message: "The server couldn't process your request. Please try again.",
+            user: req.session ? req.session.user : null
+        })
     }
 });
 
@@ -216,7 +231,7 @@ app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) 
             res.redirect('/establishment/'+req.params.rstrId)
     }
     catch (err) {
-        res.status(500).send(err);
+        res.status(500).json({message: "Error posting review. " + err});
     }
 })
 
@@ -241,7 +256,7 @@ app.post('/editreview/:userId/:rstrId', async (req, res) => {
         res.status(200).json(reviewRes.data);
     }
     catch (err) {
-        res.status(500).send(err);
+        res.status(500).json({message:"Eror modifying review. " + err});
     }
 });
 
@@ -256,7 +271,7 @@ app.delete('/deletereview/:userId/:rstrId', async (req, res) => {
         res.status(200).json(reviewRes.data);
     }
     catch (err) {
-        res.status(500).send(err);
+        res.status(500).json({message: "Error deleting review. " + err});
     }
 })
 
@@ -292,8 +307,19 @@ app.get('/search', async (req, res) => {
             loginContainer: req.session.user ? false : true
         });
     } catch (error) {
-        console.error("Search Error:", error);
-        res.status(500).send("An error occurred during search.");
+        res.status(500).render('error.hbs', {
+            title: '6-7-ate-9 | Error',
+            css: [
+                '/css/style.css',
+                '/css/error.css'
+            ],
+            searchBar: true,
+            loginContainer: true,
+            error_code: "Uh oh...",
+            error_title: "Something went wrong...",
+            error_message: "The server couldn't process your request. Please try again.",
+            user: req.session ? req.session.user : null
+        })
     }
 });
 
@@ -408,7 +434,7 @@ app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     try {
         const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
-        if (userReq.status !== 200) return res.status(404).send("User not found");
+        if (userReq.status !== 200) throw Error()
 
         const reviewsReq = await axios.get(`${API_URL}users/reviews/${req.session.user._id}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
@@ -422,7 +448,19 @@ app.get('/profile', async (req, res) => {
             searchBar: true
         });
     } catch (err) {
-        res.status(500).send("Something went wrong..." + err);
+        res.status(500).render('error.hbs', {
+            title: '6-7-ate-9 | Error',
+            css: [
+                '/css/style.css',
+                '/css/error.css'
+            ],
+            searchBar: true,
+            loginContainer: true,
+            error_code: "Uh oh...",
+            error_title: "Something went wrong...",
+            error_message: "The server couldn't process your request. Please try again.",
+            user: req.session ? req.session.user : null
+        })
     }
 
 })
@@ -479,7 +517,7 @@ app.get('/profile/:id', async (req, res) => {
     const profileId = req.params.id;
     try {
         const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
-        if (userReq.status !== 200) return res.status(404).send("User not found");
+        if (userReq.status !== 200) throw Error()
 
         const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
@@ -495,7 +533,19 @@ app.get('/profile/:id', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        res.status(500).send("Error loading profile.");
+        res.status(500).render('error.hbs', {
+            title: '6-7-ate-9 | Error',
+            css: [
+                '/css/style.css',
+                '/css/error.css'
+            ],
+            searchBar: true,
+            loginContainer: true,
+            error_code: "Uh oh...",
+            error_title: "Something went wrong...",
+            error_message: "The server couldn't process your request. Please try again.",
+            user: req.session ? req.session.user : null
+        })
     }
 })
 
@@ -528,7 +578,7 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
         res.status(apiRes.status).json(apiRes.data);
     } catch (error) {
         console.error("Error marking review:", error);
-        res.status(500).send("error marking review helpful/unhelpful.");
+        res.status(500).json({message:"error marking review helpful/unhelpful. " + error});
     }
 });
 
@@ -615,213 +665,24 @@ app.delete('/respond/:userId', async (req, res) => {
     }
 })
 
-
-
-
-
-
-
-// ONLY FOR TESTING. NOT TO BE INCLUDED LATER ON
-app.get('/test', async (req,res) => {
-    res.render('test.hbs')
-})
-
-// THIS IS WHAT LETS US UPLOAD THE FILE IT TOOK ME 2 HOURS BRUH T_T
-
-app.post('/testprofileedit', upload.single('file'), async (req, res) => {
-    let usrsURL = API_URL+'users/'
-    const testUserId = '69b9867133850b1e8b2c1fd3'
-
-    const form = new FormData();
-
-    if (req.file)
-        form.append('avatar', req.file.buffer, {
-            filename: testUserId+path.extname(req.file.originalname),
-            contentType: req.file.mimetype,
-        });
-
-    if (req.body['profile-desc'] && req.body['profile-desc'] != '')
-        form.append('desc', req.body['profile-desc'])
-
-    const editRes = await axios.patch(usrsURL + testUserId, form, {
-        headers: { ...form.getHeaders() }
-    });
-
-    res.status(200).json(editRes.data)
-
-})
-
-app.post('/testreviewpost', upload.array('media'), async (req, res) => {
-    let usrsURL = API_URL+'users'
-    const testUserId = '69ad961e4a1d38f3c1569a3f'
-    const testRstrId = '69ad961e4a1d38f3c1569a80'
-
-    const form = new FormData();
-    const uplTime = Date.now();
-
-    for (let file of req.files) {
-        const bytes = crypto.getRandomValues(new Uint8Array(16));
-        const fileId = btoa(String.fromCharCode(...bytes))
-            .replace(/\+/g, 'a')
-            .replace(/\//g, 'A')
-            .replace(/=+$/, '');
-        const fileExt = path.extname(file.originalname);
-        const filename = `${fileId}_${uplTime}${fileExt}`
-
-        form.append('media', file.buffer, {
-            filename: filename,
-            contentType: file.mimetype,
-        }) 
-    }
-
-    if (req.body['rating'] && req.body['rating'] >= 0 && req.body['rating'] <= 5)
-        form.append('rating', req.body['rating'])
-    if (req.body['comment'] && req.body['comment'] != "")
-        form.append('comment', req.body['comment'])
-
-    try {
-        const reviewRes = await axios.post(`${usrsURL}/reviews/${testUserId}/${testRstrId}`, form, {
-            headers: { ...form.getHeaders() },
-            validateStatus: () => true
-        });
-
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-
-});
-
-app.post('/testreviewedit', async (req, res) => {
-    let usrsURL = API_URL+'users'
-    const testUserId = '69ad961e4a1d38f3c1569a3f'
-    const testRstrId = '69ad961e4a1d38f3c1569a80'
-
-    let rating = req.body.rating || undefined;
-    let comment = req.body.comment || undefined;
-
-    try {
-        const reviewRes = await axios.put(`${usrsURL}/reviews/${testUserId}/${testRstrId}`,
-            {rating: rating, comment: comment}, 
-            {validateStatus: () => true }
-        );
-
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-
-});
-
-app.post('/testreviewdelete', async (req, res) => { 
-    let usrsURL = API_URL+'users';
-    const testUserId = '69ad961e4a1d38f3c1569a3f';
-    const testRstrId = '69ad961e4a1d38f3c1569a80';
-
-    try {
-        const reviewRes = await axios.delete(`${usrsURL}/reviews/${testUserId}/${testRstrId}`,
-            {validateStatus: () => true }
-        );
-
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-
-});
-
-app.post('/testreviewresponse', async (req, res) => {
-    let usrsURL = API_URL+'users'
-    const testUserId = '69ad961e4a1d38f3c1569a3f'
-    const testOwnerId = '69ad961e4a1d38f3c1569a73' // took this from my testdata
-
-    let comment = req.body.comment || undefined;
-
-    try {
-        const reviewRes = await axios.post(`${usrsURL}/reviews/owner_response/${testOwnerId}/${testUserId}`,
-            {comment: comment}, 
-            {validateStatus: () => true }
-        );
-
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-});
-
-app.post('/testmarkhelpful', async (req, res) => {
-    let usrsURL = API_URL+'users'
-    const testUserId = '69ad961e4a1d38f3c1569a3f';
-    const testReviewId = '69ad961f4a1d38f3c1569a8d';
-
-    try {
-        const reviewRes = await axios.post(`${usrsURL}/${testUserId}/helpful/${testReviewId}`,
-            {},
-            { validateStatus: () => true }
-        );
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-});
-
-app.post('/testmarkunhelpful', async (req, res) => {
-    let usrsURL = API_URL+'users'
-    const testUserId = '69ad961e4a1d38f3c1569a3f';
-    const testReviewId = '69ad961f4a1d38f3c1569a8d';
-
-    try {
-        const reviewRes = await axios.post(`${usrsURL}/${testUserId}/unhelpful/${testReviewId}`,
-            {},
-            { validateStatus: () => true }
-        );
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-});
-
-app.post('/testunmark', async (req, res) => {
-    let usrsURL = API_URL+'users'
-    const testUserId = '69ad961e4a1d38f3c1569a3f';
-    const testReviewId = '69ad961f4a1d38f3c1569a8d';
-
-    try {
-        const reviewRes = await axios.post(`${usrsURL}/${testUserId}/unmark/${testReviewId}`,
-            {},
-            { validateStatus: () => true }
-        );
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-});
-
-app.post('/testlogin', async (req, res) => {
-    let usrsURL = API_URL+'users'
-
-    try {
-        const reviewRes = await axios.post(`${usrsURL}/login`,
-            {username: req.body.username, password: req.body.password},
-            { validateStatus: () => true }
-        );
-        res.status(200).json(reviewRes.data);
-    }
-    catch (err) {
-        res.send(err);
-    }
-})
-
 app.use( (req, res, next) => {
     // Replace with 404 page
-    res.status(404).send('Error 404 Not Found!')
+    res.status(404).render('error.hbs', {
+        title: '6-7-ate-9 | Error 404',
+        css: [
+            '/css/style.css',
+            '/css/error.css'
+        ],
+        js: [
+            '/js/script.js'
+        ],
+        searchBar: true,
+        loginContainer: true,
+        error_code: "404",
+        error_title: "The page you are looking for doesn't exist.",
+        error_message: "",
+        user: req.session ? req.session.user : null
+    })
 });
 
 app.listen(APP_PORT)
