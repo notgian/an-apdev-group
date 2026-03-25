@@ -11,6 +11,7 @@ services:
       API_PUBLIC_HOSTNAME: 127.0.0.1
       API_HOSTNAME: ${API_HOSTNAME}
       API_LOCATION: "localhost:4200"  # depracate this
+      ENVIRONMENT: "dev"
     ports: 
       - ${WEB_PORT}:${WEB_PORT}
     depends_on:
@@ -39,6 +40,8 @@ services:
       APP_PASS: ${APP_PASS}
       APP_DB: ${APP_DB}
       MONGODB_HOSTNAME: ${MONGO_HOSTNAME}
+      MONGO_ATLAS_HOST: ${MONGO_ATLAS_HOST}
+      ENVIRONMENT: "dev"
     ports: 
       - ${API_PORT}:${API_PORT}
     volumes:
@@ -65,6 +68,8 @@ services:
       APP_USER: ${APP_USER}
       APP_PASS: ${APP_PASS}
       APP_DB: ${APP_DB}
+
+      ENVIRONMENT: "dev"
     ports:
       - ${MONGO_PORT}:${MONGO_PORT}
     volumes:
@@ -90,7 +95,6 @@ services:
   #   command: ["/bin/bash", "/mongo-setup.sh"]  # Run the script
   #   networks:
   #     - mongo-network
-
 
 volumes:
   mongo-data:
