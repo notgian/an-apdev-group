@@ -41,7 +41,7 @@ home page
 - [ ] PREFERRED: for each review, before sending to frontend, add an attribute **marked** which is set to 'helpful' if the user id is in the review's list of helpful markings, 'unhelpful' if the user id is in the review's list of unhelpful markings, and null/some falsy value otherwise
 
 ## API
-- [ ] Make review posting/editing update establishment overall rating
+- [x] Make review posting/editing update establishment overall rating
 - [ ] Add follow/unfollow endpoints
 - [ ] jwt keys
 
