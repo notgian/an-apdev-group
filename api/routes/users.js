@@ -74,6 +74,17 @@ const uploadMedia = multer({
     }
 });
 
+/**
+ * @route   GET /
+ * @desc    Retrieve a paginated list of users with optional search and sorting.
+ * @access  Public
+ * @query   {number} offset - Number of records to skip.
+ * @query   {number} count - Number of records to return.
+ * @query   {string} orderby - Field to sort by (name, joindate, followers, reviews).
+ * @query   {string} search - Search string for usernames.
+ * @returns {object} 200 - OK with an array of user objects.
+ * @returns {object} 400 - Malformed Query (invalid number format or values).
+ */
 // GET Users
 router.get('/', async (req, res) => {
     var OFFSET = 0;
@@ -177,6 +188,15 @@ router.get('/', async (req, res) => {
     })
 });
 
+/**
+ * @route   GET /:id
+ * @desc    Retrieve details of a single user by their MongoDB ID.
+ * @access  Public
+ * @params  {string} id - The unique identifier of the user.
+ * @returns {object} 200 - OK with the user object.
+ * @returns {object} 400 - Invalid ID format.
+ * @returns {object} 404 - User not found.
+ */
 // GET a specific user by ID
 router.get('/:id', async (req, res) => {
     const userId = req.params.id;
@@ -215,6 +235,17 @@ router.get('/:id', async (req, res) => {
 
 });
 
+/**
+ * @route   POST /
+ * @desc    Create a new user account with hashed password.
+ * @access  Public
+ * @body    {string} username - Desired username.
+ * @body    {string} password - User password.
+ * @returns {object} 201 - User created successfully with user data.
+ * @returns {object} 400 - Missing username or password.
+ * @returns {object} 409 - Username conflict.
+ * @returns {object} 500 - Internal server error.
+ */
 // POST to create a new user
 router.post('/', urlencodedParser, async (req, res) => {
     const username = req.body.username || false
@@ -286,6 +317,19 @@ router.post('/', urlencodedParser, async (req, res) => {
 
 });
 
+/**
+ * @route   PATCH /:id
+ * @desc    Modify existing user information and/or update avatar.
+ * @access  Private
+ * @params  {string} id - The user ID to update.
+ * @body    {string} [name] - New username.
+ * @body    {string} [desc] - New user description.
+ * @file    {object} [avatar] - Image file for the user profile.
+ * @returns {object} 202 - Accepted, with the updated user data.
+ * @returns {object} 400 - Invalid ID format or unauthorized field modification.
+ * @returns {object} 403 - Forbidden (unauthorized access).
+ * @returns {object} 404 - User not found.
+ */
 // PATCH to modify user data
 // TODO: Requires authentication tokens
 router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
@@ -378,7 +422,17 @@ router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
     next();
 });
 
-// TODO GET REVIEWS BY USER
+/**
+ * @route   GET /reviews/:id
+ * @desc    Get all reviews posted by a specific user, optionally filtered by restaurant.
+ * @access  Public
+ * @params  {string} id - The user ID.
+ * @query   {string} [rstid] - Optional restaurant ID to filter reviews.
+ * @returns {object} 200 - OK with an array of reviews.
+ * @returns {object} 400 - Invalid ID format.
+ * @returns {object} 404 - User not found.
+ * @returns {object} 500 - Internal server error.
+ */
 router.get("/reviews/:id", async (req, res) => {
     const userId = req.params.id;
 
@@ -432,10 +486,23 @@ router.get("/reviews/:id", async (req, res) => {
         }) ;
         return;
     }
-    var userFound = true
+    var userFound = true;
 });
 
-// TODO USER CREATES REVIEW
+/**
+ * @route   POST /reviews/:userid/:rstrid
+ * @desc    Submit a new review for a restaurant, including optional media files.
+ * @access  Private
+ * @params  {string} userid - The ID of the user reviewing.
+ * @params  {string} rstrid - The ID of the restaurant being reviewed.
+ * @body    {number} rating - Score (0-5).
+ * @body    {string} comment - Text review content.
+ * @file    {array} [media] - Array of image or video files.
+ * @returns {object} 201 - Created successfully with the new review data.
+ * @returns {object} 400 - Invalid ID format or review creation error.
+ * @returns {object} 404 - User or Establishment not found.
+ * @returns {object} 409 - User has already posted a review for this establishment.
+ */
 // TODO: Requires authentication tokens
 router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, res) => {
     // lowk too lazy to search for the right solution so have this
@@ -526,6 +593,26 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
 
     try {
         const newReview = await Reviews.create(createObj);
+
+        // Update restablishment avg rating
+        let qry = { restaurantId: restaurantId }
+        const reviewQry = Reviews.find(qry)
+            .select('rating')
+            .lean();
+
+        const reviews = await reviewQry.exec();
+
+        let totalRatings = newReview.rating;
+        let totalRatingsCount = 1;
+        for (let review of reviews) {
+            totalRatings += review.rating;
+            totalRatingsCount++
+        }
+
+        let newAvg = (totalRatings / totalRatingsCount).toFixed(2)
+
+        await Restaurant.findOneAndUpdate({_id: restaurantId}, {avgRating: newAvg})
+
         return res.status(httpStatus.CREATED).json({
             status: httpStatus.CREATED,
             message: `Review created successfully.`,
@@ -550,7 +637,19 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
     next();
 });
 
-// TODO USER UPDATES REVIEW (ONLY supports editing the text)
+/**
+ * @route   PUT /reviews/:userid/:rstrid
+ * @desc    Update an existing review's rating and comment.
+ * @access  Private
+ * @params  {string} userid - The ID of the user.
+ * @params  {string} rstrid - The ID of the restaurant.
+ * @body    {number} rating - New score (0-5).
+ * @body    {string} comment - New review text.
+ * @returns {object} 200 - Successfully updated review data.
+ * @returns {object} 400 - Invalid ID, missing fields, or invalid values.
+ * @returns {object} 404 - User, Establishment, or Review not found.
+ * @returns {object} 500 - Internal server error during modification.
+ */
 // TODO: Requires authentication tokens
 router.put('/reviews/:userid/:rstrid', async (req, res) => {
     const userId = req.params.userid;
@@ -648,6 +747,25 @@ router.put('/reviews/:userid/:rstrid', async (req, res) => {
             lean: true
         });
 
+        // Update restablishment avg rating
+        let qry = { restaurantId: restaurantId }
+        const reviewQry = Reviews.find(qry)
+            .select('rating')
+            .lean();
+
+        const reviews = await reviewQry.exec();
+
+        let totalRatings = updReview.rating;
+        let totalRatingsCount = 1;
+        for (let review of reviews) {
+            totalRatings += review.rating;
+            totalRatingsCount++
+        }
+
+        let newAvg = (totalRatings / totalRatingsCount).toFixed(2)
+
+        await Restaurant.findOneAndUpdate({_id: restaurantId}, {avgRating: newAvg})
+
         return res.status(httpStatus.OK).json({
             status: httpStatus.OK,
             message: 'Successfully updated review.',
@@ -663,7 +781,17 @@ router.put('/reviews/:userid/:rstrid', async (req, res) => {
     }
 });
 
-// TODO USER DELETES REVIEW
+/**
+ * @route   DELETE /reviews/:userid/:rstrid
+ * @desc    Remove a review from the database.
+ * @access  Private
+ * @params  {string} userid - ID of the user who wrote the review.
+ * @params  {string} rstrid - ID of the restaurant reviewed.
+ * @returns {object} 200 - Successfully deleted review data.
+ * @returns {object} 400 - Invalid ID format.
+ * @returns {object} 404 - User, Establishment, or Review not found.
+ * @returns {object} 500 - Internal server error during deletion.
+ */
 // IMPORTANT: DOES NOT CURRENTLY DELETE THE MEIDA ASSOCIATED WITH THE REVIEW
 // TODO: Requires authentication tokens
 router.delete('/reviews/:userid/:rstrid', async (req, res) => {
@@ -729,6 +857,25 @@ router.delete('/reviews/:userid/:rstrid', async (req, res) => {
             lean: true
         });
 
+        // Update restablishment avg rating
+        let qry = { restaurantId: restaurantId }
+        const reviewQry = Reviews.find(qry)
+            .select('rating')
+            .lean();
+
+        let totalRatings = 0;
+        let totalRatingsCount = 0;
+
+        const reviews = await reviewQry.exec();
+        for (let review of reviews) {
+            totalRatings += review.rating;
+            totalRatingsCount++
+        }
+
+        let newAvg = (totalRatings / totalRatingsCount).toFixed(2)
+
+        await Restaurant.findOneAndUpdate({_id: restaurantId}, {avgRating: newAvg})
+
         return res.status(httpStatus.OK).json({
             status: httpStatus.OK,
             message: 'Successfully deleted review.',
@@ -744,7 +891,18 @@ router.delete('/reviews/:userid/:rstrid', async (req, res) => {
     }
 });
 
-// TODO OWNER CREATES REPLY
+/**
+ * @route   POST /reviews/owner_response/:ownerid/:userid
+ * @desc    Allow a restaurant owner to reply to a user's review.
+ * @access  Private (Owner Only)
+ * @params  {string} ownerid - ID of the restaurant owner.
+ * @params  {string} userid - ID of the user who left the review.
+ * @body    {string} comment - The response text.
+ * @returns {object} 200 - Responded successfully with updated review data.
+ * @returns {object} 400 - Invalid ID, user is not owner, or empty comment.
+ * @returns {object} 404 - Owner, User, Establishment, or Review not found.
+ * @returns {object} 409 - Owner already has a response to this review.
+ */
 // TODO: Requires authentication tokens
 router.post('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     const ownerId = req.params.ownerid;
@@ -856,8 +1014,18 @@ router.post('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     });
 })
 
-// TODO OWNER UPADTES REPLY
-// TODO: Requires authentication tokens
+/**
+ * @route   PUT /reviews/owner_response/:ownerid/:userid
+ * @desc    Edit an existing owner response to a review.
+ * @access  Private (Owner Only)
+ * @params  {string} ownerid - ID of the restaurant owner.
+ * @params  {string} userid - ID of the user who left the review.
+ * @body    {string} comment - The updated response text.
+ * @returns {object} 200 - Responded successfully with updated review data.
+ * @returns {object} 400 - Invalid ID, user is not owner, or empty comment.
+ * @returns {object} 404 - Owner, User, Establishment, or Review not found.
+ */
+//TODO: Requires authentication tokens
 router.put('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     const ownerId = req.params.ownerid;
     const userId = req.params.userid;
@@ -962,7 +1130,17 @@ router.put('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     });
 })
 
-// TODDO OWNER DELETES REPLY
+/**
+ * @route   DELETE /reviews/owner_response/:ownerid/:userid
+ * @desc    Deletes an owner's response to a specific user's review.
+ * @access  Private (Requires Authentication)
+ * @param   {string} ownerid - The ID of the restaurant owner.
+ * @param   {string} userid - The ID of the user who wrote the review.
+ * @returns {object} 200 - Success message and updated review data.
+ * @returns {object} 400 - Invalid ID format or user is not an owner.
+ * @returns {object} 404 - Owner, User, Restaurant, or Review not found.
+ * @returns {object} 409 - Owner has not responded to this review.
+ */
 // TODO: Requires authentication tokens
 router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     const ownerId = req.params.ownerid;
@@ -1063,7 +1241,17 @@ router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
     });
 });
 
-// TODO MARK HELPFUL
+/**
+ * @route   POST /:userid/helpful/:reviewid
+ * @desc    Marks a review as helpful. If already marked helpful, it unmarks it. 
+ * If previously marked unhelpful, it switches the vote.
+ * @access  Private (Requires Authentication)
+ * @param   {string} userid - The ID of the voting user.
+ * @param   {string} reviewid - The ID of the review being voted on.
+ * @returns {object} 200 - Success message and updated review.
+ * @returns {object} 404 - User or Review not found.
+ * @returns {object} 500 - Internal server error during update.
+ */
 // TODO: Requires authentication tokens
 router.post('/:userid/helpful/:reviewid', async (req, res) => {
     const userId = req.params.userid;
@@ -1159,7 +1347,14 @@ router.post('/:userid/helpful/:reviewid', async (req, res) => {
     }
 })
 
-// TODO MARK UNHELPFUL
+/**
+ * @route   POST /:userid/unhelpful/:reviewid
+ * @desc    Marks a review as unhelpful. If already marked unhelpful, it unmarks it.
+ * If previously marked helpful, it switches the vote.
+ * @access  Private (Requires Authentication)
+ * @param   {string} userid - The ID of the voting user.
+ * @param   {string} reviewid - The ID of the review being voted on.
+ */
 // TODO: Requires authentication tokens
 router.post('/:userid/unhelpful/:reviewid', async (req, res) => {
     const userId = req.params.userid;
@@ -1258,7 +1453,14 @@ router.post('/:userid/unhelpful/:reviewid', async (req, res) => {
     }
 })
 
-// TODO UNMARK HELPFUL/UNHELPFUL
+/**
+ * @route   POST /:userid/unmark/:reviewid
+ * @desc    Removes any existing helpful or unhelpful votes from a review for a specific user.
+ * @access  Private (Requires Authentication)
+ * @param   {string} userid - The ID of the user unmarking the review.
+ * @param   {string} reviewid - The ID of the review to be unmarked.
+ * @returns {object} 409 - If user has not previously marked the review.
+ */
 // TODO: Requires authentication tokens
 router.post('/:userid/unmark/:reviewid', async (req, res) => {
     const userId = req.params.userid;
@@ -1365,6 +1567,17 @@ router.post('/:userid/unmark/:reviewid', async (req, res) => {
 // TODO UNFOLLOW
 // TODO: Requires authentication tokens
 
+/**
+ * @route   POST /login
+ * @desc    Authenticates a user and returns a success status. 
+ * (Planned to return a JWT token upon implementation).
+ * @access  Public
+ * @param   {string} req.body.username - User's unique username.
+ * @param   {string} req.body.password - User's plain text password.
+ * @returns {object} 200 - Successful login.
+ * @returns {object} 401 - Unauthorized (Invalid credentials).
+ * @returns {object} 400 - Missing username or password.
+ */
 // TODO LOGIN
 // SHALL RETURN JWT TOKEN
 router.post('/login', async (req, res) => {
@@ -1404,31 +1617,6 @@ router.post('/login', async (req, res) => {
     });
 
 });
-
-// Batch get info of multiple users
-// router.post( '/batch',async (req, res) => {
-    //     const { ids, fields } = req.body;
-    //
-        //     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            //         return res.status(s).json(
-                //             {send(
-                //             { 
-                    //                 status: httpStatus.BAD_REQUEST,
-                    //                 message: "Please provide an array of User IDs." 
-                    //             });
-            //     }
-    //
-        //     // Get the list of users from db
-    //     // TODO: this
-    //     return res.status(httpStatus.OK).json({
-        //         status: httpStatus.OK,
-        //         message: "OK",
-        //         data: {
-            //             count: 0,
-            //             users: ["Will include code for this in the future once database exists"]
-            //         }
-        //     });
-    // });
 
 // DELETE to delete user
 // Contemplating if we should have this because it's not a feature we NEED

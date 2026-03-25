@@ -44,9 +44,9 @@ home page
 - [ ] Make review posting/editing update establishment overall rating
 - [ ] Add follow/unfollow endpoints
 - [ ] jwt keys
-- [ ] fix cdn because 127.0.0.1 ain't gonna cut it for deployment buddy.
 
 ## Other
-- [ ] fix data gen. Reviews are clamped to 1-5 inclusive
+- [x] fix data gen. Reviews are clamped to 1-5 inclusive
 - [ ] Fix docker compose prod file
 - [ ] setup render.com/vercel for deployment
+- [ ] fix cdn because 127.0.0.1 ain't gonna cut it for deployment buddy. (this will make it so data generated will be dependent on dev or prod servers. Dev server is local, thus localhost is fine. For prod, we'll have it dependent on the address of our application-to-be)

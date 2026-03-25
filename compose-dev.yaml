@@ -41,6 +41,7 @@ services:
       APP_DB: ${APP_DB}
       MONGODB_HOSTNAME: ${MONGO_HOSTNAME}
       MONGO_ATLAS_HOST: ${MONGO_ATLAS_HOST}
+      MONGO_ATLAS_PASS: ${MONGO_ATLAS_PASS}
       ENVIRONMENT: "dev"
     ports: 
       - ${API_PORT}:${API_PORT}
