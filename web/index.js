@@ -650,7 +650,6 @@ app.put('/respond/:userId', async (req, res) => {
     if (!req.body.comment || req.body.comment.trim() == "")
         return res.status(400).json({message: "No comment/empty comment."})
     
-    const ownerId = req.session.user._id;
     const userId = req.params.userId;
 
     const apiEndpoint = API_URL+`users/owner_response/${userId}`;
@@ -675,18 +674,22 @@ app.put('/respond/:userId', async (req, res) => {
 })
 
 app.delete('/respond/:userId', async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.token)
         return res.redirect('/login')
     if (req.session.user.role != "owner")
         return res.status(403).json({message: "Only an owner can create a response to reviews in an establishment."})
     
-    const ownerId = req.session.user._id;
     const userId = req.params.userId;
 
-    const apiEndpoint = API_URL+`users/reviews/owner_response/${ownerId}/${userId}`;
+    const apiEndpoint = API_URL+`users/owner_response/${userId}`;
 
+    console.log(apiEndpoint)
+
+    const headers = {};
+    headers['Authorization'] = 'Bearer ' + req.session.token;
     try {
-        const delRes = await axios.delete(apiEndpoint, {}, {
+        const delRes = await axios.delete(apiEndpoint, {
+            headers: headers,
             validateStatus: () => true
         });
 

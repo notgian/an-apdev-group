@@ -1019,7 +1019,6 @@ router.post('/owner_response/:userid', authenticateToken, async (req, res) => {
  * @returns {object} 400 - Invalid ID, user is not owner, or empty comment.
  * @returns {object} 404 - Owner, User, Establishment, or Review not found.
  */
-//TODO: Requires authentication tokens
 router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
     const ownerId = req.authUser._id;
     const userId = req.params.userid;
@@ -1135,9 +1134,8 @@ router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
  * @returns {object} 404 - Owner, User, Restaurant, or Review not found.
  * @returns {object} 409 - Owner has not responded to this review.
  */
-// TODO: Requires authentication tokens
-router.delete('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
-    const ownerId = req.params.ownerid;
+router.delete('/owner_response/:userid', authenticateToken, async (req, res) => {
+    const ownerId = req.authUser._id;
     const userId = req.params.userid;
     
     // Verify ID formats
