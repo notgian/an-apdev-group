@@ -1561,8 +1561,99 @@ router.post('/:userid/unmark/:reviewid', async (req, res) => {
         
     }
 })
+
 // TODO FOLLOW
 // TODO: Requires authentication tokens
+router.post('/follow/:otherId', async (req, res) => {
+    const userId = req.body.userId || null;
+    const otherId = req.params.otherId;
+    
+    // Verify user is provided
+    // Yeah kinda scuffed just so this can run independent of auth
+    if (!userId) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `No user ID provided.`,
+            data: null
+        });
+    }
+
+    // Verify ID formats
+    try {
+        new mongoose.Types.ObjectId(userId);
+        new mongoose.Types.ObjectId(otherId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+    try {
+        // Verify users exist
+        let queryUserA = User.findOne({_id:userId})
+            .select('-password')
+            .lean();
+        let queryUserB = User.findOne({_id:otherId})
+            .select('-password')
+            .lean();
+
+        const userA = await queryUserA.exec();
+        const userB = await queryUserB.exec();
+
+        var message;
+        if (!userA && !userB)
+            message = `Users with ids ${userId} and ${otherId} not found`;
+        else if (!userA)
+            message = `User with id ${userId} not found`;
+        else if (!userB)
+            message = `User with id ${otherId} not found`;
+
+        if (!userA || !userB)
+            return res.status(httpStatus.NOT_FOUND).json({
+                status: httpStatus.NOT_FOUND,
+                message: message,
+                data: null
+            });
+
+        // Check if already following
+        if (userA.following.includes(otherId) && userB.followers.includes(userId)) {
+            return res.status(httpStatus.NO_CONTENT).json({
+                status: httpStatus.NO_CONTENT,
+                message: 'Already following user.',
+                data: null
+            });
+        }
+        else {
+            // Update user A
+            if (!userA.following.includes(otherId)) {
+                const newFollowingList = userA.following;
+                newFollowingList.push(otherId);
+                await User.findOneAndUpdate({_id: userId}, {following: newFollowingList})
+            }
+            if (!userB.followers.includes(userId)) {
+                const newFollowersList = userB.following;
+                newFollowersList.push(userId)
+                await User.findOneAndUpdate({_id: otherId}, {followers: newFollowersList})
+            }
+
+            return res.status(httpStatus.NO_CONTENT).json({
+                status: httpStatus.NO_CONTENT,
+                message: `Successfully followed user.`,
+                data: null
+            });
+        }
+    }
+    catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Encountered an error. ${err.message}`,
+            data: null
+        });
+    }
+})
 
 // TODO UNFOLLOW
 // TODO: Requires authentication tokens
