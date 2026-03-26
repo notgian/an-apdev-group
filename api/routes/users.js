@@ -1020,8 +1020,8 @@ router.post('/owner_response/:userid', authenticateToken, async (req, res) => {
  * @returns {object} 404 - Owner, User, Establishment, or Review not found.
  */
 //TODO: Requires authentication tokens
-router.put('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
-    const ownerId = req.params.ownerid;
+router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
+    const ownerId = req.authUser._id;
     const userId = req.params.userid;
     
     // Verify ID formats
