@@ -898,9 +898,8 @@ router.delete('/reviews/:rstrid', authenticateToken, async (req, res) => {
  * @returns {object} 404 - Owner, User, Establishment, or Review not found.
  * @returns {object} 409 - Owner already has a response to this review.
  */
-// TODO: Requires authentication tokens
-router.post('/reviews/owner_response/:ownerid/:userid', async (req, res) => {
-    const ownerId = req.params.ownerid;
+router.post('/owner_response/:userid', authenticateToken, async (req, res) => {
+    const ownerId = req.authUser._id;
     const userId = req.params.userid;
     
     // Verify ID formats
@@ -1811,7 +1810,7 @@ router.post('/login', async (req, res) => {
 
 
     // TODO: Generate JWT token WITH EXPIRATION
-    const user = {_id: foundUser._id, username: foundUser.username};
+    const user = {_id: foundUser._id, username: foundUser.username, role: foundUser.role};
     const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET);
 
     return res.status(httpStatus.OK).json({

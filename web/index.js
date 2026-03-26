@@ -613,24 +613,27 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
 });
 
 app.post('/respond/:userId', async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.token)
         return res.redirect('/login')
     if (req.session.user.role != "owner")
         return res.status(403).json({message: "Only an owner can create a response to reviews in an establishment."})
     if (!req.body.comment || req.body.comment.trim() == "")
         return res.status(400).json({message: "No comment/empty comment."})
     
-    const ownerId = req.session.user._id;
     const userId = req.params.userId;
-
-    const apiEndpoint = API_URL+`users/reviews/owner_response/${ownerId}/${userId}`;
-
+    const apiEndpoint = API_URL+`users/owner_response/${userId}`;
+    
+    const headers = {}
+    headers['Authorization'] = 'Bearer ' + req.session.token
     try {
         const postRes = await axios.post(apiEndpoint, {
             comment: req.body.comment
         }, {
+            headers: headers,
             validateStatus: () => true
         });
+
+        console.log(postRes.data)
 
         if (postRes.status == 200)
             res.status(200).json(postRes.data)
