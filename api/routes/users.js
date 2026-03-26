@@ -1244,9 +1244,8 @@ router.delete('/owner_response/:userid', authenticateToken, async (req, res) => 
  * @returns {object} 404 - User or Review not found.
  * @returns {object} 500 - Internal server error during update.
  */
-// TODO: Requires authentication tokens
-router.post('/:userid/helpful/:reviewid', async (req, res) => {
-    const userId = req.params.userid;
+router.post('/helpful/:reviewid', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id;
     const reviewId = req.params.reviewid;
     
     // Verify ID formats
@@ -1347,9 +1346,8 @@ router.post('/:userid/helpful/:reviewid', async (req, res) => {
  * @param   {string} userid - The ID of the voting user.
  * @param   {string} reviewid - The ID of the review being voted on.
  */
-// TODO: Requires authentication tokens
-router.post('/:userid/unhelpful/:reviewid', async (req, res) => {
-    const userId = req.params.userid;
+router.post('/unhelpful/:reviewid', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id;
     const reviewId = req.params.reviewid;
     
     // Verify ID formats
@@ -1453,9 +1451,8 @@ router.post('/:userid/unhelpful/:reviewid', async (req, res) => {
  * @param   {string} reviewid - The ID of the review to be unmarked.
  * @returns {object} 409 - If user has not previously marked the review.
  */
-// TODO: Requires authentication tokens
-router.post('/:userid/unmark/:reviewid', async (req, res) => {
-    const userId = req.params.userid;
+router.post('/unmark/:reviewid', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id;
     const reviewId = req.params.reviewid;
     
     // Verify ID formats

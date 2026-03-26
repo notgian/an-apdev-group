@@ -580,7 +580,7 @@ app.get('/profile/:id', async (req, res) => {
 })
 
 app.post('/review/:markop/:reviewId', async (req, res) => {
-    if (!req.session || !req.session.user) {
+    if (!req.session || !req.session.user || !req.session.token) {
         return res.status(401).json({
             status: 401,
             message: "You must be logged in to vote on reviews."
@@ -598,16 +598,18 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
     }
 
     const reviewId = req.params.reviewId;
-    const userId = req.session.user._id;
 
+    const headers = {};
+    headers['Authorization'] = 'Bearer ' + req.session.token;
     try {
-        const apiRes = await axios.post(`${API_URL}users/${userId}/${markop}/${reviewId}`, {}, {
+        console.log(`${API_URL}users/${markop}/${reviewId}`,)
+        const apiRes = await axios.post(`${API_URL}users/${markop}/${reviewId}`, {}, {
+            headers: headers,
             validateStatus: () => true 
         });
 
         res.status(apiRes.status).json(apiRes.data);
     } catch (error) {
-        console.error("Error marking review:", error);
         res.status(500).json({message:"error marking review helpful/unhelpful. " + error});
     }
 });
