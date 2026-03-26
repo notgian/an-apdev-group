@@ -206,7 +206,7 @@
         const rating = Number(ratingValue.value)
         const comment = reviewBody.value
 
-        const editReq = await fetch('/editreview/{{userReview.userId._id}}/{{establishment._id}}', {
+        const editReq = await fetch('/editreview/{{establishment._id}}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({rating: rating, comment: comment}),

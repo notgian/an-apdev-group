@@ -648,8 +648,8 @@ router.post('/reviews/:rstrid', [ authenticateToken, uploadMedia.array('media') 
  * @returns {object} 500 - Internal server error during modification.
  */
 // TODO: Requires authentication tokens
-router.put('/reviews/:userid/:rstrid', async (req, res) => {
-    const userId = req.params.userid;
+router.put('/reviews/:rstrid', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id;
     const restaurantId = req.params.rstrid;
     
     // Verify ID formats

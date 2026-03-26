@@ -232,8 +232,6 @@ app.post('/postreview/:rstrId', upload.array('media'), async (req, res) => {
             validateStatus: () => true
         });
 
-        console.log(reviewRes.data)
-
         if (reviewRes.status == 201)
             res.redirect('/establishment/'+req.params.rstrId)
         
@@ -243,9 +241,11 @@ app.post('/postreview/:rstrId', upload.array('media'), async (req, res) => {
     }
 })
 
-app.post('/editreview/:userId/:rstrId', async (req, res) => {
+app.post('/editreview/:rstrId', async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.token)
+        return res.redirect('/login')
+
     const usrsURL = API_URL+'users/'
-    const userId = req.params.userId;
     const rstrId = req.params.rstrId;
 
     let rating = req.body.rating || undefined;
@@ -255,10 +255,16 @@ app.post('/editreview/:userId/:rstrId', async (req, res) => {
     if (rating) updatedReview['rating'] = rating;
     if (comment) updatedReview['comment'] = comment;
 
+    const headers = {}
+    headers['Authorization'] = 'Bearer ' + req.session.token
+
     try {
-        const reviewRes = await axios.put(`${usrsURL}reviews/${userId}/${rstrId}`,
+        const reviewRes = await axios.put(`${usrsURL}reviews/${rstrId}`,
             updatedReview, 
-            {validateStatus: () => true }
+            {
+                headers: headers,
+                validateStatus: () => true 
+            }
         );
 
         res.status(200).json(reviewRes.data);
