@@ -334,22 +334,18 @@ router.post('/', urlencodedParser, async (req, res) => {
  * @returns {object} 404 - User not found.
  */
 // PATCH to modify user data
-// TODO: Requires authentication tokens
-router.patch("/:id", uploadAvatar.single('avatar'), async (req, res) => {
-    // Authenticate user here
-    // TODO If user is not authenticated, return
-    let authenticated = true;
-    if (!authenticated) {
-        res.status(httpStatus.FORBIDDEN).json({
+router.patch("/:id", [ authenticateToken, uploadAvatar.single('avatar') ], async (req, res) => {
+    // Verify userId and authId match
+    const userId = req.params.id;
+    const authId = req.authUser._id;
+
+    if (userId != authId)
+        return res.status(httpStatus.FORBIDDEN).json({
             status: httpStatus.FORBIDDEN,
-            message: `You are not authorized to make this request.`,
+            message: 'You do not have access to this method.',
             data: null
         });
-        return;
-    }
-
     // Verify id format
-    const userId = req.params.id;
     try {
         new mongoose.Types.ObjectId(userId)
     }
@@ -1565,8 +1561,16 @@ router.post('/:userid/unmark/:reviewid', async (req, res) => {
     }
 })
 
-// TODO FOLLOW
-// TODO: Requires authentication tokens
+/**
+ * @route   POST /follow/:otherId
+ * @desc    follows another user 
+ * @access  Private
+ * @param   {string} otherId - Id of the user to follow
+ * @returns {object} 204 - Successful follow.
+ * @returns {object} 401 - Unauthorized (Invalid credentials).
+ * @returns {object} 403 - If the authenticated user is not authorized to perform this operation.
+ * @returns {object} 400 - Missiing userId (should not happen realistically)
+ */
 router.post('/follow/:otherId', authenticateToken, async (req, res) => {
     const userId = req.authUser._id || null;
     const otherId = req.params.otherId;
@@ -1662,7 +1666,16 @@ router.post('/follow/:otherId', authenticateToken, async (req, res) => {
     }
 })
 
-// TODO UNFOLLOW
+/**
+ * @route   POST /unfollow/:otherId
+ * @desc    unfollows another user 
+ * @access  Private
+ * @param   {string} otherId - Id of the user to unfollow
+ * @returns {object} 200 - Successful follow.
+ * @returns {object} 401 - Unauthorized (Invalid credentials).
+ * @returns {object} 403 - If the authenticated user is not authorized to perform this operation.
+ * @returns {object} 400 - Missiing userId (should not happen realistically)
+ */
 router.post('/unfollow/:otherId', authenticateToken, async (req, res) => {
     const userId = req.authUser._id || null;
     const otherId = req.params.otherId;
@@ -1771,8 +1784,6 @@ router.post('/unfollow/:otherId', authenticateToken, async (req, res) => {
  * @returns {object} 401 - Unauthorized (Invalid credentials).
  * @returns {object} 400 - Missing username or password.
  */
-// TODO LOGIN
-// SHALL RETURN JWT TOKEN
 router.post('/login', async (req, res) => {
     const username = req.body.username || null;
     const password = req.body.password || null;
@@ -1803,7 +1814,7 @@ router.post('/login', async (req, res) => {
         });
 
 
-    // TODO: Generate JWT token here 
+    // TODO: Generate JWT token WITH EXPIRATION
     const user = {_id: foundUser._id, username: foundUser.username};
     const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET);
 

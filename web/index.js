@@ -400,6 +400,10 @@ app.post('/login', async (req, res) => {
         }, { validateStatus: () => true });
 
         if (loginRes.status == 200) {
+            token = loginRes.data.data.token;
+
+            req.session.token = token
+
             const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
             if (userReq.status === 200 && userReq.data.data.length > 0) {
                 req.session.user = userReq.data.data[0]; 
@@ -477,7 +481,7 @@ app.get('/profile/edit', async (req, res) => {
 })
 
 app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.token)
         return res.redirect('/login')
 
     const usrsURL = API_URL+'users/';
@@ -493,8 +497,10 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
     if (req.body['description'] && req.body['description'] != '')
         form.append('desc', req.body['description'])
 
+    const headers = { ...form.getHeaders() };
+    headers['Authorization'] = 'Bearer ' + req.session.token;
     const editRes = await axios.patch(usrsURL + userId, form, {
-        headers: { ...form.getHeaders() },
+        headers: headers,
         validateStatus: () => true
     });
 
