@@ -10,11 +10,14 @@ const multer = require('multer')
 const fs = require('fs');
 const path = require('path');
 const bcrpyt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const router = express.Router();
 const User = require('../schema_models/userSchema.js');
 const Restaurant = require('../schema_models/restaurantSchema.js')
 const Reviews = require('../schema_models/reviewSchema.js');
+
+const authenticateToken = require('./auth.js')
 
 // body parser stuffs
 const urlencodedParser = bodyParser.urlencoded({extended: true})
@@ -1564,9 +1567,11 @@ router.post('/:userid/unmark/:reviewid', async (req, res) => {
 
 // TODO FOLLOW
 // TODO: Requires authentication tokens
-router.post('/follow/:otherId', async (req, res) => {
-    const userId = req.body.userId || null;
+router.post('/follow/:otherId', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id || null;
     const otherId = req.params.otherId;
+
+    console.log(req.authUser);
     
     // Verify user is provided
     // Yeah kinda scuffed just so this can run independent of auth
@@ -1658,9 +1663,8 @@ router.post('/follow/:otherId', async (req, res) => {
 })
 
 // TODO UNFOLLOW
-// TODO: Requires authentication tokens
-router.post('/unfollow/:otherId', async (req, res) => {
-    const userId = req.body.userId || null;
+router.post('/unfollow/:otherId', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id || null;
     const otherId = req.params.otherId;
     
     // Verify user is provided
@@ -1798,11 +1802,15 @@ router.post('/login', async (req, res) => {
             data: null
         });
 
+
     // TODO: Generate JWT token here 
+    const user = {_id: foundUser._id, username: foundUser.username};
+    const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET);
+
     return res.status(httpStatus.OK).json({
         status: httpStatus.OK,
         message: 'Login successful',
-        data: null // JWT token gets passed back here
+        data: {token: accessToken}
     });
 
 });
