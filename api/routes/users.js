@@ -1619,7 +1619,9 @@ router.post('/follow/:otherId', async (req, res) => {
             });
 
         // Check if already following
-        if (userA.following.includes(otherId) && userB.followers.includes(userId)) {
+        const AisFollowing = userA.following.some(e=>e.toString() == otherId) ;
+        const BisFollowed = userB.followers.some(e=>e.toString() == userId);
+        if (AisFollowing && BisFollowed) {
             return res.status(httpStatus.NO_CONTENT).json({
                 status: httpStatus.NO_CONTENT,
                 message: 'Already following user.',
@@ -1628,12 +1630,12 @@ router.post('/follow/:otherId', async (req, res) => {
         }
         else {
             // Update user A
-            if (!userA.following.includes(otherId)) {
+            if (!AisFollowing) {
                 const newFollowingList = userA.following;
                 newFollowingList.push(otherId);
                 await User.findOneAndUpdate({_id: userId}, {following: newFollowingList})
             }
-            if (!userB.followers.includes(userId)) {
+            if (!BisFollowed) {
                 const newFollowersList = userB.following;
                 newFollowersList.push(userId)
                 await User.findOneAndUpdate({_id: otherId}, {followers: newFollowersList})
@@ -1657,6 +1659,102 @@ router.post('/follow/:otherId', async (req, res) => {
 
 // TODO UNFOLLOW
 // TODO: Requires authentication tokens
+router.post('/unfollow/:otherId', async (req, res) => {
+    const userId = req.body.userId || null;
+    const otherId = req.params.otherId;
+    
+    // Verify user is provided
+    // Yeah kinda scuffed just so this can run independent of auth
+    if (!userId) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `No user ID provided.`,
+            data: null
+        });
+    }
+
+    // Verify ID formats
+    var userIdObj;
+    var otherIdObj;
+    try {
+        userIdObj = new mongoose.Types.ObjectId(userId);
+        otherIdObj = new mongoose.Types.ObjectId(otherId);
+    }
+    catch (err) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Invalid ID format: ${err.message}`,
+            data: null
+        });
+    }
+
+    try {
+        // Verify users exist
+        let queryUserA = User.findOne({_id:userId})
+            .select('-password')
+            .lean();
+        let queryUserB = User.findOne({_id:otherId})
+            .select('-password')
+            .lean();
+
+        const userA = await queryUserA.exec();
+        const userB = await queryUserB.exec();
+
+        var message;
+        if (!userA && !userB)
+            message = `Users with ids ${userId} and ${otherId} not found`;
+        else if (!userA)
+            message = `User with id ${userId} not found`;
+        else if (!userB)
+            message = `User with id ${otherId} not found`;
+
+        if (!userA || !userB)
+            return res.status(httpStatus.NOT_FOUND).json({
+                status: httpStatus.NOT_FOUND,
+                message: message,
+                data: null
+            });
+
+        // Check if already NOT following
+        const AisFollowing = userA.following.some(e=>e.toString() == otherId) ;
+        const BisFollowed = userB.followers.some(e=>e.toString() == userId);
+        if (!AisFollowing && !BisFollowed) {
+            return res.status(httpStatus.NO_CONTENT).json({
+                status: httpStatus.NO_CONTENT,
+                message: 'Already not following user.',
+                data: null
+            });
+        }
+        else {
+            // Update user A
+            if (AisFollowing) {
+                const newFollowingList = userA.following;
+                let index = newFollowingList.indexOf(otherId)
+                newFollowingList.splice(index, 1)
+                await User.findOneAndUpdate({_id: userId}, {following: newFollowingList})
+            }
+            if (BisFollowed) {
+                const newFollowersList = userB.following;
+                let index = newFollowersList.indexOf(userId)
+                newFollowersList.splice(index, 1)
+                await User.findOneAndUpdate({_id: otherId}, {followers: newFollowersList})
+            }
+
+            return res.status(httpStatus.NO_CONTENT).json({
+                status: httpStatus.NO_CONTENT,
+                message: `Successfully unfollowed user.`,
+                data: null
+            });
+        }
+    }
+    catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Encountered an error. ${err.message}`,
+            data: null
+        });
+    }
+})
 
 /**
  * @route   POST /login
