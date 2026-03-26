@@ -17,7 +17,7 @@ const User = require('../schema_models/userSchema.js');
 const Restaurant = require('../schema_models/restaurantSchema.js')
 const Reviews = require('../schema_models/reviewSchema.js');
 
-const authenticateToken = require('./auth.js')
+const  { authenticateToken, generateAccessToken } = require('./auth.js')
 
 // body parser stuffs
 const urlencodedParser = bodyParser.urlencoded({extended: true})
@@ -1806,12 +1806,13 @@ router.post('/login', async (req, res) => {
 
     // TODO: Generate JWT token WITH EXPIRATION
     const user = {_id: foundUser._id, username: foundUser.username, role: foundUser.role};
-    const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET);
+    // const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET);
+    // const accessToken = generateAccessToken(user);
 
     return res.status(httpStatus.OK).json({
         status: httpStatus.OK,
         message: 'Login successful',
-        data: {token: accessToken}
+        data: {token: 0}
     });
 
 });

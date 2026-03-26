@@ -1,10 +1,8 @@
-curl -X POST "http://localhost:4200/api/v1/users/login" -H "Content-Type:application/json" -d '{"username":"notgian", "password":"password"}'
+# Login
+curl -X POST "http://localhost:4200/api/v1/auth/login" -H "Content-Type:application/json" -d '{"username":"notgian", "password":"password"}'
 
-curl -X POST "http://localhost:4200/api/v1/users/follow/69c34c5634b7bb82aa0faae6" -H "Content-Type:application/json"
+# Test: Follow
+curl -X POST "http://localhost:4200/api/v1/users/follow/69c34c5634b7bb82aa0faae6" -H "Content-Type:application/json" -H "Authorization: Bearer "
 
-curl -X POST "http://localhost:4200/api/v1/users/follow/69c34c5634b7bb82aa0faae6" -H "Content-Type:application/json" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWMzNGM2MDcxOTViOTZiNGUxNDIyY2IiLCJ1c2VybmFtZSI6Im5vdGdpYW4iLCJpYXQiOjE3NzQ1MjM2NzB9.FQXSzRf79KRtwTLPV4uBCm4UxCDl1pwYNTut8o3Zal0"
-
-
-
-
-curl -X POST "http://localhost:4200/api/v1/users/owner_response/69c34c5634b7bb82aa0faaf9" -H "Content-Type:application/json" -d '{"comment":"adadadaad"}'
+# Test: Refresh Token
+curl -X POST "http://localhost:4200/api/v1/auth/token" -H "Content-Type:application/json" -d '{"refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWMzNGM2MDcxOTViOTZiNGUxNDIyY2IiLCJ1c2VybmFtZSI6Im5vdGdpYW4iLCJyb2xlIjoidXNlciIsImlhdCI6MTc3NDUzNzYyMCwiZXhwIjoxNzc3MTI5NjIwfQ.G8FHaSlphkJeojhmbqB_pZLi-U7UE-_JTb9xHKOcsmU"}'

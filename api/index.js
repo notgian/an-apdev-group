@@ -16,11 +16,13 @@ connectDB();
 const userRoutes = require('./routes/users.js')
 const restaurantRoutes = require('./routes/establishments.js')
 const cdnRoutes = require('./routes/cdn.js')
+const { authRoutes } = require('./routes/auth.js')
 
 // Routing for all API v1 stuff
 const apiRouterV1 = express.Router();
 apiRouterV1.use('/users', userRoutes);
 apiRouterV1.use('/establishments', restaurantRoutes);
+apiRouterV1.use('/auth', authRoutes);
 app.use('/api/v1', apiRouterV1);
 app.use(express.json())
 

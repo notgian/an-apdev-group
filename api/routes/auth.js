@@ -1,11 +1,19 @@
+const express = require('express');
+const qs = require('node:querystring'); 
+const bodyParser = require('body-parser');
 const httpStatus = require('http-status-codes').StatusCodes;
+const { default: mongoose } = require('mongoose');
+const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+
+const User = require('../schema_models/userSchema.js')
+const Tokens = require('../schema_models/tokens.js')
+
+const router = express.Router();
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
-    console.log(authHeader)
 
     if (!token) {
         return res.status(httpStatus.UNAUTHORIZED).json({
@@ -28,4 +36,115 @@ const authenticateToken = (req, res, next) => {
     })
 }
 
-module.exports = authenticateToken;
+const generateAccessToken = async (user) => {
+    lifeTimeSeconds = 5;
+    return jwt.sign(user, process.env.JWT_ACCESS_SECRET, {expiresIn: lifeTimeSeconds+'s'}) 
+}
+
+const generateRefreshToken = async (user) => {
+    const lifeTimeDays = 30;
+    const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET, {expiresIn: lifeTimeDays+'d'});
+
+    let future = new Date()
+    future.setDate(future.getDate() + lifeTimeDays)
+    const refreshExpiry = new Date(future);
+    const tokReq = await Tokens.insertOne({tok: refreshToken}, {expiresAfter: refreshExpiry});
+
+    return refreshToken;
+}
+
+/**
+ * @route   POST /login
+ * @desc    Authenticates a user and returns a success status. 
+ * (Planned to return a JWT token upon implementation).
+ * @access  Public
+ * @param   {string} req.body.username - User's unique username.
+ * @param   {string} req.body.password - User's plain text password.
+ * @returns {object} 200 - Successful login.
+ * @returns {object} 401 - Unauthorized (Invalid credentials).
+ * @returns {object} 400 - Missing username or password.
+ */
+router.post('/login', async (req, res) => {
+    const username = req.body.username || null;
+    const password = req.body.password || null;
+
+    if (username == null || password == null)
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `Username or password are missing`,
+            data: null
+        });
+
+    const foundUser = await User.findOne({username: username})
+
+    if (foundUser == null)
+        return res.status(httpStatus.UNAUTHORIZED).json({
+            status: httpStatus.UNAUTHORIZED,
+            message: 'Invalid username or password.',
+            data: null
+        });
+    
+    const passMatch = await bcrypt.compare(password, foundUser.password);
+
+    if (!passMatch)
+        return res.status(httpStatus.UNAUTHORIZED).json({
+            status: httpStatus.UNAUTHORIZED,
+            message: 'Invalid username or password.',
+            data: null
+        });
+
+    const user = {_id: foundUser._id, username: foundUser.username, role: foundUser.role};
+    const accessToken = await generateAccessToken(user);
+    const refreshToken = await generateRefreshToken(user);
+
+    return res.status(httpStatus.OK).json({
+        status: httpStatus.OK,
+        message: 'Login successful',
+        data: {accessToken: accessToken, refreshToken: refreshToken}
+    });
+});
+
+router.post('/token', async (req, res) => {
+    const refreshToken = req.body.token;
+    if (!refreshToken) 
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: 'No refresh token specified.',
+            data: null
+        });
+
+    const foundToken = await Tokens.findOne({tok: refreshToken});
+    if (!foundToken)
+        return res.status(httpStatus.FORBIDDEN).json({
+            status: httpStatus.FORBIDDEN,
+            message: 'Invalid refresh token.',
+            data: null
+        });
+
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, user) => {
+        if (err)
+            return res.status(httpStatus.FORBIDDEN).json({
+                status: httpStatus.FORBIDDEN,
+                message: 'Invalid refresh token.',
+                data: null
+            });
+    
+        const rawUser = {
+            _id: user._id,
+            username: user.username,
+            role: user.role
+        };
+        const accessToken = await generateAccessToken(rawUser);
+
+        return res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: 'Token refreshed.',
+            data: {accessToken: accessToken}
+        });
+    });
+})
+
+module.exports = {
+    authenticateToken: authenticateToken,
+    authRoutes: router
+};

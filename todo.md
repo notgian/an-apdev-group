@@ -42,8 +42,8 @@ home page
 
 ## API
 - [x] Make review posting/editing update establishment overall rating
-- [ ] Add follow/unfollow endpoints
-- [ ] jwt keys
+- [x] Add follow/unfollow endpoints
+- [x] jwt keys
 
 ## Other
 - [x] fix data gen. Reviews are clamped to 1-5 inclusive
