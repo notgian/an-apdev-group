@@ -502,8 +502,7 @@ router.get("/reviews/:id", async (req, res) => {
  * @returns {object} 404 - User or Establishment not found.
  * @returns {object} 409 - User has already posted a review for this establishment.
  */
-// TODO: Requires authentication tokens
-router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, res) => {
+router.post('/reviews/:rstrid', [ authenticateToken, uploadMedia.array('media') ],async (req, res) => {
     // lowk too lazy to search for the right solution so have this
     async function deleteMedia() {
         for (let file of req.files) {
@@ -513,7 +512,7 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
         }
     }
 
-    const userId = req.params.userid;
+    const userId = req.authUser._id;
     const restaurantId = req.params.rstrid;
     
     // Verify ID formats
@@ -529,7 +528,6 @@ router.post('/reviews/:userid/:rstrid', uploadMedia.array('media') ,async (req, 
             data: null
         });
     }
-
 
     // Verify user and rstr exist
     let queryUser = User.find({_id:userId})

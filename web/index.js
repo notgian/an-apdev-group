@@ -196,7 +196,10 @@ app.get('/establishment/:id', async (req, res) => {
     }
 });
 
-app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) => {
+app.post('/postreview/:rstrId', upload.array('media'), async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.token)
+        return res.redirect('/login')
+
     const usrsURL = API_URL+'users/'
     const form = new FormData();
     const uplTime = Date.now();
@@ -220,15 +223,20 @@ app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) 
         form.append('rating', req.body['rating'])
     if (req.body['comment'] && req.body['comment'] != "")
         form.append('comment', req.body['comment'])
-
+    
+    const headers = { ...form.getHeaders() }
+    headers['Authorization'] = 'Bearer ' + req.session.token
     try {
-        const reviewRes = await axios.post(`${usrsURL}reviews/${req.params.userId}/${req.params.rstrId}`, form, {
-            headers: { ...form.getHeaders() },
+        const reviewRes = await axios.post(`${usrsURL}reviews/${req.params.rstrId}`, form, {
+            headers: headers,
             validateStatus: () => true
         });
 
+        console.log(reviewRes.data)
+
         if (reviewRes.status == 201)
             res.redirect('/establishment/'+req.params.rstrId)
+        
     }
     catch (err) {
         res.status(500).json({message: "Error posting review. " + err});

@@ -22,7 +22,7 @@
         {{else}}
 
             {{#if user}}
-            <form id="review-form" method="POST" action="/postreview/{{user._id}}/{{establishment._id}}" enctype="multipart/form-data">
+            <form id="review-form" method="POST" action="/postreview/{{establishment._id}}" enctype="multipart/form-data">
                 <span class="review-rating star-rating-selector"> 
                     <input type="hidden" name="rating" class="rating-value" value="" required="true" autocomplete="off"/>
                     <span class="rating-text"></span>
