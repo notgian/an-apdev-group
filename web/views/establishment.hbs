@@ -133,7 +133,7 @@
     if (reviewDelete)
         reviewDelete.addEventListener('click', async (e) => {
             const proceedDelete = confirm("Delete user review?")
-            const deleteReq = await fetch('/deletereview/{{userReview.userId._id}}/{{userReview.restaurantId}}', {
+            const deleteReq = await fetch('/deletereview/{{userReview.restaurantId}}', {
                 method: 'DELETE',
             });
 

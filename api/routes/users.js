@@ -647,7 +647,6 @@ router.post('/reviews/:rstrid', [ authenticateToken, uploadMedia.array('media') 
  * @returns {object} 404 - User, Establishment, or Review not found.
  * @returns {object} 500 - Internal server error during modification.
  */
-// TODO: Requires authentication tokens
 router.put('/reviews/:rstrid', authenticateToken, async (req, res) => {
     const userId = req.authUser._id;
     const restaurantId = req.params.rstrid;
@@ -789,10 +788,9 @@ router.put('/reviews/:rstrid', authenticateToken, async (req, res) => {
  * @returns {object} 404 - User, Establishment, or Review not found.
  * @returns {object} 500 - Internal server error during deletion.
  */
-// IMPORTANT: DOES NOT CURRENTLY DELETE THE MEIDA ASSOCIATED WITH THE REVIEW
-// TODO: Requires authentication tokens
-router.delete('/reviews/:userid/:rstrid', async (req, res) => {
-    const userId = req.params.userid;
+// TODO: IMPORTANT: DOES NOT CURRENTLY DELETE THE MEIDA ASSOCIATED WITH THE REVIEW
+router.delete('/reviews/:rstrid', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id;
     const restaurantId = req.params.rstrid;
     
     // Verify ID formats

@@ -274,13 +274,23 @@ app.post('/editreview/:rstrId', async (req, res) => {
     }
 });
 
-app.delete('/deletereview/:userId/:rstrId', async (req, res) => {
-    const usrsURL = API_URL+'users/'
+app.delete('/deletereview/:rstrId', async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.token)
+        return res.redirect('/login')
 
+    const usrsURL = API_URL+'users/'
+    const headers = {}
+    headers['Authorization'] = 'Bearer ' + req.session.token;
     try {
-        const reviewRes = await axios.delete(`${usrsURL}reviews/${req.params.userId}/${req.params.rstrId}`,
-            {validateStatus: () => true }
+        console.log(`${usrsURL}reviews/${req.params.rstrId}`);
+        const reviewRes = await axios.delete(`${usrsURL}reviews/${req.params.rstrId}`,
+            {
+                headers: headers,
+                validateStatus: () => true 
+            }
         );
+
+        console.log(reviewRes.data)
 
         res.status(200).json(reviewRes.data);
     }
