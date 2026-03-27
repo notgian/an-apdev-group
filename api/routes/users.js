@@ -23,7 +23,9 @@ const  { authenticateToken, generateAccessToken } = require('./auth.js')
 const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // multer for uploading files
-const MEDIA_PATH = '/app/data/media'
+const MEDIA_PATH = (process.env.ENVIRONMENT == 'dev') ?
+    '/app/data/media' : 
+    './data/media'
 
 // For file uploading
 const storage = multer.diskStorage({
