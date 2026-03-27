@@ -514,7 +514,30 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/logout', async (req, res) => {
+    const api = createApiHelper(req);
+    const editRes = await api.post('auth/logout', {
+        refreshToken: req.session.refreshToken
+    }, {
+        validateStatus: () => true
+    });
+
+    if (editRes.status != 204)
+        return res.status(500).render('error.hbs', {
+            title: '6-7-ate-9 | Error',
+            css: [
+                '/css/style.css',
+                '/css/error.css'
+            ],
+            searchBar: true,
+            loginContainer: true,
+            error_code: "Uh oh...",
+            error_title: "Something went wrong...",
+            error_message: "The server couldn't process your request. Please try again.",
+            user: req.session ? req.session.user : null
+        })
+
     req.session.user = undefined;
+    req.session.token = undefined;
     res.redirect('/');
 })
 

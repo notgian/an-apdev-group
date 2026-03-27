@@ -37,7 +37,7 @@ const authenticateToken = (req, res, next) => {
 }
 
 const generateAccessToken = async (user) => {
-    lifeTimeSeconds = 5;
+    lifeTimeSeconds = 5 * 60; // 5 mins
     return jwt.sign(user, process.env.JWT_ACCESS_SECRET, {expiresIn: lifeTimeSeconds+'s'}) 
 }
 
@@ -49,7 +49,11 @@ const generateRefreshToken = async (user) => {
     future.setDate(future.getDate() + lifeTimeDays)
     const refreshExpiry = new Date(future);
     try {
-        const tokReq = await Tokens.insertOne({tok: refreshToken, expiresAfter: refreshExpiry});
+        const tokReq = await Tokens.insertOne({
+            tok: refreshToken, 
+            userId: user._id,
+            expiresAfter: refreshExpiry
+        });
     } catch (err) {
         console.log('WARNING! Could not register refresh token in database. Token is effectively useless.');
         console.log(err)
@@ -106,7 +110,7 @@ router.post('/login', async (req, res) => {
             message: 'Invalid username or password.',
             data: null
         });
-    
+
     const passMatch = await bcrypt.compare(password, foundUser.password);
 
     if (!passMatch)
@@ -151,7 +155,7 @@ router.post('/token', async (req, res) => {
                 message: 'Invalid refresh token.',
                 data: null
             });
-    
+
         const rawUser = {
             _id: user._id,
             username: user.username,
@@ -167,11 +171,41 @@ router.post('/token', async (req, res) => {
     });
 });
 
-// Temporary route to see if refresh tokens get removed after their TTL
-router.get('/tokens', async (req, res) => {
-    const tokens = await Tokens.find();
-    const index = await Tokens.collection.getIndexes();
-    res.json({index: index, toks: tokens});
+router.post('/logout', authenticateToken, async (req, res) => {
+    const userId = req.authUser._id;
+    const refreshToken = req.body.refreshToken || null;
+    if (!refreshToken)
+        return res.status(httpStatus.BAD_REQUEST).json({
+            status: httpStatus.BAD_REQUEST,
+            message: `No refresh token provided.`,
+            data: null
+        });
+
+    try {
+        const deleteRes = await Tokens.deleteOne({ 
+            tok: refreshToken, 
+            userId: userId
+        });
+        
+        let message = 'Logged out successfully!'
+        if (!deleteRes.deletedCount)
+            message = 'Already logged out.'
+            
+        return res.status(httpStatus.NO_CONTENT).json({
+            status: httpStatus.NO_CONTENT,
+            message: message,
+            data: null
+        });
+    } catch (err) {
+        return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Server error. Could not logout.`,
+            data: null
+        });
+    }
+
+
+
 })
 
 module.exports = {
