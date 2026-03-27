@@ -22,7 +22,7 @@
         {{else}}
 
             {{#if user}}
-            <form id="review-form" method="POST" action="/postreview/{{user._id}}/{{establishment._id}}" enctype="multipart/form-data">
+            <form id="review-form" method="POST" action="/postreview/{{establishment._id}}" enctype="multipart/form-data">
                 <span class="review-rating star-rating-selector"> 
                     <input type="hidden" name="rating" class="rating-value" value="" required="true" autocomplete="off"/>
                     <span class="rating-text"></span>
@@ -133,7 +133,7 @@
     if (reviewDelete)
         reviewDelete.addEventListener('click', async (e) => {
             const proceedDelete = confirm("Delete user review?")
-            const deleteReq = await fetch('/deletereview/{{userReview.userId._id}}/{{userReview.restaurantId}}', {
+            const deleteReq = await fetch('/deletereview/{{userReview.restaurantId}}', {
                 method: 'DELETE',
             });
 
@@ -206,7 +206,7 @@
         const rating = Number(ratingValue.value)
         const comment = reviewBody.value
 
-        const editReq = await fetch('/editreview/{{userReview.userId._id}}/{{establishment._id}}', {
+        const editReq = await fetch('/editreview/{{establishment._id}}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({rating: rating, comment: comment}),

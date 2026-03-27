@@ -10,6 +10,7 @@ const Busboy = require('busboy');
 const multer = require('multer')
 const { PassThrough } = require('stream');
 const path = require('path');
+const jwt = require('jsonwebtoken')
 
 const APP_PORT = process.env.WEB_PORT;
 const API_HOSTNAME = process.env.API_HOSTNAME;
@@ -17,13 +18,6 @@ const API_PORT = process.env.API_PORT;
 const API_URL = `http://${API_HOSTNAME}:${API_PORT}/api/v1/`;
 
 // Handlebars Helpers
-
-// Handlebars.registerHelper('loop', (n, block) => {
-    //     var cumulHTML = '';
-    //     for(var i = 0; i < n; i++)
-        //         cumulHTML += block.fn(i);
-    //     return cumulHTML;
-    // });
 
 Handlebars.registerHelper('renderStarsHTML', function(rating) {
     let innerText
@@ -54,6 +48,72 @@ Handlebars.registerHelper('normalizeName', function (str) {
     return str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 });
 
+// Axios and API stuff
+const isTokenNearExpiry = (token, bufferTimeSec = 60) => {
+    try {
+        const decodedToken = jwt.decode(token);
+        if (!decodedToken || !decodedToken.exp)
+            return true
+
+        // convert current time to secs bc jwt stores exp in seconds
+        const currentTime = Math.floor(Date.now() / 1000);
+        const expirationTime = decodedToken.exp;
+
+        return (currentTime + bufferTimeSec) >= expirationTime;}
+    catch (err) {
+        return true
+    }
+}
+
+const api = axios.create({
+    baseURL: API_URL,
+    withCredentials: true
+});
+
+const createApiHelper = (req, res) => {
+    const apiInstance = axios.create({
+        baseURL: API_URL,
+    });
+
+    apiInstance.interceptors.request.use((config) => {
+        const token = req.session.accessToken;
+        if (token) 
+            config.headers.Authorization = `Bearer ${token}`;
+
+        return config;
+    });
+
+    apiInstance.interceptors.request.use( async (request) => {
+        if (!req.session || !req.session.accessToken) 
+            return request;
+
+        const tokenNearExpiry = isTokenNearExpiry(req.session.accessToken);
+        if (!tokenNearExpiry)
+            return request;
+        else {
+            try {
+                const refreshRes = await axios.post(API_URL + 'auth/token', {
+                    token: req.session.refreshToken
+                })
+                const newAccessToken = refreshRes.data.data.accessToken;
+                req.session.accessToken = newAccessToken;
+                request.headers['authorization'] = `Bearer ${newAccessToken}`;
+                return request;
+            } catch (err) {
+                // This means that the axios threw an error
+                // which means the refresh token might be expired
+                //TODO: RENDER Error Page Here
+                return renderErrorPage(req, res)
+            }
+        }
+    }, (error) => {
+        // TODO: do something else instead of this 
+        return Promise.reject(error);
+    })
+
+    return apiInstance;
+}
+
 // Application Proper
 const app = express();
 app.engine('hbs', hbs.engine({extname:'hbs'}));
@@ -73,9 +133,26 @@ app.use(session({
 }));
 const upload = multer({ storage: multer.memoryStorage() });
 
+// For rendering error page
+const renderErrorPage = (req, res, code="Uh oh...", title="Something went wrong...", message="The server couldn't process your request. Please try again.") => {
+    res.status(500).render('error.hbs', {
+        title: '6-7-ate-9 | Error',
+        css: [
+            '/css/style.css',
+            '/css/error.css'
+        ],
+        searchBar: true,
+        loginContainer: true,
+        error_code: code,
+        error_title: title,
+        error_message: message,
+        user: req.session ? req.session.user : null
+    })
+}
+
 // Homepage
 app.get('/', async (req, res) => {
-    let rstrreq = (await axios.get(API_URL+'establishments'));
+    let rstrreq = (await api.get('establishments'));
     let establishments;
     if (rstrreq.status != 200)
         establishments = new Array();
@@ -110,7 +187,7 @@ app.get('/establishments', async (req, res) => {
     let offset = (page - 1) * limit;
 
     // Added offset and count parameters to the API call
-    let rstrreq = (await axios.get(API_URL+'establishments', { params: { offset: offset, count: limit } }));
+    let rstrreq = (await api.get('establishments', { params: { offset: offset, count: limit } }));
     let establishments;
     if (rstrreq.status != 200)
         establishments = new Array();
@@ -144,8 +221,8 @@ app.get('/establishments', async (req, res) => {
 app.get('/establishment/:id', async (req, res) => {
     const estId = req.params.id;
     try {
-        const estReq = await axios.get(`${API_URL}establishments/${estId}`, { validateStatus: () => true });
-        const revReq = await axios.get(`${API_URL}establishments/reviews/${estId}`, { validateStatus: () => true });
+        const estReq = await api.get(`establishments/${estId}`, { validateStatus: () => true });
+        const revReq = await api.get(`establishments/reviews/${estId}`, { validateStatus: () => true });
 
         if (estReq.status != 200) throw Error()
 
@@ -153,7 +230,7 @@ app.get('/establishment/:id', async (req, res) => {
         let reviewsData = revReq.data.data;
 
         let userReview;
-        
+
         if (req.session.user) {
             userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
             reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
@@ -177,35 +254,22 @@ app.get('/establishment/:id', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        res.status(500).render('error.hbs', {
-            title: '6-7-ate-9 | Error',
-            css: [
-                '/css/style.css',
-                '/css/error.css' // Changed from home.css to establishments.css
-            ],
-            js: [
-                '/js/script.js'
-            ],
-            searchBar: true,
-            loginContainer: true,
-            error_code: "Uh oh...",
-            error_title: "Something went wrong...",
-            error_message: "The server couldn't process your request. Please try again.",
-            user: req.session ? req.session.user : null
-        })
+        return renderErrorPage(req, res)
     }
 });
 
-app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) => {
-    const usrsURL = API_URL+'users/'
+app.post('/postreview/:rstrId', upload.array('media'), async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.accessToken)
+        return res.redirect('/login')
+
     const form = new FormData();
     const uplTime = Date.now();
 
     for (let file of req.files) {
         const bytes = crypto.getRandomValues(new Uint8Array(16));
         const fileId = btoa(String.fromCharCode(...bytes))
-            .replace(/\+/g, 'a')
-            .replace(/\//g, 'A')
+            .replaceAll('+', 'a')
+            .replaceAll('/', 'A')
             .replace(/=+$/, '');
         const fileExt = path.extname(file.originalname);
         const filename = `${fileId}_${uplTime}${fileExt}`
@@ -221,23 +285,28 @@ app.post('/postreview/:userId/:rstrId', upload.array('media'), async (req, res) 
     if (req.body['comment'] && req.body['comment'] != "")
         form.append('comment', req.body['comment'])
 
+    const headers = { ...form.getHeaders() }
+    const api = createApiHelper(req, res);
     try {
-        const reviewRes = await axios.post(`${usrsURL}reviews/${req.params.userId}/${req.params.rstrId}`, form, {
-            headers: { ...form.getHeaders() },
+        const reviewRes = await api.post(`users/reviews/${req.params.rstrId}`, form, {
+            headers : headers,
             validateStatus: () => true
         });
 
         if (reviewRes.status == 201)
-            res.redirect('/establishment/'+req.params.rstrId)
+            return res.redirect('/establishment/'+req.params.rstrId)
+        return renderErrorPage(req, res)
+
     }
     catch (err) {
-        res.status(500).json({message: "Error posting review. " + err});
+        return renderErrorPage(req, res)
     }
 })
 
-app.post('/editreview/:userId/:rstrId', async (req, res) => {
-    const usrsURL = API_URL+'users/'
-    const userId = req.params.userId;
+app.post('/editreview/:rstrId', async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.accessToken)
+        return res.redirect('/login')
+
     const rstrId = req.params.rstrId;
 
     let rating = req.body.rating || undefined;
@@ -247,30 +316,49 @@ app.post('/editreview/:userId/:rstrId', async (req, res) => {
     if (rating) updatedReview['rating'] = rating;
     if (comment) updatedReview['comment'] = comment;
 
+    const headers = {}
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken
     try {
-        const reviewRes = await axios.put(`${usrsURL}reviews/${userId}/${rstrId}`,
+        const api = createApiHelper(req, res);
+        const reviewRes = await api.put(`users/reviews/${rstrId}`,
             updatedReview, 
-            {validateStatus: () => true }
+            {
+                headers: headers,
+                validateStatus: () => true 
+            }
         );
-
+        
+        // This is intended to return as such
         res.status(200).json(reviewRes.data);
     }
     catch (err) {
+        // This is intended to return as such
         res.status(500).json({message:"Eror modifying review. " + err});
     }
 });
 
-app.delete('/deletereview/:userId/:rstrId', async (req, res) => {
-    const usrsURL = API_URL+'users/'
+app.delete('/deletereview/:rstrId', async (req, res) => {
+    if (!req.session || !req.session.user || !req.session.accessToken)
+        return res.redirect('/login')
 
+    const usrsURL = API_URL+'users/'
+    const headers = {}
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        const reviewRes = await axios.delete(`${usrsURL}reviews/${req.params.userId}/${req.params.rstrId}`,
-            {validateStatus: () => true }
+        // console.log(`${usrsURL}reviews/${req.params.rstrId}`);
+        const api = createApiHelper(req, res);
+        const reviewRes = await api.delete(`users/reviews/${req.params.rstrId}`,
+            {
+                headers: headers,
+                validateStatus: () => true 
+            }
         );
 
+        // This is intended to return as such
         res.status(200).json(reviewRes.data);
     }
     catch (err) {
+        // This is intended to return as such
         res.status(500).json({message: "Error deleting review. " + err});
     }
 })
@@ -279,7 +367,7 @@ app.get('/search', async (req, res) => {
     const searchTerm = req.query.query || ''; 
 
     try {
-        let searchReq = await axios.get(`${API_URL}establishments`, {
+        let searchReq = await api.get(`establishments`, {
             params: { 
                 search: searchTerm 
             },
@@ -307,19 +395,7 @@ app.get('/search', async (req, res) => {
             loginContainer: req.session.user ? false : true
         });
     } catch (error) {
-        res.status(500).render('error.hbs', {
-            title: '6-7-ate-9 | Error',
-            css: [
-                '/css/style.css',
-                '/css/error.css'
-            ],
-            searchBar: true,
-            loginContainer: true,
-            error_code: "Uh oh...",
-            error_title: "Something went wrong...",
-            error_message: "The server couldn't process your request. Please try again.",
-            user: req.session ? req.session.user : null
-        })
+        return renderErrorPage(req, res)
     }
 });
 
@@ -333,15 +409,14 @@ app.get('/signup', async (req, res) => {
 
 app.post('/signup', async (req, res) => {
     try {
-        const signupRoute = `${API_URL}users/`
-
-        const signupRes = await axios.post(signupRoute, {
+        const api = createApiHelper(req, res);
+        const signupRes = await api.post('users', {
             username: req.body.username,
             password: req.body.password
         }, { validateStatus: () => true });
 
         const signupData = signupRes.data;
-       
+
         // TODO: CHANGE THIS TO ONLY CHECK FOR 201 WHEN API ROUTES ARE FIXED
         if (signupRes.status != 200 && signupRes.status != 201) {
             return res.render('signup.hbs', { 
@@ -354,13 +429,16 @@ app.post('/signup', async (req, res) => {
         // Attempt to login on success
         // Using same params from req body since it's assumed nothing changed anw
         // Yes it's necessary to make the api calls again bc later we'll have JWT tokens (hopefully)
-        const loginRes = await axios.post(`${API_URL}users/login`, {
+        const loginRes = await api.post(`auth/login`, {
             username: req.body.username,
             password: req.body.password
         }, { validateStatus: () => true });
 
         if (loginRes.status == 200) {
-            const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
+            req.session.accessToken = loginRes.data.data.accessToken;
+            req.session.refreshToken = loginRes.data.data.refreshToken;
+
+            const userReq = await api.get(`users`, { params: { search: req.body.username }, validateStatus: () => true });
             if (userReq.status === 200 && userReq.data.data.length > 0) {
                 req.session.user = userReq.data.data[0]; 
             } else {
@@ -394,13 +472,16 @@ app.get('/login', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     try {
-        const loginRes = await axios.post(`${API_URL}users/login`, {
+        const loginRes = await api.post(`auth/login`, {
             username: req.body.username,
             password: req.body.password
         }, { validateStatus: () => true });
 
         if (loginRes.status == 200) {
-            const userReq = await axios.get(`${API_URL}users`, { params: { search: req.body.username }, validateStatus: () => true });
+            req.session.accessToken = loginRes.data.data.accessToken;
+            req.session.refreshToken = loginRes.data.data.refreshToken;
+
+            const userReq = await api.get(`users`, { params: { search: req.body.username }, validateStatus: () => true });
             if (userReq.status === 200 && userReq.data.data.length > 0) {
                 req.session.user = userReq.data.data[0]; 
             } else {
@@ -426,17 +507,28 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/logout', async (req, res) => {
+    const api = createApiHelper(req, res);
+    const editRes = await api.post('auth/logout', {
+        refreshToken: req.session.refreshToken
+    }, {
+        validateStatus: () => true
+    });
+
+    if (editRes.status != 204)
+        return renderErrorPage(req, res)
+
     req.session.user = undefined;
+    req.session.token = undefined;
     res.redirect('/');
 })
 
 app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     try {
-        const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
+        const userReq = await api.get(`users/${req.session.user._id}`, { validateStatus: () => true });
         if (userReq.status !== 200) throw Error()
 
-        const reviewsReq = await axios.get(`${API_URL}users/reviews/${req.session.user._id}`, { validateStatus: () => true });
+        const reviewsReq = await api.get(`users/reviews/${req.session.user._id}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
 
         res.render('profile.hbs', {
@@ -448,25 +540,13 @@ app.get('/profile', async (req, res) => {
             searchBar: true
         });
     } catch (err) {
-        res.status(500).render('error.hbs', {
-            title: '6-7-ate-9 | Error',
-            css: [
-                '/css/style.css',
-                '/css/error.css'
-            ],
-            searchBar: true,
-            loginContainer: true,
-            error_code: "Uh oh...",
-            error_title: "Something went wrong...",
-            error_message: "The server couldn't process your request. Please try again.",
-            user: req.session ? req.session.user : null
-        })
+        return renderErrorPage(req, res)
     }
 
 })
 
 app.get('/profile/edit', async (req, res) => {
-    if (!req.session || !req.session.user) 
+    if (!req.session || !req.session.user || !req.session.accessToken) 
         return res.redirect('/login'); 
     res.render('profile-edit.hbs', {
         title: 'Edit Profile',
@@ -477,10 +557,9 @@ app.get('/profile/edit', async (req, res) => {
 })
 
 app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.accessToken)
         return res.redirect('/login')
 
-    const usrsURL = API_URL+'users/';
     const userId = req.session.user._id;
     const form = new FormData();
 
@@ -493,15 +572,16 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
     if (req.body['description'] && req.body['description'] != '')
         form.append('desc', req.body['description'])
 
-    const editRes = await axios.patch(usrsURL + userId, form, {
-        headers: { ...form.getHeaders() },
+    const headers = { ...form.getHeaders() };
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
+    const api = createApiHelper(req, res);
+    const editRes = await api.patch('users/'+userId, form, {
+        headers: headers,
         validateStatus: () => true
     });
 
     if (editRes.status == 202)
         return res.redirect('/profile');
-
-    return res.json(editRes.data)
 
     res.render('profile-edit.hbs', {
         title: 'Edit Profile',
@@ -516,10 +596,10 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
 app.get('/profile/:id', async (req, res) => {
     const profileId = req.params.id;
     try {
-        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
+        const userReq = await api.get(`users/${profileId}`, { validateStatus: () => true });
         if (userReq.status !== 200) throw Error()
 
-        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
+        const reviewsReq = await api.get(`users/reviews/${profileId}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
 
 
@@ -533,24 +613,13 @@ app.get('/profile/:id', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        res.status(500).render('error.hbs', {
-            title: '6-7-ate-9 | Error',
-            css: [
-                '/css/style.css',
-                '/css/error.css'
-            ],
-            searchBar: true,
-            loginContainer: true,
-            error_code: "Uh oh...",
-            error_title: "Something went wrong...",
-            error_message: "The server couldn't process your request. Please try again.",
-            user: req.session ? req.session.user : null
-        })
+        return renderErrorPage(req, res)
     }
 })
 
 app.post('/review/:markop/:reviewId', async (req, res) => {
-    if (!req.session || !req.session.user) {
+    if (!req.session || !req.session.user || !req.session.accessToken) {
+        // This is intended to return as such
         return res.status(401).json({
             status: 401,
             message: "You must be logged in to vote on reviews."
@@ -561,6 +630,7 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
     const markop = req.params.markop;
 
     if (!validOperations.includes(markop)) {
+        // This is intended to return as such
         return res.status(400).json({
             status: 400,
             message: "Invalid review operation."
@@ -568,121 +638,127 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
     }
 
     const reviewId = req.params.reviewId;
-    const userId = req.session.user._id;
 
+    const headers = {};
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        const apiRes = await axios.post(`${API_URL}users/${userId}/${markop}/${reviewId}`, {}, {
+        const api = createApiHelper(req, res);
+        const apiRes = await api.post(`users/${markop}/${reviewId}`, {}, {
+            headers: headers,
             validateStatus: () => true 
         });
 
+        // This is intended to return as such
         res.status(apiRes.status).json(apiRes.data);
     } catch (error) {
-        console.error("Error marking review:", error);
+        // This is intended to return as such
         res.status(500).json({message:"error marking review helpful/unhelpful. " + error});
     }
 });
 
 app.post('/respond/:userId', async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.accessToken)
         return res.redirect('/login')
     if (req.session.user.role != "owner")
+        // This is intended to return as such
         return res.status(403).json({message: "Only an owner can create a response to reviews in an establishment."})
     if (!req.body.comment || req.body.comment.trim() == "")
+        // This is intended to return as such
         return res.status(400).json({message: "No comment/empty comment."})
-    
-    const ownerId = req.session.user._id;
+
     const userId = req.params.userId;
 
-    const apiEndpoint = API_URL+`users/reviews/owner_response/${ownerId}/${userId}`;
-
+    const headers = {};
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        const postRes = await axios.post(apiEndpoint, {
+        const api = createApiHelper(req, res);
+        const postRes = await api.post(`users/owner_response/${userId}`, {
             comment: req.body.comment
         }, {
+            headers: headers,
             validateStatus: () => true
         });
 
         if (postRes.status == 200)
-            res.status(200).json(postRes.data)
+            // This is intended to return as such
+            res.status(200).json(postRes.data);
         else 
+            // This is intended to return as such
             res.status(postRes.status).json(postRes.data)
     } catch (error) {
+        // This is intended to return as such
         res.status(500).json({message: "Error. " + error.stack});
     }
 })
 
 app.put('/respond/:userId', async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.accessToken)
         return res.redirect('/login')
     if (req.session.user.role != "owner")
+        // This is intended to return as such
         return res.status(403).json({message: "Only an owner can create a response to reviews in an establishment."})
     if (!req.body.comment || req.body.comment.trim() == "")
+        // This is intended to return as such
         return res.status(400).json({message: "No comment/empty comment."})
-    
-    const ownerId = req.session.user._id;
+
     const userId = req.params.userId;
 
-    const apiEndpoint = API_URL+`users/reviews/owner_response/${ownerId}/${userId}`;
-
+    const headers = {};
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        const postRes = await axios.put(apiEndpoint, {
+        const api = createApiHelper(req, res);
+        const postRes = await api.put(`users/owner_response/${userId}`, {
             comment: req.body.comment
         }, {
+            headers: headers,
             validateStatus: () => true
         });
 
         if (postRes.status == 200)
+            // This is intended to return as such
             res.status(200).json(postRes.data)
         else 
+            // This is intended to return as such
             res.status(postRes.status).json(postRes.data)
     } catch (error) {
+        // This is intended to return as such
         res.status(500).json({message: "Error. " + error.stack});
     }
 })
 
 app.delete('/respond/:userId', async (req, res) => {
-    if (!req.session || !req.session.user)
+    if (!req.session || !req.session.user || !req.session.accessToken)
         return res.redirect('/login')
     if (req.session.user.role != "owner")
+        // This is intended to return as such
         return res.status(403).json({message: "Only an owner can create a response to reviews in an establishment."})
-    
-    const ownerId = req.session.user._id;
+
     const userId = req.params.userId;
 
-    const apiEndpoint = API_URL+`users/reviews/owner_response/${ownerId}/${userId}`;
-
+    const headers = {};
+    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        const delRes = await axios.delete(apiEndpoint, {}, {
+        const api = createApiHelper(req, res);
+        const delRes = await api.delete(`users/owner_response/${userId}`, {
+            headers: headers,
             validateStatus: () => true
         });
 
         if (delRes.status == 200)
+            // This is intended to return as such
             res.status(200).json(delRes.data)
         else 
+            // This is intended to return as such
             res.status(delRes.status).json(delRes.data)
     } catch (error) {
+        // This is intended to return as such
         res.status(500).json({message: "Error. " + error.stack});
     }
 })
 
 app.use( (req, res, next) => {
     // Replace with 404 page
-    res.status(404).render('error.hbs', {
-        title: '6-7-ate-9 | Error 404',
-        css: [
-            '/css/style.css',
-            '/css/error.css'
-        ],
-        js: [
-            '/js/script.js'
-        ],
-        searchBar: true,
-        loginContainer: true,
-        error_code: "404",
-        error_title: "The page you are looking for doesn't exist.",
-        error_message: "",
-        user: req.session ? req.session.user : null
-    })
+    return renderErrorPage(req, res, '404', 'The page you are looking for doesn\'t exist.', "")
 });
 
 app.listen(APP_PORT)

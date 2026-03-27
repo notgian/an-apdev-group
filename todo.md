@@ -41,12 +41,12 @@ home page
 - [ ] PREFERRED: for each review, before sending to frontend, add an attribute **marked** which is set to 'helpful' if the user id is in the review's list of helpful markings, 'unhelpful' if the user id is in the review's list of unhelpful markings, and null/some falsy value otherwise
 
 ## API
-- [ ] Make review posting/editing update establishment overall rating
-- [ ] Add follow/unfollow endpoints
-- [ ] jwt keys
-- [ ] fix cdn because 127.0.0.1 ain't gonna cut it for deployment buddy.
+- [x] Make review posting/editing update establishment overall rating
+- [x] Add follow/unfollow endpoints
+- [x] jwt keys
 
 ## Other
-- [ ] fix data gen. Reviews are clamped to 1-5 inclusive
+- [x] fix data gen. Reviews are clamped to 1-5 inclusive
 - [ ] Fix docker compose prod file
 - [ ] setup render.com/vercel for deployment
+- [ ] fix cdn because 127.0.0.1 ain't gonna cut it for deployment buddy. (this will make it so data generated will be dependent on dev or prod servers. Dev server is local, thus localhost is fine. For prod, we'll have it dependent on the address of our application-to-be)
