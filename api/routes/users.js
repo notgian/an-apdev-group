@@ -19,6 +19,13 @@ const Reviews = require('../schema_models/reviewSchema.js');
 
 const  { authenticateToken, generateAccessToken } = require('./auth.js')
 
+const API_HOSTNAME = process.env.API_HOSTNAME;
+const API_PUBLIC_HOSTNAME = process.env.API_PUBLIC_HOSTNAME;
+const API_PORT = process.env.API_PORT;
+const API_LOC = (process.env.ENVIRONMENT == 'dev') ? 
+    `${API_HOSTNAME}:${API_PORT}`: 
+    `${API_PUBLIC_HOSTNAME}`;
+
 // body parser stuffs
 const urlencodedParser = bodyParser.urlencoded({extended: true})
 
@@ -400,7 +407,7 @@ router.patch("/:id", [ authenticateToken, uploadAvatar.single('avatar') ], async
     // Attempt to upload the file
     if (req.file) {
         const filename = `${req.file.fieldname}_${req.file.originalname}`
-        updates['avatar'] = `http://${process.env.API_PUBLIC_HOSTNAME}:${process.env.API_PORT}/cdn/${filename}`
+        updates['avatar'] = `http://${API_LOC}/cdn/${filename}`
     }
 
     // Update the entry of the user here
@@ -576,7 +583,7 @@ router.post('/reviews/:rstrid', [ authenticateToken, uploadMedia.array('media') 
     // Convert the uploaded filenames to the 
     let mediaLocations = []
     for (let file of req.files) {
-        let loc = `http://${process.env.API_PUBLIC_HOSTNAME}:${process.env.API_PORT}/cdn/${file.filename}`;
+        let loc = `http://${API_LOC}/cdn/${file.filename}`;
         mediaLocations.push(loc);
     }
 

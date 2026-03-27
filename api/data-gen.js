@@ -20,6 +20,14 @@ const RESTAURANT_CATEGORIES = [
   "Tapas", "Food Truck", "Breakfast & Brunch", "Dessert"
 ];
 
+const API_HOSTNAME = process.env.API_HOSTNAME;
+const API_PUBLIC_HOSTNAME = process.env.API_PUBLIC_HOSTNAME;
+const API_PORT = process.env.API_PORT;
+
+const API_LOC = (process.env.ENVIRONMENT == 'dev') ? 
+    `${API_HOSTNAME}:${API_PORT}`: 
+    `${API_PUBLIC_HOSTNAME}`;
+
 const STATIC_RESTAURANTS = [
     { 
         name: "Mendokoro Ramba", 
@@ -34,7 +42,7 @@ const STATIC_RESTAURANTS = [
             min: 500,
             max: 700, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_mendokoro_ramba.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_mendokoro_ramba.jpg`,
     },
     { 
         name: "Manam Comfort Food", 
@@ -49,7 +57,7 @@ const STATIC_RESTAURANTS = [
             min: 300,
             max: 600, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_manam_comfort_food.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_manam_comfort_food.jpg`,
     },
     { 
         name: "Wildflour Cafe", 
@@ -64,7 +72,7 @@ const STATIC_RESTAURANTS = [
             min: 700,
             max: 1000, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_wildflour_cafe.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_wildflour_cafe.jpg`,
     },
     { 
         name: "Din Tai Fung", 
@@ -79,7 +87,7 @@ const STATIC_RESTAURANTS = [
             min: 400,
             max: 700, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_din_tai_fung.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_din_tai_fung.jpg`,
     },
     { 
         name: "Gino's Brick Oven Pizza", 
@@ -94,7 +102,7 @@ const STATIC_RESTAURANTS = [
             min: 500,
             max: 800, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_ginos_brick_oven_pizza.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_ginos_brick_oven_pizza.jpg`,
     },
     { 
         name: "Mary Grace Cafe", 
@@ -109,7 +117,7 @@ const STATIC_RESTAURANTS = [
             min: 400,
             max: 800, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_mary_grace_cafe.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_mary_grace_cafe.jpg`,
     },
     { 
         name: "Locavore Kitchen", 
@@ -124,7 +132,7 @@ const STATIC_RESTAURANTS = [
             min: 500,
             max: 900, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_locavore_kitchen.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_locavore_kitchen.jpg`,
     },
     { 
         name: "Nikkei", 
@@ -139,7 +147,7 @@ const STATIC_RESTAURANTS = [
             min: 800,
             max: 1500, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_nikkei.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_nikkei.jpg`,
     },
     { 
         name: "Ooma", 
@@ -154,7 +162,7 @@ const STATIC_RESTAURANTS = [
             min: 450,
             max: 750, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_ooma.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_ooma.jpg`,
     },
     { 
         name: "The Wholesome Table", 
@@ -169,7 +177,7 @@ const STATIC_RESTAURANTS = [
             min: 600,
             max: 1100, 
         },
-        imageSrc: "http://localhost:4200/cdn/resto_the_wholesome_table.jpg",
+        imageSrc: `http://${API_LOC}/cdn/resto_the_wholesome_table.jpg`,
     },
 ];
 

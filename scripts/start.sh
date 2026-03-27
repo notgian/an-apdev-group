@@ -1,9 +1,9 @@
 #!/bin/bash
 
 if [[ "$1" == "dev" ]]; then
-    docker compose -f "compose-dev.yaml" up --build --remove-orphans
+    docker compose -f "compose-dev.yaml" up --build --remove-orphans -d
 elif [[ "$1" == "prod" ]]; then
-    docker compose -f "compose-prod.yaml" up --build --remove-orphans
+    docker compose -f "compose-prod.yaml" up --build --remove-orphans -d
 else
     echo "Usage: $0 {dev|prod}"
     exit 1

@@ -20,6 +20,8 @@ const API_URL = (process.env.ENVIRONMENT == 'dev') ?
     `http://${API_HOSTNAME}:${API_PORT}/api/v1/`: 
     `http://${API_PUBLIC_HOSTNAME}/api/v1/`;
 
+console.log('API_URL', API_URL)
+
 // Handlebars Helpers
 
 Handlebars.registerHelper('renderStarsHTML', function(rating) {
