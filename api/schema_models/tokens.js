@@ -1,10 +1,13 @@
-
 const mongoose = require('mongoose');
 
 const tokensSchema = new mongoose.Schema({
     tok: {
         type: String,
         unique: true,
+        required: true,
+    },
+    expiresAfter: {
+        type: Date,
         required: true,
     }
 });

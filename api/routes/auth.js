@@ -48,9 +48,32 @@ const generateRefreshToken = async (user) => {
     let future = new Date()
     future.setDate(future.getDate() + lifeTimeDays)
     const refreshExpiry = new Date(future);
-    const tokReq = await Tokens.insertOne({tok: refreshToken}, {expiresAfter: refreshExpiry});
+    try {
+        const tokReq = await Tokens.insertOne({tok: refreshToken, expiresAfter: refreshExpiry});
+    } catch (err) {
+        console.log('WARNING! Could not register refresh token in database. Token is effectively useless.');
+        console.log(err)
+        return null;
+    }
 
     return refreshToken;
+}
+
+/* Default is to run this worker every 60 seconds */
+const tokenCleanupWorker = (intervalMs = 60000) => {
+    setInterval( async () => {
+        console.log('Cleaning up tokens...')
+        try {
+            const deleteRes = await Tokens.deleteMany({
+                expiresAfter: { $lt: new Date() }
+            });
+            if (deleteRes.deletedCount)
+                console.log(`Cleaned up ${deleteRes.deletedCount} tokens.`);
+        } catch (err) {
+            console.log(`Could not clean up tokens. ${err}`)
+        }
+
+    }, intervalMs);
 }
 
 /**
@@ -142,9 +165,17 @@ router.post('/token', async (req, res) => {
             data: {accessToken: accessToken}
         });
     });
+});
+
+// Temporary route to see if refresh tokens get removed after their TTL
+router.get('/tokens', async (req, res) => {
+    const tokens = await Tokens.find();
+    const index = await Tokens.collection.getIndexes();
+    res.json({index: index, toks: tokens});
 })
 
 module.exports = {
     authenticateToken: authenticateToken,
-    authRoutes: router
+    authRoutes: router,
+    tokenCleanupWorker: tokenCleanupWorker
 };
