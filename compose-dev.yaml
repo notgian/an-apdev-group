@@ -9,6 +9,7 @@ services:
       WEB_PORT: ${WEB_PORT}
       API_PORT: ${API_PORT}
       API_PUBLIC_HOSTNAME: 127.0.0.1
+      # API_PUBLIC_HOSTNAME: "https://67ate9api.vercel.app/"
       API_HOSTNAME: ${API_HOSTNAME}
       API_LOCATION: "localhost:4200"  # depracate this
       ENVIRONMENT: "dev"
