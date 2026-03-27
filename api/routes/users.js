@@ -1763,60 +1763,6 @@ router.post('/unfollow/:otherId', authenticateToken, async (req, res) => {
     }
 })
 
-/**
- * @route   POST /login
- * @desc    Authenticates a user and returns a success status. 
- * (Planned to return a JWT token upon implementation).
- * @access  Public
- * @param   {string} req.body.username - User's unique username.
- * @param   {string} req.body.password - User's plain text password.
- * @returns {object} 200 - Successful login.
- * @returns {object} 401 - Unauthorized (Invalid credentials).
- * @returns {object} 400 - Missing username or password.
- */
-router.post('/login', async (req, res) => {
-    const username = req.body.username || null;
-    const password = req.body.password || null;
-
-    if (username == null || password == null)
-        return res.status(httpStatus.BAD_REQUEST).json({
-            status: httpStatus.BAD_REQUEST,
-            message: `Username or password are missing`,
-            data: null
-        });
-
-    const foundUser = await User.findOne({username: username})
-
-    if (foundUser == null)
-        return res.status(httpStatus.UNAUTHORIZED).json({
-            status: httpStatus.UNAUTHORIZED,
-            message: 'Invalid username or password.',
-            data: null
-        });
-    
-    const passMatch = await bcrypt.compare(password, foundUser.password);
-
-    if (!passMatch)
-        return res.status(httpStatus.UNAUTHORIZED).json({
-            status: httpStatus.UNAUTHORIZED,
-            message: 'Invalid username or password.',
-            data: null
-        });
-
-
-    // TODO: Generate JWT token WITH EXPIRATION
-    const user = {_id: foundUser._id, username: foundUser.username, role: foundUser.role};
-    // const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET);
-    // const accessToken = generateAccessToken(user);
-
-    return res.status(httpStatus.OK).json({
-        status: httpStatus.OK,
-        message: 'Login successful',
-        data: {token: 0}
-    });
-
-});
-
 // DELETE to delete user
 // Contemplating if we should have this because it's not a feature we NEED
 

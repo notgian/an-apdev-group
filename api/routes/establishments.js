@@ -118,7 +118,7 @@ router.get('/:id', async (req, res) => {
         new mongoose.Types.ObjectId(estId)
     }
     catch (err) {
-        res.send({
+        return res.send({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
@@ -153,7 +153,7 @@ router.get("/reviews/:id", async (req, res) => {
         new mongoose.Types.ObjectId(rstrId)
     }
     catch (err) {
-        res.send({
+        return res.send({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
