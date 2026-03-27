@@ -14,8 +14,11 @@ const jwt = require('jsonwebtoken')
 
 const APP_PORT = process.env.WEB_PORT;
 const API_HOSTNAME = process.env.API_HOSTNAME;
+const API_PUBLIC_HOSTNAME = process.env.API_PUBLIC_HOSTNAME;
 const API_PORT = process.env.API_PORT;
-const API_URL = `http://${API_HOSTNAME}:${API_PORT}/api/v1/`;
+const API_URL = (process.env.ENVIRONMENT == 'dev') ? 
+    `http://${API_HOSTNAME}:${API_PORT}/api/v1/`: 
+    `http://${API_PUBLIC_HOSTNAME}/api/v1/`;
 
 // Handlebars Helpers
 
