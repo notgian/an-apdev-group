@@ -47,6 +47,6 @@ home page
 
 ## Other
 - [x] fix data gen. Reviews are clamped to 1-5 inclusive
-- [ ] Fix docker compose prod file
-- [ ] setup render.com/vercel for deployment
-- [ ] fix cdn because 127.0.0.1 ain't gonna cut it for deployment buddy. (this will make it so data generated will be dependent on dev or prod servers. Dev server is local, thus localhost is fine. For prod, we'll have it dependent on the address of our application-to-be)
+- [x] Fix docker compose prod file
+- [x] ~~setup render.com/vercel for deployment~~ app deployed on gian's server :)
+- [x] fix cdn because 127.0.0.1 ain't gonna cut it for deployment buddy. (this will make it so data generated will be dependent on dev or prod servers. Dev server is local, thus localhost is fine. For prod, we'll have it dependent on the address of our application-to-be)

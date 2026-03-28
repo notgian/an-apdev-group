@@ -30,9 +30,14 @@ const API_LOC = (process.env.ENVIRONMENT == 'dev') ?
 const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // multer for uploading files
+// TODO: please do check if you still need to separate this to prod anddev given our deployment setup
 const MEDIA_PATH = (process.env.ENVIRONMENT == 'dev') ?
     '/app/data/media' : 
-    './data/media'
+    './data/media' ;
+
+const TRASH_PATH = (process.env.ENVIRONMENT == 'dev') ?
+    '/app/data/.trash' : 
+    './data/.trash' ;
 
 // For file uploading
 const storage = multer.diskStorage({
@@ -861,7 +866,24 @@ router.delete('/reviews/:rstrid', authenticateToken, async (req, res) => {
             lean: true
         });
 
-        // Update restablishment avg rating
+        // move current media to a trash folder, rather than fully deleting it.
+        for (let media_url of deletedReview.media) {
+            let url_match = media_url.match(/https?:\/\/([\w\:\.\-]+)[\/\w]+(\/[\w\:\.\-\_\=\+\?\*\|\"\'\<\>\,\s]+)$/im);
+            let media_loc = url_match[1]
+            let filename = url_match[2].substring(1)
+            // find file
+            if (media_loc == API_LOC) {
+                let filepath = path.join(MEDIA_PATH, filename)
+                if (!fs.existsSync(filepath))
+                    continue // skip file if not found
+                // move file
+                console.log('File should exist!')
+                fs.renameSync(filepath, path.join(TRASH_PATH, filename))
+            }
+        }
+
+
+        // Update restablishment avg rating)
         let qry = { restaurantId: restaurantId }
         const reviewQry = Reviews.find(qry)
             .select('rating')
@@ -887,6 +909,7 @@ router.delete('/reviews/:rstrid', authenticateToken, async (req, res) => {
         });
     }
     catch (err) {
+        console.log(err)
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             status: httpStatus.INTERNAL_SERVER_ERROR,
             message: 'Could not delete the review.',
