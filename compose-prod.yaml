@@ -2,6 +2,7 @@ services:
   express-web:
     container_name: express-web
     hostname: express-web
+    restart: always
     build: 
       context: ./web/.
       dockerfile: prod.Dockerfile
@@ -25,6 +26,7 @@ services:
   express-api:
     container_name: express-api
     hostname: ${API_HOSTNAME}
+    restart: always
     build: 
       context: ./api/.
       dockerfile: prod.Dockerfile
