@@ -227,7 +227,8 @@ app.get('/establishment/:id', async (req, res) => {
     const estId = req.params.id;
     try {
         const estReq = await api.get(`establishments/${estId}`, { validateStatus: () => true });
-        const revReq = await api.get(`establishments/reviews/${estId}`, { validateStatus: () => true });
+        const viewerQuery = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
+        const revReq = await api.get(`establishments/reviews/${estId}${viewerQuery}`, { validateStatus: () => true });
 
         if (estReq.status != 200) throw Error()
 
@@ -368,39 +369,75 @@ app.delete('/deletereview/:rstrId', async (req, res) => {
     }
 })
 
+// app.get('/search', async (req, res) => {
+//     const searchTerm = req.query.query || ''; 
+
+//     try {
+//         let searchReq = await api.get(`establishments`, {
+//             params: { 
+//                 search: searchTerm 
+//             },
+//             validateStatus: () => true
+//         });
+
+//         let results = [];
+//         if (searchReq.status === 200 && searchReq.data.status === 200) {
+//             results = searchReq.data.data;
+//         }
+
+//         res.render('search.hbs', {
+//             title: '6-7-ate-9 | Search Results',
+//             query: searchTerm, 
+//             results: results,
+//             user: req.session ? req.session.user : null,
+//             css: [
+//                 '/css/style.css', 
+//                 '/css/search.css'
+//             ],
+//             js: [
+//                 '/js/script.js'
+//             ],
+//             searchBar: true,
+//             loginContainer: req.session.user ? false : true
+//         });
+//     } catch (error) {
+//         return renderErrorPage(req, res)
+//     }
+// });
+
 app.get('/search', async (req, res) => {
-    const searchTerm = req.query.query || ''; 
+    const searchQuery = req.query.query || ''; 
+    const city = req.query.city || '';
+    const minRating = req.query.minRating || '';
+    const minPrice = req.query.minPrice || '';
+    const maxPrice = req.query.maxPrice || '';
 
     try {
-        let searchReq = await api.get(`establishments`, {
+        let searchReq = await axios.get(`${API_URL}establishments`, {
             params: { 
-                search: searchTerm 
+                search: searchQuery,
+                city: city,
+                minRating: minRating,
+                minPrice: minPrice,
+                maxPrice: maxPrice
             },
             validateStatus: () => true
         });
-
-        let results = [];
-        if (searchReq.status === 200 && searchReq.data.status === 200) {
-            results = searchReq.data.data;
-        }
+        
+        let results = searchReq.status === 200 ? searchReq.data.data : [];
 
         res.render('search.hbs', {
-            title: '6-7-ate-9 | Search Results',
-            query: searchTerm, 
+            title: 'Search Results',
+            query: searchQuery,
+            location: city, 
             results: results,
             user: req.session ? req.session.user : null,
-            css: [
-                '/css/style.css', 
-                '/css/search.css'
-            ],
-            js: [
-                '/js/script.js'
-            ],
-            searchBar: true,
-            loginContainer: req.session.user ? false : true
+            css: ['/css/style.css', '/css/search.css'],
+            js: ['/js/script.js'],
+            searchBar: true
         });
     } catch (error) {
-        return renderErrorPage(req, res)
+        res.status(500).send("Search failed.");
     }
 });
 
@@ -530,25 +567,61 @@ app.post('/logout', async (req, res) => {
 app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     try {
-        const userReq = await api.get(`users/${req.session.user._id}`, { validateStatus: () => true });
-        if (userReq.status !== 200) throw Error()
+        // Fetch User Data (Now includes follower_count and following_count)
+        const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
+        if (userReq.status !== 200) return res.status(404).send("User not found");
 
-        const reviewsReq = await api.get(`users/reviews/${req.session.user._id}`, { validateStatus: () => true });
-        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
+        // Fetch User Reviews
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${req.session.user._id}?viewerId=${req.session.user._id}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
+
+        // NEW: Fetch Suggested Foodies
+        const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
+        const suggestedFoodies = suggestedReq.status === 200 ? suggestedReq.data.data : [];
 
         res.render('profile.hbs', {
             title: 'My Profile',
+            user: userReq.data.data, // This object now has user.follower_count!
             reviews: reviews,
-            user: userReq.data.data,
+            suggestedFoodies: suggestedFoodies, // Passed to Handlebars
             css: ['/css/style.css', '/css/profile.css'],
             js: ['/js/script.js'],
             searchBar: true
         });
     } catch (err) {
-        return renderErrorPage(req, res)
+        res.status(500).send("Something went wrong..." + err);
     }
+});
 
-})
+app.get('/profile/:id', async (req, res) => {
+    const profileId = req.params.id;
+    try {
+        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
+        if (userReq.status !== 200) return res.status(404).send("User not found");
+
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
+
+        let suggestedFoodies = [];
+        if (req.session && req.session.user) {
+            const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
+            if (suggestedReq.status === 200) suggestedFoodies = suggestedReq.data.data;
+        }
+
+        res.render('profile-other.hbs', {
+            title: 'User Profile',
+            profileData: userReq.data.data,
+            reviews: reviews,
+            suggestedFoodies: suggestedFoodies,
+            user: req.session ? req.session.user : null,
+            css: ['/css/style.css', '/css/profile.css'],
+            js: ['/js/script.js'],
+            searchBar: true
+        });
+    } catch (error) {
+        res.status(500).send("Error loading profile.");
+    }
+});
 
 app.get('/profile/edit', async (req, res) => {
     if (!req.session || !req.session.user || !req.session.accessToken) 
@@ -604,7 +677,8 @@ app.get('/profile/:id', async (req, res) => {
         const userReq = await api.get(`users/${profileId}`, { validateStatus: () => true });
         if (userReq.status !== 200) throw Error()
 
-        const reviewsReq = await api.get(`users/reviews/${profileId}`, { validateStatus: () => true });
+        const viewerQuery = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
+        const reviewsReq = await api.get(`users/reviews/${profileId}${viewerQuery}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
 
 

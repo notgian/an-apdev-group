@@ -83,11 +83,30 @@ router.get('/', async (req, res) => {
     }
 
     let queryObj = {}
-    if ('search' in req.query) {
+    if ('search' in req.query && req.query.search !== '') {
         SEARCH = req.query.search
-        // queryObj['$text'] = {$search: SEARCH}
         queryObj['name'] = {$regex: `.*${SEARCH}.*`, $options: 'i'}
     }
+
+    // Filter by City/Location
+    if ('city' in req.query && req.query.city !== '') {
+        queryObj['location.city'] = {$regex: `.*${req.query.city}.*`, $options: 'i'}
+    }
+
+    // Filter by Minimum Rating
+    if ('minRating' in req.query && req.query.minRating !== '') {
+        // Adds a filter where avgRating is greater than or equal to ($gte) the requested rating
+        queryObj['avgRating'] = { $gte: Number(req.query.minRating) }
+    }
+
+    //s Filter by Price Range
+    if ('minPrice' in req.query && req.query.minPrice !== '') {
+        queryObj['priceRange.min'] = { $gte: Number(req.query.minPrice) }
+    }
+    if ('maxPrice' in req.query && req.query.maxPrice !== '') {
+        queryObj['priceRange.max'] = { $lte: Number(req.query.maxPrice) }
+    }
+
     let query = Restaurant.find(queryObj)
         .skip(OFFSET)       
         .limit(COUNT)
@@ -186,7 +205,20 @@ router.get("/reviews/:id", async (req, res) => {
                 })
                 .lean();
 
-            const reviews = await reviewQry.exec();
+            let reviews = await reviewQry.exec();
+
+            const viewerId = req.query.viewerId;
+            if (viewerId) {
+                reviews = reviews.map(review => {
+                    let marked = null;
+                    if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
+                        marked = 'helpful';
+                    } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
+                        marked = 'unhelpful';
+                    }
+                    return { ...review, marked: marked };
+                });
+            }
 
             res.send({
                 status: httpStatus.OK,

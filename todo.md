@@ -31,14 +31,14 @@ home page
 - [ ] Use JWT keys (ako na rin dito -gian)
 
 /profile
-- [ ] send foodies to follow in profiles (will create a get endpoint for this
-- [ ] PREFERRED: send follower_count, and following_count
+- [-] send foodies to follow in profiles (will create a get endpoint for this
+- [-] PREFERRED: send follower_count, and following_count
 
 /search
-- [ ] apply other search filters from search form (use req.query.[parameter name from the form in the hbs file])
+- [-] apply other search filters from search form (use req.query.[parameter name from the form in the hbs file])
 
 /reviews
-- [ ] PREFERRED: for each review, before sending to frontend, add an attribute **marked** which is set to 'helpful' if the user id is in the review's list of helpful markings, 'unhelpful' if the user id is in the review's list of unhelpful markings, and null/some falsy value otherwise
+- [-] PREFERRED: for each review, before sending to frontend, add an attribute **marked** which is set to 'helpful' if the user id is in the review's list of helpful markings, 'unhelpful' if the user id is in the review's list of unhelpful markings, and null/some falsy value otherwise
 
 ## API
 - [x] Make review posting/editing update establishment overall rating
