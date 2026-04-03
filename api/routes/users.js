@@ -231,12 +231,15 @@ router.get('/:id', async (req, res) => {
     const foundUser = await query.exec()
 
     if (foundUser != null) {
+        foundUser.follower_count = foundUser.followers ? foundUser.followers.length : 0;
+        foundUser.following_count = foundUser.following ? foundUser.following.length : 0;
+
         res.status(httpStatus.OK).json({
             status: httpStatus.OK,
             message: "OK",
             data: foundUser
         });
-    } 
+    }
     else {
         res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
@@ -245,6 +248,41 @@ router.get('/:id', async (req, res) => {
         });
     }
 
+});
+
+/**
+ * @route   GET /suggested/:id
+ * @desc    Get suggested foodies to follow (excludes self and already followed users)
+ * @access  Public
+ */
+router.get('/suggested/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const currentUser = await User.findById(userId).lean();
+        
+        if (!currentUser) {
+            return res.status(httpStatus.NOT_FOUND).json({ message: "User not found" });
+        }
+
+        const ignoreIds = currentUser.following ? [...currentUser.following, userId] : [userId];
+
+        const suggested = await User.find({ _id: { $nin: ignoreIds }, role: 'user' })
+            .limit(5)
+            .select('-password')
+            .lean();
+
+        res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: "OK",
+            data: suggested
+        });
+    } catch (err) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not fetch suggested users: ${err.message}`,
+            data: null
+        });
+    }
 });
 
 /**
@@ -448,7 +486,7 @@ router.get("/reviews/:id", async (req, res) => {
         new mongoose.Types.ObjectId(userId)
     }
     catch (err) {
-        res.status(httpStatus.BAD_REQUEST).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
@@ -467,11 +505,23 @@ router.get("/reviews/:id", async (req, res) => {
         if ('rstid' in req.query) {
             qry['restaurantId'] = req.query.rstid;
         }
-        // Find and return their reviews
         try {
-            const reviews = await Reviews.find(qry)
+            let reviews = await Reviews.find(qry)
                 .populate('restaurantId')
                 .lean()
+
+            const viewerId = req.query.viewerId;
+            if (viewerId) {
+                reviews = reviews.map(review => {
+                    let marked = null;
+                    if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
+                        marked = 'helpful';
+                    } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
+                        marked = 'unhelpful';
+                    }
+                    return { ...review, marked: marked };
+                });
+            }
 
             res.status(httpStatus.OK).json({
                 status: httpStatus.OK,
