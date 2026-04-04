@@ -1,6 +1,6 @@
 ## Frontend 
 home page
-- [ ] fix location rendering
+- [x] fix location rendering
 
 /establishments
 - [ ] add buttons for pagination. (For simplicity, you just make it next and prev page.)
