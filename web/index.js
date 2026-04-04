@@ -247,7 +247,7 @@ app.get('/establishment/:id', async (req, res) => {
             userReview: userReview, // bool: whether user has a review or not
             user: req.session.user || null,
             css: ['/css/style.css', '/css/establishment.css'],
-            js: ['/js/establishment.js'],
+            js: [isOwner ? '/js/owner.js' : '/js/establishment.js'],
             searchBar: true
         });
     } catch (error) {
