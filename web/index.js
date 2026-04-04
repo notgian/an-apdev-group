@@ -437,7 +437,7 @@ app.get('/search', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        res.status(500).send("Search failed.");
+        return renderErrorPage(req, res, message="Something seemed to go wrong with your search...")
     }
 });
 
@@ -577,13 +577,13 @@ app.get('/profile', async (req, res) => {
         const reviewsReq = await axios.get(`${API_URL}users/reviews/${req.session.user._id}?viewerId=${req.session.user._id}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
 
-        // NEW: Fetch Suggested Foodies
+        // Fetch Suggested Foodies
         const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
         const suggestedFoodies = suggestedReq.status === 200 ? suggestedReq.data.data : [];
 
         res.render('profile.hbs', {
             title: 'My Profile',
-            user: userReq.data.data, // This object now has user.follower_count!
+            user: userReq.data.data,
             reviews: reviews,
             suggestedFoodies: suggestedFoodies, // Passed to Handlebars
             css: ['/css/style.css', '/css/profile.css'],
@@ -591,7 +591,7 @@ app.get('/profile', async (req, res) => {
             searchBar: true
         });
     } catch (err) {
-        res.status(500).send("Something went wrong..." + err);
+        return renderErrorPage(req, res)
     }
 });
 
@@ -621,7 +621,7 @@ app.get('/profile/:id', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        res.status(500).send("Error loading profile.");
+        return renderErrorPage(req, res)
     }
 });
 
