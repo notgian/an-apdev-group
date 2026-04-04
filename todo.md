@@ -11,6 +11,7 @@ home page
 - [ ] have a way to truncate reviews
 - [ ] perform validation before submitting a review (ensure a star rating is provided, since this isn't a normal form element) (idea for this: onsubmit event, use event.preventDefault, then event.submit)
 - [ ] unify layout, styles, scripts, and functionality of both normal user and owner views
+- [ ] OWNER SPECIFIC: fixing the mark helpful/unhelpful
 - [ ] PREFERRED: transfer the big ahh scripts into an external JS file
 - [ ] OPTIONAL improve styling by adding cursor rules for the review stars selection thing and other potential styling imporvements
 - [ ] OPTIONAL: add a custom styling for reviews marked helpful/unhelpful by the user. Assume that for this, each review object will have an attribute called 'marked' that can either be null, helpful, or unhelpful NOTE: ako na bahala sa view button functionality - gian

@@ -214,68 +214,116 @@ router.get("/reviews/:id", async (req, res) => {
 
     const foundRstr = await query.exec()
 
-    if (foundRstr.length > 0) {
-        let qry = {
-            restaurantId: req.params.id,
-        }
-        // OPTIONAL user filter
-        if ('user' in req.query) {
-            qry['userId'] = req.query.user;
-        }
-        // OPTIONAL search filter (comment)
-        if ('comment' in req.query) {
-            qry['comment'] = {$regex: `.*${req.query.comment}.*`, $options: 'i'}
-        }
-        // Find and return the reviews
-        try {
-            const reviewQry = Reviews.find(qry)
-                .populate('userId', ['username', 'avatar', 'role'])
-                .populate({
-                    path: 'ownerResponse',
-                    populate: {
-                        path: 'ownerId',
-                        model: 'User'
-                    }
-                })
-                .lean();
-
-            let reviews = await reviewQry.exec();
-
-            const viewerId = req.query.viewerId;
-            if (viewerId) {
-                reviews = reviews.map(review => {
-                    let marked = null;
-                    if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
-                        marked = 'helpful';
-                    } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
-                        marked = 'unhelpful';
-                    }
-                    return { ...review, marked: marked };
-                });
-            }
-
-            res.send({
-                status: httpStatus.OK,
-                message: `OK`,
-                data: reviews
-            }) ;
-        } 
-        catch (err) {
-            res.send({
-                status: httpStatus.INTERNAL_SERVER_ERROR,
-                message: `Could not fetch establishment reviews ${err.message}`,
-                data: null
-            }) ;
-        }
-    } else {
-        res.send({
+    if (foundRstr.length <= 0)
+        return res.send({
             status: httpStatus.NOT_FOUND,
             message: `The establishment does not exist!`,
             data: null
-        }) ;
-        return;
+        });
+
+    var OFFSET = 0;
+    var COUNT = 10;
+
+    let qry = {
+        restaurantId: req.params.id,
     }
-    var userFound = true
+    // OPTIONAL user filter
+    if ('user' in req.query) {
+        qry['userId'] = req.query.user;
+    }
+    // OPTIONAL search filter (comment)
+    if ('comment' in req.query) {
+        qry['comment'] = {$regex: `.*${req.query.comment}.*`, $options: 'i'}
+    }
+
+    if ('offset' in req.query) {
+        let offsetNum = Number(req.query.offset);
+        if (!isNaN(offsetNum))
+            OFFSET = offsetNum;
+        else {
+            res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The offset parameter must be a valid number.",
+                data: null
+            });
+            return;
+        }
+
+        if (OFFSET < 0) {
+            res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The offset parameter must be greater than 0.",
+                data: null
+            });
+            return;
+        }
+    } 
+    if ('count' in req.query) {
+        let countNum = Number(req.query.count);
+        if (!isNaN(countNum)) 
+            COUNT = countNum;
+        else {
+            res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The count parameter must be a valid number.",
+                data: null
+            });
+            return;
+        }
+
+        if (COUNT < 1) {
+            res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The count parameter must be greater than 1.",
+                data: null
+            });
+            return;
+        }
+    }
+
+    // Find and return the reviews
+    try {
+        const reviewQry = Reviews.find(qry)
+            .skip(OFFSET)
+            .limit(COUNT)
+            .populate('userId', ['username', 'avatar', 'role'])
+            .populate({
+                path: 'ownerResponse',
+                populate: {
+                    path: 'ownerId',
+                    model: 'User'
+                }
+            })
+            .lean();
+
+        let reviews = await reviewQry.exec();
+
+        const viewerId = req.query.viewerId;
+        if (viewerId) {
+            reviews = reviews.map(review => {
+                let marked = null;
+                if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
+                    marked = 'helpful';
+                } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
+                    marked = 'unhelpful';
+                }
+                return { ...review, marked: marked };
+            });
+        }
+
+        res.send({
+            status: httpStatus.OK,
+            message: `OK`,
+            data: reviews
+        }) ;
+    } 
+    catch (err) {
+        res.send({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not fetch establishment reviews ${err.message}`,
+            data: null
+        }) ;
+    }
 });
 
 module.exports = router;
