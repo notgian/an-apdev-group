@@ -263,7 +263,12 @@ const createReviewHTML = (review) => {
     return `
     <div class="review" data-author="${review.userId._id}" data-reviewid="${review._id}">
         <div>
-            <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+            <div class="review-header">
+                <span>
+                    <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                </span>
+                <span class="review-edited"> <em> ${review.edited? 'edited' : ''} </em> </span>
+            </div>
             <p>${review.comment}</p>
         </div>
         <div class="review-actions">

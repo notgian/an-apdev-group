@@ -1175,7 +1175,7 @@ router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
     const restaurantId = foundRstr._id;
     const reviewFilter = {
         userId: userId,
-        restaurantId: restaurantId
+        restaurantId: restaurantId,
     }
 
     const foundReview = await Reviews.findOne(reviewFilter, 'ownerResponse') 
@@ -1191,7 +1191,9 @@ router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
         ownerResponse: {
             ownerId: ownerId,
             comment: comment,
-            respondedAt: foundReview.ownerResponse.respondedAt
+            respondedAt: foundReview.ownerResponse.respondedAt,
+            updatedAt: new Date(),
+            edited: true
         }
     }
     const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {

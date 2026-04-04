@@ -137,7 +137,9 @@ const createReviewHTML = (review) => {
     const ownerResponse = review.ownerResponse ? `
         <div class="review-response">
             <p> 
-                <strong>${review.ownerResponse.ownerId.username} </strong> <br />
+                <strong>${review.ownerResponse.ownerId.username} </strong> 
+                <span class="review-edited"> <em> ${review.ownerResponse.edited ? 'edited' : ''} </em> </span>
+                <br />
                 ${review.ownerResponse.comment}
             </p>
         </div>
@@ -146,7 +148,12 @@ const createReviewHTML = (review) => {
     return `
     <div class="review" data-author="${review.userId._id}" data-reviewid="${review._id}">
         <div>
-            <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+            <div class="review-header">
+                <span>
+                    <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                </span>
+                <span class="review-edited"> <em> ${review.edited? 'edited' : ''} </em> </span>
+            </div>
             <p>${review.comment}</p>
         </div>
         <div>

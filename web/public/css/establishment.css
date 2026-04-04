@@ -191,3 +191,12 @@ body {
     display: flex;
     justify-content: space-around;
 }
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.review-edited {
+    margin-left: auto;
+}

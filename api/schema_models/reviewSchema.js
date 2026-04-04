@@ -48,6 +48,7 @@ const reviewSchema = new mongoose.Schema({
             comment: { type: String, required: true, trim: true },
             respondedAt: { type: Date, required: true },
             updatedAt: { type: Date, default: Date.now },
+            edited: {type: Boolean, default: false}
         },
         default: undefined
     }
