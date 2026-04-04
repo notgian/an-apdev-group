@@ -16,7 +16,7 @@ home page
 - [ ] OPTIONAL: add a custom styling for reviews marked helpful/unhelpful by the user. Assume that for this, each review object will have an attribute called 'marked' that can either be null, helpful, or unhelpful NOTE: ako na bahala sa view button functionality - gian
 
 /search
-- [ ] add search filters (see API's GET establishment route for the 
+- [x] add search filters (see API's GET establishment route for the 
 - [ ] PREFERRED: unify styles with establishments page.
 
 /profile
@@ -27,11 +27,11 @@ home page
 - [x] perform password validation to make sure the password is up to standard (i.e. at minimum 8 characters)
 
 ## Backend (Web routes)
-- [ ] Put the sessions secret key in the .env and load it from there as well
-- [ ] Use JWT keys (ako na rin dito -gian)
+- [x] Put the sessions secret key in the .env and load it from there as well
+- [x] Use JWT keys (ako na rin dito -gian)
 
 /profile
-- [-] send foodies to follow in profiles (will create a get endpoint for this
+- [-] send foodies to follow in profiles (will create a get endpoint for this)
 - [-] PREFERRED: send follower_count, and following_count
 
 /search

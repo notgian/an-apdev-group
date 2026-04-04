@@ -127,7 +127,7 @@ app.use(express.static('./public'));
 app.use(express.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(session({
-    secret: 'secret-key-here',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {

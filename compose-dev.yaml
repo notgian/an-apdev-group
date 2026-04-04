@@ -11,7 +11,7 @@ services:
       API_PUBLIC_HOSTNAME: ${API_PUBLIC_HOSTNAME}
       # API_PUBLIC_HOSTNAME: "https://67ate9api.vercel.app/"
       API_HOSTNAME: ${API_HOSTNAME}
-      API_LOCATION: "localhost:4200"  # depracate this
+      SESSION_SECRET: ${SESSION_SECRET}
       ENVIRONMENT: "dev"
     ports: 
       - ${WEB_PORT}:${WEB_PORT}
