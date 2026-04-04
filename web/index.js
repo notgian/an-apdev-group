@@ -20,7 +20,6 @@ const API_URL = (process.env.ENVIRONMENT == 'dev') ?
     `http://${API_HOSTNAME}:${API_PORT}/api/v1/`: 
     `http://${API_PUBLIC_HOSTNAME}/api/v1/`;
 
-console.log('API_URL', API_URL)
 
 // Handlebars Helpers
 
@@ -105,9 +104,6 @@ const createApiHelper = (req, res) => {
                 request.headers['authorization'] = `Bearer ${newAccessToken}`;
                 return request;
             } catch (err) {
-                // This means that the axios threw an error
-                // which means the refresh token might be expired
-                //TODO: RENDER Error Page Here
                 return renderErrorPage(req, res)
             }
         }
@@ -323,7 +319,6 @@ app.post('/editreview/:rstrId', async (req, res) => {
     if (comment) updatedReview['comment'] = comment;
 
     const headers = {}
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken
     try {
         const api = createApiHelper(req, res);
         const reviewRes = await api.put(`users/reviews/${rstrId}`,
@@ -349,9 +344,7 @@ app.delete('/deletereview/:rstrId', async (req, res) => {
 
     const usrsURL = API_URL+'users/'
     const headers = {}
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        // console.log(`${usrsURL}reviews/${req.params.rstrId}`);
         const api = createApiHelper(req, res);
         const reviewRes = await api.delete(`users/reviews/${req.params.rstrId}`,
             {
@@ -368,42 +361,6 @@ app.delete('/deletereview/:rstrId', async (req, res) => {
         res.status(500).json({message: "Error deleting review. " + err});
     }
 })
-
-// app.get('/search', async (req, res) => {
-//     const searchTerm = req.query.query || ''; 
-
-//     try {
-//         let searchReq = await api.get(`establishments`, {
-//             params: { 
-//                 search: searchTerm 
-//             },
-//             validateStatus: () => true
-//         });
-
-//         let results = [];
-//         if (searchReq.status === 200 && searchReq.data.status === 200) {
-//             results = searchReq.data.data;
-//         }
-
-//         res.render('search.hbs', {
-//             title: '6-7-ate-9 | Search Results',
-//             query: searchTerm, 
-//             results: results,
-//             user: req.session ? req.session.user : null,
-//             css: [
-//                 '/css/style.css', 
-//                 '/css/search.css'
-//             ],
-//             js: [
-//                 '/js/script.js'
-//             ],
-//             searchBar: true,
-//             loginContainer: req.session.user ? false : true
-//         });
-//     } catch (error) {
-//         return renderErrorPage(req, res)
-//     }
-// });
 
 app.get('/search', async (req, res) => {
     const searchQuery = req.query.query || ''; 
@@ -569,7 +526,7 @@ app.post('/logout', async (req, res) => {
 app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     try {
-        // Fetch User Data (Now includes follower_count and following_count)
+        // Fetch User Data
         const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
         if (userReq.status !== 200) return res.status(404).send("User not found");
 
@@ -653,7 +610,6 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
         form.append('desc', req.body['description'])
 
     const headers = { ...form.getHeaders() };
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     const api = createApiHelper(req, res);
     const editRes = await api.patch('users/'+userId, form, {
         headers: headers,
@@ -721,7 +677,6 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
     const reviewId = req.params.reviewId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const apiRes = await api.post(`users/${markop}/${reviewId}`, {}, {
@@ -750,7 +705,6 @@ app.post('/respond/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const postRes = await api.post(`users/owner_response/${userId}`, {
@@ -785,7 +739,6 @@ app.put('/respond/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const postRes = await api.put(`users/owner_response/${userId}`, {
@@ -817,7 +770,6 @@ app.delete('/respond/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const delRes = await api.delete(`users/owner_response/${userId}`, {

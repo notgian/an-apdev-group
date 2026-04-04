@@ -1845,8 +1845,5 @@ router.post('/unfollow/:otherId', authenticateToken, async (req, res) => {
     }
 })
 
-// DELETE to delete user
-// Contemplating if we should have this because it's not a feature we NEED
-
 
 module.exports = router;

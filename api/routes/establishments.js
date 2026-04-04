@@ -5,13 +5,26 @@ const { default: mongoose } = require('mongoose')
 
 const router = express.Router();
 
-// Boilerplate code is AI generated. Will replace with actual code once db is made.
 // All routes in this file will be accessed via /api/v1/establishments
 
 const Restaurant = require('../schema_models/restaurantSchema.js')
 const Reviews = require('../schema_models/reviewSchema.js')
 
-// GET Establishments
+/**
+ * @route   GET /
+ * @desc    Retrieve a paginated list of establishments with optional search and sorting.
+ * @access  Public
+ * @query   {number} offset - Number of records to skip.
+ * @query   {number} count - Number of records to return.
+ * @query   {string} orderby - Field to sort by (name, createDate, rating).
+ * @query   {string} search - Search string for usernames.
+ * @query   {string} city - Search string for city.
+ * @query   {string} minRating - Search for minimum average rating.
+ * @query   {string} minPrice - Search for minimum price.
+ * @query   {string} maxPrice- Search for maximum price
+ * @returns {object} 200 - OK with an array of establishment objects.
+ * @returns {object} 400 - Malformed Query (invalid number format or values).
+ */
 router.get('/', async (req, res) => {
     var OFFSET = 0;
     var COUNT = 20;
@@ -129,7 +142,14 @@ router.get('/', async (req, res) => {
     })
 });
 
-// GET a specific establishment by ID
+/**
+ * @route   GET /:id
+ * @desc    Retrieve a particular establishment with their id.
+ * @access  Public
+ * @returns {object} 200 - OK with an array of establishment objects.
+ * @returns {object} 400 - Malformed Query (invalid number format or values).
+ * @returns {object} 404 - No establishment with specified id is found.
+ */
 router.get('/:id', async (req, res) => {
     const estId = req.params.id;
 
@@ -165,6 +185,16 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+/**
+ * @route   GET /reviews/:id
+ * @desc    Retrieve the reviews of a particular establishment given their id.
+ * @access  Public
+ * @query   {string} user - Optional userid to limit review to that user only. 
+ * @query   {string} search - Optional string to search in reviews
+ * @returns {object} 200 - OK with an array of establishment objects.
+ * @returns {object} 400 - Malformed Query (invalid number format or values).
+ * @returns {object} 404 - No establishment with specified id is found.
+ */
 router.get("/reviews/:id", async (req, res) => {
     const rstrId = req.params.id;
 
@@ -191,6 +221,10 @@ router.get("/reviews/:id", async (req, res) => {
         // OPTIONAL user filter
         if ('user' in req.query) {
             qry['userId'] = req.query.user;
+        }
+        // OPTIONAL search filter (comment)
+        if ('comment' in req.query) {
+            qry['comment'] = {$regex: `.*${req.query.comment}.*`, $options: 'i'}
         }
         // Find and return the reviews
         try {
@@ -243,59 +277,5 @@ router.get("/reviews/:id", async (req, res) => {
     }
     var userFound = true
 });
-
-// Get establishment reviews
-// POST to create a new establishment
-// Don't really need as it's not part of specs
-
-// PATCH to modify establishment data
-// Don't really need as it's not part of specs
-// Requires authentication tokens
-// router.patch("/:id", async (req, res) => {
-//     // Find establishment first
-//     var estFound = true
-//
-//     if (!estFound) {
-//         res.send({
-//             status: httpStatus.NOT_FOUND,
-//             messages: `The establishment with the id ${req.params.id} cannot be found!`,
-//             data: null
-//         }) ;
-//         return;
-//     }
-//
-//     // Next, check the querystring if all fields passed are valid fields
-//     // GEMINI: Note that your original code checks req.query for PATCH updates; 
-//     // usually, update data is sent in req.body for PATCH.
-//     let query = req.query
-//     const editableFields = [
-//         'name',
-//         'address',
-//         'category'
-//     ]
-//
-//     for (let key of Object.keys(query)) {
-//         if (!editableFields.includes(key)) {
-//             res.send({
-//                 status: httpStatus.BAD_REQUEST,
-//                 messages: `Cannot modify the property '${key}' of establishment. Either the property cannot be modified or the property does not exist.`,
-//                 data: null
-//             });
-//             return;
-//         }
-//     }
-//
-//     // Update the entry of the establishment here
-//    
-//     // Success
-//     res.send({
-//         status: httpStatus.ACCEPTED,
-//         messages: `Data of establishment ${req.params.id} modified`,
-//         data: null
-//     })
-// })
-
-// DELETE to delete establishment
-// Contemplating if we should have this because it's not a feature we NEED
 
 module.exports = router;
