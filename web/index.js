@@ -223,24 +223,20 @@ app.get('/establishment/:id', async (req, res) => {
     const estId = req.params.id;
     try {
         const estReq = await api.get(`establishments/${estId}`, { validateStatus: () => true });
-        const viewerQuery = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
-        const revReq = await api.get(`establishments/reviews/${estId}${viewerQuery}`, { validateStatus: () => true });
 
-        if (estReq.status != 200) throw Error()
+        if (estReq.status != 200) 
+            return renderErrorPage(req, res)
 
         const establishmentData = estReq.data.data[0];
-        let reviewsData = revReq.data.data;
-
-        let userReview;
-
-        if (req.session.user) {
-            userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
-            reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
-        }
 
         let isOwner = false;
-        if (req.session && req.session.user && req.session.user._id === establishmentData.ownerId) {
+        if (req.session && req.session.user && req.session.user._id === establishmentData.ownerId)
             isOwner = true;
+
+        let userReview = false;
+        if (!isOwner && req.session?.user) {
+            const revReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
+            userReview = (revReq.data?.data?.length > 0)
         }
 
         const template = isOwner ? 'establishment-owner.hbs' : 'establishment.hbs';
@@ -248,14 +244,14 @@ app.get('/establishment/:id', async (req, res) => {
         res.render(template, {
             title: establishmentData.name,
             establishment: establishmentData,
-            userReview: userReview, //*specifically* if the user has a review of this establishment
-            reviews: reviewsData, // List of all reviews, separate from user
+            userReview: userReview, // bool: whether user has a review or not
             user: req.session.user || null,
             css: ['/css/style.css', '/css/establishment.css'],
             js: ['/js/establishment.js'],
             searchBar: true
         });
     } catch (error) {
+        console.log(error)
         return renderErrorPage(req, res)
     }
 });
