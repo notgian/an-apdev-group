@@ -38,7 +38,6 @@ const toggleReviewEdit = (id) => {
 
 const updateReviewRating = (star, rating) => {
     let starsContainer = star.parentElement
-    console.log(starsContainer)
     const ratingValue = starsContainer.getElementsByClassName("rating-value")[0];
     const ratingText = starsContainer.getElementsByClassName("rating-text")[0];
     const ratingStars = starsContainer.getElementsByClassName("rating-stars");
@@ -66,13 +65,15 @@ const saveReview = async (id) => {
     if (!userReview)
         return;
 
+    console.log(id)
+
     const ratingValue = userReview.getElementsByClassName("rating-value")[0];
     const reviewBody = userReview.getElementsByClassName("review-editarea-text")[0];
 
     const rating = Number(ratingValue.value)
     const comment = reviewBody.value
 
-    const editReq = await fetch('/editreview/{{establishment._id}}', {
+    const editReq = await fetch(`/editreview/${establishmentId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({rating: rating, comment: comment}),
@@ -211,21 +212,40 @@ const createUserReviewHTML = (review) => {
     `
 }
 
-const renderReviews = async (rstrId, count=10, offset=0) => {
-    // Clear all previous reviews
-    const reviewsList = document.getElementById('reviews-list');
-    reviewsList.innerHTML = '';
+const renderReviews = async (rstrId, page = 1) => { 
+    // no validation for count and offset here so prayge
+    const count = 10
+    const offset = (page-1) * 10
 
-    const markReq = await fetch(`/reviews/${rstrId}`, {
+    var apiUrl = `/reviews/${rstrId}?offset=${offset}&count=${count}`;
+    
+    // Disable buttons temporarily so user doesn't spam them
+    const reviewButtons = document.getElementById('reviews-page-buttons').getElementsByTagName('button');
+    const backButton  = reviewButtons[0];
+    const nextButton  = reviewButtons[1];
+    backButton.disabled = true
+    nextButton.disabled = true
+
+    // If there is a search query
+    const searchValueEl = document.getElementById('review-search-value');
+    const searchQry = searchValueEl.value.trim();
+
+    if (searchQry != '') {
+        apiUrl += `&comment=${searchQry}`
+    }
+
+    const markReq = await fetch(apiUrl, {
         method: 'GET',
     });
     const revJson = await markReq.json();
     const revData = revJson.data;
-    console.log(revData)
 
     const userReview = revData?.userReview;
     const reviews = revData?.reviews;
-    console.log(reviews)
+
+    // Clear all previous reviews
+    const reviewsList = document.getElementById('reviews-list');
+    reviewsList.innerHTML = '';
 
     if (userReview) 
         reviewsList.innerHTML += createUserReviewHTML(userReview)
@@ -234,8 +254,45 @@ const renderReviews = async (rstrId, count=10, offset=0) => {
         reviewsList.innerHTML += createReviewHTML(review);
     }
 
+    let realCount = Math.min(count, reviews?.length)
+
+    // update reviews result count
+    document.getElementById('reviews-result-count').innerText = `Showing ${realCount} results`;
+    
+    // update reviews page number result count
+    document.getElementById('reviews-page-number').innerText = `Page ${page}`;
+    
+    // update page number
+    document.getElementById('reviews-page').value = page;
+
+    // update review-buttons
+    backButton.disabled = page <= 1 ? true : false
+    nextButton.disabled = reviews?.length < count ? true : false
 }
 
+const nextPageReviews = () => {
+    // runs under the assumption this will be valid
+    const pageNumber = Number(document.getElementById('reviews-page').value)
+    renderReviews(establishmentId, pageNumber+1)
+}
+
+const prevPageReviews = () => {
+    // runs under the assumption this will be valid
+    const pageNumber = Number(document.getElementById('reviews-page').value)
+    renderReviews(establishmentId, pageNumber-1)
+}
+
+const searchReviews = () => {
+    const searchBar = document.getElementById('review-search-bar');
+    const searchQuery = searchBar?.value.trim();
+
+    const searchValueEl = document.getElementById('review-search-value');
+    searchValueEl.value = searchQuery;
+
+    renderReviews(establishmentId, 1) // render page 1 w/ the search query
+}
+
+// const reviewsNextPage
 window.addEventListener('DOMContentLoaded', (e) => {
     renderReviews(establishmentId)
 })

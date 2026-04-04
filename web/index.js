@@ -281,17 +281,17 @@ app.get('/reviews/:rstrId', async (req, res) => {
         if ('count' in req.query) {
             let countNum = Number(req.query.count);
             if (!isNaN(countNum)) 
-                COUNT = countNum;
+                count = countNum;
             else 
                 return res.send({
                     status: httpStatus.BAD_REQUEST,
-                    message: "Malformed Query. The count parameter must be a valid number.",
+                    message: "Invalid value for count.",
                     data: null
                 });
-            if (COUNT < 1)
+            if (count < 1)
                 return res.send({
                     status: httpStatus.BAD_REQUEST,
-                    message: "Malformed Query. The count parameter must be greater than 1.",
+                    message: "Count must be >= 1.",
                     data: null
                 });
         }
@@ -303,8 +303,15 @@ app.get('/reviews/:rstrId', async (req, res) => {
                 message: 'establishment not found.' 
             });
 
-        const viewerId = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
-        const revReq = await api.get(`establishments/reviews/${estId}${viewerId}`, { validateStatus: () => true });
+        let reviewQuery = `establishments/reviews/${estId}?offset=${offset}&count=${count}`;
+
+        if (req.session?.user)
+            reviewQuery += `&viewerId=${req.session.user._id}`
+        if ('comment' in req.query)
+            reviewQuery += `&comment=${req.query.comment}`
+
+        // const viewerQry = (req.session && req.session.user) ? `viewerId=${req.session.user._id}` : '';
+        const revReq = await api.get(reviewQuery, { validateStatus: () => true });
 
         const establishmentData = estReq.data.data[0];
         let reviewsData = revReq.data.data;

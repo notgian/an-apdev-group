@@ -47,13 +47,28 @@
 
         <div id="review-search">
             <input placeholder="Search reviews..." type="text" id="review-search-bar" />
-            <button id="review-search-button">Search</button>
+            <button id="review-search-button" onclick="searchReviews()">Search</button>
+            <input id="review-search-value" type="hidden" value=""> 
         </div>
 
         <div id="reviews-list">
         </div>
+
+        <div id="reviews-pagination-container">
+            <strong>
+                <span id="reviews-result-count">Showing 0 results</span>
+            </strong>
+            
+            <span id="reviews-page-buttons">
+                <button onclick="prevPageReviews()"> < </button>
+                <button onclick="nextPageReviews()"> > </button>
+            </span>
+            <input id="reviews-page" type="hidden" value=1> 
+            <strong>
+                <span id="reviews-page-number">Page 1</span>
+            </strong>
+        </div>
         
-        <button id="view-more-btn">View More</button>
     </div>
 </main>
 
