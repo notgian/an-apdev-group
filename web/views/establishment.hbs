@@ -18,9 +18,8 @@
 
     <div class="establishment-right">
         {{#if userReview}}
-            <h2>Reviews</h2>
+        {{!-- do not render form  --}}
         {{else}}
-
             {{#if user}}
             <form id="review-form" method="POST" action="/postreview/{{establishment._id}}" enctype="multipart/form-data">
                 <span class="review-rating star-rating-selector"> 
@@ -52,79 +51,6 @@
         </div>
 
         <div id="reviews-list">
-            {{#if userReview}}
-                <div class="review" id="{{userReview.userId._id}}" data-author="{{userReview.userId._id}}" data-reviewid="{{userReview._id}}">
-                    <div style="display: flex; justify-content: space-between">
-                        <span>
-                            <strong>{{userReview.userId.username}}</strong> • {{#renderStarsHTML userReview.rating}}{{/renderStarsHTML}}
-                        </span>
-                        <span>
-                            <span id="review-delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </span>
-                            <span id="review-edit" onclick="toggleReviewEdit('{{userReview.userId._id}}')">
-                                <i class="fa-solid fa-pen"></i>
-                            </span>
-                        </span>
-                    </div>
-                    <div class="review-comment">
-                        <p class="review-comment-text">{{userReview.comment}}</p>
-                        <div class="review-editarea">
-                            <span class="review-rating star-rating-selector"> 
-                                <input type="hidden" name="rating" class="rating-value" value="{{userReview.rating}}" autocomplete="off"/>
-                                <span class="rating-text"></span>
-                                <span onclick="updateReviewRating(this, 1)" class="rating-stars stars">☆</span>
-                                <span onclick="updateReviewRating(this, 2)" class="rating-stars stars">☆</span>
-                                <span onclick="updateReviewRating(this, 3)" class="rating-stars stars">☆</span>
-                                <span onclick="updateReviewRating(this, 4)" class="rating-stars stars">☆</span>
-                                <span onclick="updateReviewRating(this, 5)" class="rating-stars stars">☆</span>
-                            </span>
-                            <textarea class="review-editarea-text"></textarea>
-                            <button class="review-editarea-cancel" onclick="toggleReviewEdit('{{userReview.userId._id}}')">Cancel</button> 
-                            <button class="review-editarea-save" onclick="saveReview('{{userReview.userId._id}}')">Save</button> 
-                        </div>
-                    </div>
-                    <div>
-                        <span onclick="markReview(this, 'helpful')">
-                            <i class="fa-regular fa-thumbs-up"></i>
-                            <span class="review-helpful-count"> {{userReview.helpfulCount}} </span>
-                        </span>
-                        <span onclick="markReview(this, 'unhelpful')">
-                            <i class="fa-regular fa-thumbs-down"></i>
-                            <span class="review-unhelpful-count"> {{userReview.unhelpfulCount}} </span>
-                        </span>
-                    </div>
-                </div>
-
-            {{/if}}
-
-            {{#each reviews}}
-                <div class="review" data-author="{{this.userId._id}}" data-reviewid="{{this._id}}">
-                    <div>
-                        <strong>{{this.userId.username}}</strong> • {{#renderStarsHTML this.rating}}{{/renderStarsHTML}}
-                        <p>{{this.comment}}</p>
-                    </div>
-                    <div>
-                        <span onclick="markReview(this, 'helpful')">
-                            <i class="fa-regular fa-thumbs-up"></i>
-                            <span class="review-helpful-count"> {{this.helpfulCount}} </span>
-                        </span>
-                        <span onclick="markReview(this, 'unhelpful')">
-                            <i class="fa-regular fa-thumbs-down"></i>
-                            <span class="review-unhelpful-count"> {{this.unhelpfulCount}} </span>
-                        </span>
-                    </div>
-
-                    {{#if this.ownerResponse}}
-                        <div class="review-response">
-                            <p> 
-                                <strong>{{this.ownerResponse.ownerId.username}} </strong> <br />
-                                {{this.ownerResponse.comment}}
-                            </p>
-                        </div>
-                    {{/if}}
-                </div>
-            {{/each}} 
         </div>
         
         <button id="view-more-btn">View More</button>
@@ -133,145 +59,8 @@
 
 
 <script defer>
-    {{#if userReview}}
-    const reviewDelete = document.getElementById('review-delete')
-    if (reviewDelete)
-        reviewDelete.addEventListener('click', async (e) => {
-            const proceedDelete = confirm("Delete user review?")
-            const deleteReq = await fetch('/deletereview/{{userReview.restaurantId}}', {
-                method: 'DELETE',
-            });
-
-            const deleteRes = await deleteReq.json();
-            alert(deleteRes.message);
-            window.location.reload();
-        });
-    {{/if}}
-
-    const toggleReviewEdit = (id) => {
-        const userReview = document.getElementById(id);
-        if (!userReview)
-            return
-
-        const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
-        const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
-
-        if (!userReviewText || !userReviewEditArea)
-            return
-        
-        // Toggle editing on
-        if (userReviewText.style.display != "none") {
-            userReviewText.style.display = "none";
-            userReviewEditArea.style.display = "block";
-            userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.innerText
-        } 
-        // Toggle editing off
-        else {
-            userReviewText.style.display = "block";
-            userReviewEditArea.style.display = "none";
-        }
-
-        let starObj = userReview.getElementsByClassName("star-rating-selector")[0].getElementsByClassName("stars")[0]
-        updateReviewRating(starObj, -1);
-    }
-
-    const updateReviewRating = (star, rating) => {
-        let starsContainer = star.parentElement
-        console.log(starsContainer)
-        const ratingValue = starsContainer.getElementsByClassName("rating-value")[0];
-        const ratingText = starsContainer.getElementsByClassName("rating-text")[0];
-        const ratingStars = starsContainer.getElementsByClassName("rating-stars");
-
-        if (!ratingValue || !ratingText || !ratingStars)
-            return console.log(ratingValue)
-
-        if (rating < 1 || rating > 5)
-            rating = ratingValue.value;
-
-        for(i=0; i<5; i++) {
-            let star = '☆'
-            if (i < rating)                            
-                star = '★';
-            ratingStars[i].innerText = star;
-        }
-
-        ratingText.innerText = rating+"/5"
-        ratingValue.value = rating
-
-    }
-
-    const saveReview = async (id) => {
-        const userReview = document.getElementById(id);
-        if (!userReview)
-            return;
-
-        const ratingValue = userReview.getElementsByClassName("rating-value")[0];
-        const reviewBody = userReview.getElementsByClassName("review-editarea-text")[0];
-
-        const rating = Number(ratingValue.value)
-        const comment = reviewBody.value
-
-        const editReq = await fetch('/editreview/{{establishment._id}}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({rating: rating, comment: comment}),
-        })
-
-        const editRes = await editReq.json()
-
-        alert(editRes.message)
-        toggleReviewEdit(id);
-
-        if (editRes.status == 200) {
-            let newRating = editRes.data.rating
-            let newComment = editRes.data.comment
-
-            let starsStr = ''
-            for(i=0; i<5; i++) {
-                let star = '☆'
-                if (i < newRating)                            
-                    star = '★';
-                starsStr += star;
-            }
-            userReview.getElementsByClassName("star-rating")[0].innerText = starsStr;
-            userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
-        }
-    }
-
-    const markReview = async (e, action) => {
-        // Yes it's scuffed, again, no, I won't fix this.
-        const review = e.parentElement.parentElement;
-        const rid = review.getAttribute('data-reviewid');
-
-        const markReq = await fetch(`/review/${action}/${rid}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-        const markRes = await markReq.json();
-
-        if (markRes.status == 200) {
-            const newHelpfulCount = markRes.data.helpfulCount;
-            const newUnhelpfulCount = markRes.data.unhelpfulCount;
-
-            e.parentElement.getElementsByClassName('review-helpful-count')[0].innerText = newHelpfulCount;
-            e.parentElement.getElementsByClassName('review-unhelpful-count')[0].innerText = newUnhelpfulCount;
-        }
-    }
-
+    const establishmentId = '{{establishment._id}}'
 </script>
 
 <style>
-    .review-response {
-        margin-left: 1em;
-    }
-    .review-editarea {
-        width: 100%;
-        display: none;
-    }
-    .review-editarea > textarea {
-        width: 100%;
-        resize: none;
-        height: 5vh;
-    }
 </style>

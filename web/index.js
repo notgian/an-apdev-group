@@ -252,11 +252,94 @@ app.get('/establishment/:id', async (req, res) => {
             reviews: reviewsData, // List of all reviews, separate from user
             user: req.session.user || null,
             css: ['/css/style.css', '/css/establishment.css'],
-            js: ['/js/script.js'],
+            js: ['/js/establishment.js'],
             searchBar: true
         });
     } catch (error) {
         return renderErrorPage(req, res)
+    }
+});
+
+// Endpoint for dynamically getting the reviews
+app.get('/reviews/:rstrId', async (req, res) => {
+    const estId = req.params.rstrId;
+    var offset = 0;
+    var count = 10;
+
+    try {
+        if ('offset' in req.query) {
+            let offsetNum = Number(req.query.offset);
+            if (!isNaN(offsetNum))
+                offset = offsetNum;
+            else
+                return res.send({
+                    status: 400,
+                    message: "Invalid value for offset.",
+                });
+            if (offset < 0)
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: "Offset must be >= 0.",
+                });
+        } 
+        if ('count' in req.query) {
+            let countNum = Number(req.query.count);
+            if (!isNaN(countNum)) 
+                COUNT = countNum;
+            else 
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: "Malformed Query. The count parameter must be a valid number.",
+                    data: null
+                });
+            if (COUNT < 1)
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: "Malformed Query. The count parameter must be greater than 1.",
+                    data: null
+                });
+        }
+
+        const estReq = await api.get(`establishments/${estId}`, { validateStatus: () => true });
+        if (estReq.status != 200) 
+            return res.sendStatus(404).json({
+                status: 404,
+                message: 'establishment not found.' 
+            });
+
+        const viewerId = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
+        const revReq = await api.get(`establishments/reviews/${estId}${viewerId}`, { validateStatus: () => true });
+
+        const establishmentData = estReq.data.data[0];
+        let reviewsData = revReq.data.data;
+        
+        // get user review. If offset is 0 (page 1) really try
+        // to find the user review.
+        let userReview;
+        if (req.session.user) {
+            userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
+            reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
+        }
+        // really try to find the user review on the first page.
+        if (req.session.user && !userReview && offset == 0) {
+            const userRevReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
+            console.log(userRevReq)
+            userReview = userRevReq.data.data[0] || undefined;
+        }
+        
+        // return the reviews data
+        res.status(200).json({
+            status: 200,
+            message: 'returned reviews.',
+            data: {
+                userReview: offset == 0 ? userReview : undefined, // don't return the user review on subsequent pages.
+                reviews: reviewsData
+            }
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({status: 500, message: 'something went wrong...'})
     }
 });
 

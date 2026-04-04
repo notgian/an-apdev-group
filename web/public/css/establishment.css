@@ -164,4 +164,18 @@ body {
 
 #review-search-button {
     padding: 0 2em;
+    height: 36px;
+}
+
+.review-response {
+    margin-left: 1em;
+}
+.review-editarea {
+    width: 100%;
+    display: none;
+}
+.review-editarea > textarea {
+    width: 100%;
+    resize: none;
+    height: 5vh;
 }
