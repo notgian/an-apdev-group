@@ -46,6 +46,11 @@
             {{/if}}
         {{/if}}
 
+        <div id="review-search">
+            <input placeholder="Search reviews..." type="text" id="review-search-bar" />
+            <button id="review-search-button">Search</button>
+        </div>
+
         <div id="reviews-list">
             {{#if userReview}}
                 <div class="review" id="{{userReview.userId._id}}" data-author="{{userReview.userId._id}}" data-reviewid="{{userReview._id}}">

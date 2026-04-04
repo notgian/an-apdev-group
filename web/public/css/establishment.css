@@ -146,3 +146,22 @@ body {
 
 }
 
+#review-search {
+    display: flex;
+    justify-content: space-evenly;
+    flex: 1;
+    margin-bottom: 1em;
+}
+
+#review-search-bar {
+  height: 36px;
+  /* width: 150px; */
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 18px;
+  flex-grow: 1;
+}
+
+#review-search-button {
+    padding: 0 2em;
+}
