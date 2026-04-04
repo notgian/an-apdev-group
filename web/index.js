@@ -445,7 +445,8 @@ app.get('/signup', async (req, res) => {
     res.render('signup.hbs', 
         { 
             title: 'Sign Up', 
-            css: ['/css/style.css', '/css/signlog.css'] 
+            css: ['/css/style.css', '/css/signlog.css'],
+            js: ['/js/signup.js'],
         });
 });
 
@@ -464,6 +465,7 @@ app.post('/signup', async (req, res) => {
             return res.render('signup.hbs', { 
                 title: 'Sign Up', 
                 css: ['/css/style.css', '/css/signlog.css'],
+                js: ['/js/signup.js'],
                 error: signupData.message
             });
         }

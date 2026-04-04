@@ -24,7 +24,7 @@ home page
 - [ ] PREFERRED: add follower_count and following_count
 
 /signup
-- [ ] perform password validation to make sure the password is up to standard (i.e. at minimum 8 characters)
+- [x] perform password validation to make sure the password is up to standard (i.e. at minimum 8 characters)
 
 ## Backend (Web routes)
 - [ ] Put the sessions secret key in the .env and load it from there as well

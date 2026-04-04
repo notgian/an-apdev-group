@@ -17,12 +17,10 @@
                 <label for="password">Password</label>
                 <input type="password" name="password" id="signup-password" placeholder="Min. 8 characters" required>
             </div>
-
-            {{#if error}}
-            {{! TODO FOR FRONTENT: ADD STYLES TO THIS }}
-                {{error}}
-
-            {{/if}}
+            
+            <div id="signup-error">
+                {{#if error}} {{error}} {{/if}}
+            </div>
 
             <button type="submit" class="btn-main">Sign Up</button>
         </form>
