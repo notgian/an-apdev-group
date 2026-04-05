@@ -504,52 +504,99 @@ router.get("/reviews/:id", async (req, res) => {
 
     const foundUser = await query.exec()
 
-    if (foundUser.length > 0) {
-        let qry = {userId: req.params.id}
-        // OPTIONAL restaurant filter
-        if ('rstid' in req.query) {
-            qry['restaurantId'] = req.query.rstid;
-        }
-        try {
-            let reviews = await Reviews.find(qry)
-                .populate('restaurantId')
-                .lean()
-
-            const viewerId = req.query.viewerId;
-            if (viewerId) {
-                reviews = reviews.map(review => {
-                    let marked = null;
-                    if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
-                        marked = 'helpful';
-                    } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
-                        marked = 'unhelpful';
-                    }
-                    return { ...review, marked: marked };
-                });
-            }
-
-            res.status(httpStatus.OK).json({
-                status: httpStatus.OK,
-                message: `OK`,
-                data: reviews
-            }) ;
-        } 
-        catch (err) {
-            res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-                status: httpStatus.INTERNAL_SERVER_ERROR,
-                message: `Could not fetch user reviews ${err.message}`,
-                data: null
-            }) ;
-        }
-    } else {
-        res.status(httpStatus.NOT_FOUND).json({
+    if (foundUser.length <= 0)
+        return res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
             message: `The user does not exist!`,
             data: null
         }) ;
-        return;
+
+    var OFFSET = 0;
+    var COUNT = 5;
+
+    let qry = {
+        userId: req.params.id
     }
-    var userFound = true;
+
+    // OPTIONAL search filter (comment)
+    if ('comment' in req.query) {
+        qry['comment'] = {$regex: `.*${req.query.comment}.*`, $options: 'i'}
+    }
+    // OPTIONAL restaurant filter
+    if ('rstid' in req.query) {
+        qry['restaurantId'] = req.query.rstid;
+    }
+
+    if ('offset' in req.query) {
+        let offsetNum = Number(req.query.offset);
+        if (!isNaN(offsetNum))
+            OFFSET = offsetNum;
+        else 
+            return res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The offset parameter must be a valid number.",
+                data: null
+            });
+        if (OFFSET < 0)
+            return res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The offset parameter must be greater than 0.",
+                data: null
+            });
+    } 
+
+    if ('count' in req.query) {
+        let countNum = Number(req.query.count);
+        if (!isNaN(countNum)) 
+            COUNT = countNum;
+        else
+            return res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The count parameter must be a valid number.",
+                data: null
+            });
+        if (COUNT < 1) 
+            return res.status(httpStatus.BAD_REQUEST).json({
+                status: httpStatus.BAD_REQUEST,
+                message: "Malformed Query. The count parameter must be greater than 1.",
+                data: null
+            });
+    }
+
+    try {
+        let reviews = await Reviews.find(qry)
+            .populate('restaurantId')
+            .skip(OFFSET)
+            .limit(COUNT)    
+            .lean()
+
+        const viewerId = req.query.viewerId;
+        if (viewerId) {
+            reviews = reviews.map(review => {
+                let marked = null;
+                if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
+                    marked = 'helpful';
+                } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
+                    marked = 'unhelpful';
+                }
+                return { ...review, marked: marked };
+            });
+        }
+
+        res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: `OK`,
+            data: reviews
+        }) ;
+    } 
+    catch (err) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not fetch user reviews ${err.message}`,
+            data: null
+        }) ;
+    }
+
 });
 
 /**
