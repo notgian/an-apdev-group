@@ -58,7 +58,7 @@
                         <p><a href="/profile/{{this._id}}"><strong>{{this.username}}</strong></a></p>
                         <p class="small-text">{{this.followers.length}} followers</p>
                     </div>
-                    <button class="follow-btn">Follow</button>
+                    <button class="follow-btn" onclick="followUser('{{this._id}}')">Follow</button>
                 </div>
             {{else}}
                 <p>No other foodies found.</p>

@@ -11,7 +11,7 @@
             <h2 id="username-display">{{profileData.username}}</h2>
             <p id="user-desc">{{profileData.description}}</p>
             
-            <button class="edit-btn">Follow</button>
+            <button class="follow-btn" onclick="followUser('{{profileData._id}}')">Follow</button>
         </div>
 
         <div class="user-activity">
@@ -40,7 +40,7 @@
                     <p><a href="/profile/{{this._id}}"><strong>{{this.username}}</strong></a></p>
                     <p class="small-text">{{this.followers.length}} followers</p>
                 </div>
-                <button class="follow-btn">Follow</button>
+                <button class="follow-btn" onclick="followUser('{{this._id}}')">Follow</button>
             </div>
         {{else}}
             <p>No suggestions available.</p>

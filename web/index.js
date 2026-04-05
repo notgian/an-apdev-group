@@ -642,7 +642,8 @@ app.get('/profile/:id', async (req, res) => {
     const profileId = req.params.id;
     try {
         const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
-        if (userReq.status !== 200) return res.status(404).send("User not found");
+        if (userReq.status !== 200)
+            return renderErrorPage(req, res)
 
         const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
@@ -660,7 +661,7 @@ app.get('/profile/:id', async (req, res) => {
             suggestedFoodies: suggestedFoodies,
             user: req.session ? req.session.user : null,
             css: ['/css/style.css', '/css/profile.css'],
-            js: ['/js/script.js'],
+            js: ['/js/profile.js'],
             searchBar: true
         });
     } catch (error) {
@@ -715,30 +716,39 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
 
 })
 
-app.get('/profile/:id', async (req, res) => {
-    const profileId = req.params.id;
+app.post('/follow/:tofollowid', async (req, res) => {
+    const toFollowId = req.params.tofollowid;
+
     try {
-        const userReq = await api.get(`users/${profileId}`, { validateStatus: () => true });
-        if (userReq.status !== 200) throw Error()
-
-        const viewerQuery = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
-        const reviewsReq = await api.get(`users/reviews/${profileId}${viewerQuery}`, { validateStatus: () => true });
-        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
-
-
-        res.render('profile-other.hbs', {
-            title: 'User Profile',
-            profileData: userReq.data.data,
-            reviews: reviews,
-            user: req.session ? req.session.user : null,
-            css: ['/css/style.css', '/css/profile.css'],
-            js: ['/js/script.js'],
-            searchBar: true
+        const api = createApiHelper(req, res);
+        const apiRes = await api.post(`users/follow/${toFollowId}`, {}, {
+            validateStatus: () => true 
         });
+
+        // This is intended to return as such
+        res.status(apiRes.status).json(apiRes.data);
     } catch (error) {
-        return renderErrorPage(req, res)
+        // This is intended to return as such
+        res.status(500).json({message:"Could not follow user:" + error});
     }
-})
+});
+
+app.post('/unfollow/:tofollowid', async (req, res) => {
+    const toFollowId = req.params.tofollowid;
+
+    try {
+        const api = createApiHelper(req, res);
+        const apiRes = await api.post(`users/unfollow/${toFollowId}`, {}, {
+            validateStatus: () => true 
+        });
+
+        // This is intended to return as such
+        res.status(apiRes.status).json(apiRes.data);
+    } catch (error) {
+        // This is intended to return as such
+        res.status(500).json({message:"Could not unfollow user:" + error});
+    }
+});
 
 app.post('/review/:markop/:reviewId', async (req, res) => {
     if (!req.session || !req.session.user || !req.session.accessToken) {
