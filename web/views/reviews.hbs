@@ -1,0 +1,33 @@
+<main class="content-wrapper">
+    <div class='user-information'>
+        <img src="{{user.avatar}}" id="profile-pic" class="avatar-large user-info-block" alt="Profile Picture">
+        <div class='user-info-block'> 
+            <h2 class="username"><a href='/profile/{{user._id}}'>{{user.username}}</a></h2>
+            <p class="userdesc">{{user.description}}</p>
+        </div>
+    </div>
+
+
+    <div class='user-reviews-list'>
+    {{#if reviews}}
+        {{#each reviews}}
+            <div class='user-review'>
+                <div class='review-header'>
+                    <h2 class='review-estab'>
+                        <a href='/establishment/{{this.restaurantId._id}}'>{{this.restaurantId.name}}</a>
+                    </h2>
+                    <span class='review-rating-stars'> {{#renderStarsHTML this.rating}}{{/renderStarsHTML}} </span>
+                </div>
+
+                <div class='review-body'>
+                    {{this.comment}}
+                </div>
+            </div>
+        {{/each}}
+    {{else}}
+        <div class='no-reviews-view'>
+            <h2> No reviews to show... </h2>
+        </div>
+    {{/if}}
+    </div>
+</main>

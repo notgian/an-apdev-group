@@ -750,6 +750,36 @@ app.post('/unfollow/:tofollowid', async (req, res) => {
     }
 });
 
+app.get('/profile/reviews/:userid', async (req, res) => {
+    const profileId = req.params.userid;
+    try {
+        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
+        if (userReq.status !== 200)
+            return renderErrorPage(req, res)
+        
+        // nobody has to know...
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}?count=1000`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
+
+        let renderData = {
+            title: '6-7-ate-9 | Reviews',
+            css: [ '/css/style.css', '/css/reviews.css' ],
+            js: [ '/js/reviews.js' ],
+            searchBar: true,
+            loginContainer: true,
+            user: userReq.data.data,
+            reviews: reviews
+        }
+
+        res.render('reviews.hbs', renderData )
+
+    } catch (error) {
+        return renderErrorPage(req, res)
+    }
+
+
+})
+
 app.post('/review/:markop/:reviewId', async (req, res) => {
     if (!req.session || !req.session.user || !req.session.accessToken) {
         // This is intended to return as such

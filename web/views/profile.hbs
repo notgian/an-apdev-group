@@ -41,7 +41,7 @@
             </div>
 
             <div class="profile-actions">
-                <button class="viewrev-btn">View All Reviews</button>
+                <button class="viewrev-btn" onclick="window.location.href='/profile/reviews/{{user._id}}'">View All Reviews</button>
                 <form action="/logout" method="POST" style="display:inline;">
                     <button type="submit" class="logout-btn">Log Out</button>
                 </form>
