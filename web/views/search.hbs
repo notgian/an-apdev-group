@@ -1,5 +1,5 @@
 <main class="content-container establishments-page">
-    <div class="advanced-search-container" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f0b6d4;">
+    <div class="advanced-search-container" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f0b6d4; max-width: 650px; margin: 0 auto;">
             <h3 style="color: #d14d72; margin-top: 0;">Filter Results</h3>
             <form action="/search" method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <input type="hidden" name="query" value="{{query}}"> 
@@ -9,13 +9,13 @@
                 </div>
 
                 <div class="input-group" style="margin-bottom: 0;">
-                    <input type="number" name="minRating" placeholder="Min Rating (0-5)" min="0" max="5" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <input type="number" name="minRating" placeholder="Min Rating (0-5)" min="0" max="5" style="width: 80px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                 </div>
 
                 <div class="input-group" style="margin-bottom: 0;">
-                    <input type="number" name="minPrice" placeholder="Min Price (₱)" min="0" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 120px;">
+                    <input type="number" name="minPrice" placeholder="Min Price (₱)" min="0" style="width: 110px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                     <span style="color: #666;">-</span>
-                    <input type="number" name="maxPrice" placeholder="Max Price (₱)" min="0" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 120px;">
+                    <input type="number" name="maxPrice" placeholder="Max Price (₱)" min="0" style="width: 110px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                 </div>
 
                 <button type="submit" style="padding: 8px 15px;">Apply Filters</button>
