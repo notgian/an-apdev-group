@@ -33,10 +33,13 @@
     {{!-- Right Side: Sidebar for suggestions --}}
     <aside id="other-users" class="other-users">
         <h3>Other Foodies to Follow</h3>
-        {{#each otherFoodies}}
+        {{#each suggestedFoodies}}
             <div class="user-card">
                 <img src="{{this.avatar}}" class="avatar-med" alt="{{this.username}}">
-                <p><a href="/profile/{{this.username}}">{{this.username}}</a></p>
+               <div class="user-card-info">
+                    <p><a href="/profile/{{this._id}}"><strong>{{this.username}}</strong></a></p>
+                    <p class="small-text">{{this.followers.length}} followers</p>
+                </div>
                 <button class="follow-btn">Follow</button>
             </div>
         {{else}}

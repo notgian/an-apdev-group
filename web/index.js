@@ -630,7 +630,7 @@ app.get('/profile', async (req, res) => {
             reviews: reviews,
             suggestedFoodies: suggestedFoodies, // Passed to Handlebars
             css: ['/css/style.css', '/css/profile.css'],
-            js: ['/js/script.js'],
+            js: ['/js/profile.js'],
             searchBar: true
         });
     } catch (err) {
