@@ -19,7 +19,7 @@ home page
 
 /search
 - [x] add search filters (see API's GET establishment route for the 
-- [ ] PREFERRED: unify styles with establishments page.
+- [x] PREFERRED: unify styles with establishments page.
 
 /profile
 - [ ] actually render the other foodies to follow thingy (this shall be passed through the web routes as 'foodies', if this will end up really being added)

@@ -99,25 +99,25 @@
 
 /* Pagination container */
 #pagination {
-  display: flex;              /* one row */
-  justify-content: center;    /* center horizontally */
-  align-items: center;        /* align vertically */
-  gap: 30px;                  /* spacing between items */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
   margin-top: 20px;
   padding-top: 10px;
-  width: 100%;                /* span full page width */
+  width: 100%;
 }
 
 /* Links */
 #pagination a {
-  color: #d14d72;             /* pink text */
+  color: #d14d72;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
 }
 
 #pagination a:hover {
-  text-decoration: underline; /* subtle hover effect */
+  text-decoration: underline;
 }
 
 /* Results info text */

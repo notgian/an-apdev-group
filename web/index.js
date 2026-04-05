@@ -456,6 +456,8 @@ app.get('/search', async (req, res) => {
     const minRating = req.query.minRating || '';
     const minPrice = req.query.minPrice || '';
     const maxPrice = req.query.maxPrice || '';
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
 
     try {
         let searchReq = await axios.get(`${API_URL}establishments`, {
@@ -470,6 +472,9 @@ app.get('/search', async (req, res) => {
         });
         
         let results = searchReq.status === 200 ? searchReq.data.data : [];
+        let totalCount = searchReq.status === 200 ? searchReq.data.totalCount : 0;
+        let start = (page - 1) * limit + 1;
+        let end = Math.min(page * limit, totalCount);
 
         res.render('search.hbs', {
             title: 'Search Results',
@@ -479,7 +484,12 @@ app.get('/search', async (req, res) => {
             user: req.session ? req.session.user : null,
             css: ['/css/style.css', '/css/search.css'],
             js: ['/js/script.js'],
-            searchBar: true
+            searchBar: true,
+            prevPage: page > 1 ? page - 1 : null,
+            nextPage: end < totalCount ? page + 1 : null,
+            start,
+            end,
+            totalCount
         });
     } catch (error) {
         return renderErrorPage(req, res, message="Something seemed to go wrong with your search...")
