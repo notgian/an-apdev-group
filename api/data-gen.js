@@ -25,7 +25,7 @@ const API_PUBLIC_HOSTNAME = process.env.API_PUBLIC_HOSTNAME;
 const API_PORT = process.env.API_PORT;
 
 const API_LOC = (process.env.ENVIRONMENT == 'dev') ? 
-    `${API_HOSTNAME}:${API_PORT}`: 
+    `${API_PUBLIC_HOSTNAME}:${API_PORT}`: 
     `${API_PUBLIC_HOSTNAME}`;
 
 const STATIC_RESTAURANTS = [

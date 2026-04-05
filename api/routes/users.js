@@ -30,9 +30,14 @@ const API_LOC = (process.env.ENVIRONMENT == 'dev') ?
 const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // multer for uploading files
+// TODO: please do check if you still need to separate this to prod anddev given our deployment setup
 const MEDIA_PATH = (process.env.ENVIRONMENT == 'dev') ?
     '/app/data/media' : 
-    './data/media'
+    './data/media' ;
+
+const TRASH_PATH = (process.env.ENVIRONMENT == 'dev') ?
+    '/app/data/.trash' : 
+    './data/.trash' ;
 
 // For file uploading
 const storage = multer.diskStorage({
@@ -231,12 +236,15 @@ router.get('/:id', async (req, res) => {
     const foundUser = await query.exec()
 
     if (foundUser != null) {
+        foundUser.follower_count = foundUser.followers ? foundUser.followers.length : 0;
+        foundUser.following_count = foundUser.following ? foundUser.following.length : 0;
+
         res.status(httpStatus.OK).json({
             status: httpStatus.OK,
             message: "OK",
             data: foundUser
         });
-    } 
+    }
     else {
         res.status(httpStatus.NOT_FOUND).json({
             status: httpStatus.NOT_FOUND,
@@ -245,6 +253,41 @@ router.get('/:id', async (req, res) => {
         });
     }
 
+});
+
+/**
+ * @route   GET /suggested/:id
+ * @desc    Get suggested foodies to follow (excludes self and already followed users)
+ * @access  Public
+ */
+router.get('/suggested/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const currentUser = await User.findById(userId).lean();
+        
+        if (!currentUser) {
+            return res.status(httpStatus.NOT_FOUND).json({ message: "User not found" });
+        }
+
+        const ignoreIds = currentUser.following ? [...currentUser.following, userId] : [userId];
+
+        const suggested = await User.find({ _id: { $nin: ignoreIds }, role: 'user' })
+            .limit(5)
+            .select('-password')
+            .lean();
+
+        res.status(httpStatus.OK).json({
+            status: httpStatus.OK,
+            message: "OK",
+            data: suggested
+        });
+    } catch (err) {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+            status: httpStatus.INTERNAL_SERVER_ERROR,
+            message: `Could not fetch suggested users: ${err.message}`,
+            data: null
+        });
+    }
 });
 
 /**
@@ -448,7 +491,7 @@ router.get("/reviews/:id", async (req, res) => {
         new mongoose.Types.ObjectId(userId)
     }
     catch (err) {
-        res.status(httpStatus.BAD_REQUEST).json({
+        return res.status(httpStatus.BAD_REQUEST).json({
             status: httpStatus.BAD_REQUEST,
             message: `Invalid ID format: ${err.message}`,
             data: null
@@ -467,11 +510,23 @@ router.get("/reviews/:id", async (req, res) => {
         if ('rstid' in req.query) {
             qry['restaurantId'] = req.query.rstid;
         }
-        // Find and return their reviews
         try {
-            const reviews = await Reviews.find(qry)
+            let reviews = await Reviews.find(qry)
                 .populate('restaurantId')
                 .lean()
+
+            const viewerId = req.query.viewerId;
+            if (viewerId) {
+                reviews = reviews.map(review => {
+                    let marked = null;
+                    if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
+                        marked = 'helpful';
+                    } else if (review.unhelpfulVotes && review.unhelpfulVotes.some(id => id.toString() === viewerId)) {
+                        marked = 'unhelpful';
+                    }
+                    return { ...review, marked: marked };
+                });
+            }
 
             res.status(httpStatus.OK).json({
                 status: httpStatus.OK,
@@ -861,7 +916,24 @@ router.delete('/reviews/:rstrid', authenticateToken, async (req, res) => {
             lean: true
         });
 
-        // Update restablishment avg rating
+        // move current media to a trash folder, rather than fully deleting it.
+        for (let media_url of deletedReview.media) {
+            let url_match = media_url.match(/https?:\/\/([\w\:\.\-]+)[\/\w]+(\/[\w\:\.\-\_\=\+\?\*\|\"\'\<\>\,\s]+)$/im);
+            let media_loc = url_match[1]
+            let filename = url_match[2].substring(1)
+            // find file
+            if (media_loc == API_LOC) {
+                let filepath = path.join(MEDIA_PATH, filename)
+                if (!fs.existsSync(filepath))
+                    continue // skip file if not found
+                // move file
+                console.log('File should exist!')
+                fs.renameSync(filepath, path.join(TRASH_PATH, filename))
+            }
+        }
+
+
+        // Update restablishment avg rating)
         let qry = { restaurantId: restaurantId }
         const reviewQry = Reviews.find(qry)
             .select('rating')
@@ -887,6 +959,7 @@ router.delete('/reviews/:rstrid', authenticateToken, async (req, res) => {
         });
     }
     catch (err) {
+        console.log(err)
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
             status: httpStatus.INTERNAL_SERVER_ERROR,
             message: 'Could not delete the review.',
@@ -1102,7 +1175,7 @@ router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
     const restaurantId = foundRstr._id;
     const reviewFilter = {
         userId: userId,
-        restaurantId: restaurantId
+        restaurantId: restaurantId,
     }
 
     const foundReview = await Reviews.findOne(reviewFilter, 'ownerResponse') 
@@ -1118,7 +1191,9 @@ router.put('/owner_response/:userid', authenticateToken, async (req, res) => {
         ownerResponse: {
             ownerId: ownerId,
             comment: comment,
-            respondedAt: foundReview.ownerResponse.respondedAt
+            respondedAt: foundReview.ownerResponse.respondedAt,
+            updatedAt: new Date(),
+            edited: true
         }
     }
     const updatedReview = await Reviews.findOneAndUpdate(reviewFilter, updateReview, {
@@ -1771,9 +1846,6 @@ router.post('/unfollow/:otherId', authenticateToken, async (req, res) => {
         });
     }
 })
-
-// DELETE to delete user
-// Contemplating if we should have this because it's not a feature we NEED
 
 
 module.exports = router;

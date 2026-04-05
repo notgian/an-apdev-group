@@ -10,6 +10,11 @@ const restaurantSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    category: {
+        type: String,
+        required: true,
+        ref: 'Cateogry'
+    },
     imageSrc: {
         type: String,
         required: true

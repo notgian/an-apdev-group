@@ -20,7 +20,6 @@ const API_URL = (process.env.ENVIRONMENT == 'dev') ?
     `http://${API_HOSTNAME}:${API_PORT}/api/v1/`: 
     `http://${API_PUBLIC_HOSTNAME}/api/v1/`;
 
-console.log('API_URL', API_URL)
 
 // Handlebars Helpers
 
@@ -105,9 +104,6 @@ const createApiHelper = (req, res) => {
                 request.headers['authorization'] = `Bearer ${newAccessToken}`;
                 return request;
             } catch (err) {
-                // This means that the axios threw an error
-                // which means the refresh token might be expired
-                //TODO: RENDER Error Page Here
                 return renderErrorPage(req, res)
             }
         }
@@ -127,7 +123,7 @@ app.use(express.static('./public'));
 app.use(express.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(session({
-    secret: 'secret-key-here',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -227,23 +223,20 @@ app.get('/establishment/:id', async (req, res) => {
     const estId = req.params.id;
     try {
         const estReq = await api.get(`establishments/${estId}`, { validateStatus: () => true });
-        const revReq = await api.get(`establishments/reviews/${estId}`, { validateStatus: () => true });
 
-        if (estReq.status != 200) throw Error()
+        if (estReq.status != 200) 
+            return renderErrorPage(req, res)
 
         const establishmentData = estReq.data.data[0];
-        let reviewsData = revReq.data.data;
-
-        let userReview;
-
-        if (req.session.user) {
-            userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
-            reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
-        }
 
         let isOwner = false;
-        if (req.session && req.session.user && req.session.user._id === establishmentData.ownerId) {
+        if (req.session && req.session.user && req.session.user._id === establishmentData.ownerId)
             isOwner = true;
+
+        let userReview = false;
+        if (!isOwner && req.session?.user) {
+            const revReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
+            userReview = (revReq.data?.data?.length > 0)
         }
 
         const template = isOwner ? 'establishment-owner.hbs' : 'establishment.hbs';
@@ -251,15 +244,105 @@ app.get('/establishment/:id', async (req, res) => {
         res.render(template, {
             title: establishmentData.name,
             establishment: establishmentData,
-            userReview: userReview, //*specifically* if the user has a review of this establishment
-            reviews: reviewsData, // List of all reviews, separate from user
+            userReview: userReview, // bool: whether user has a review or not
             user: req.session.user || null,
             css: ['/css/style.css', '/css/establishment.css'],
-            js: ['/js/script.js'],
+            js: [isOwner ? '/js/owner.js' : '/js/establishment.js'],
             searchBar: true
         });
     } catch (error) {
+        console.log(error)
         return renderErrorPage(req, res)
+    }
+});
+
+// Endpoint for dynamically getting the reviews
+app.get('/reviews/:rstrId', async (req, res) => {
+    const estId = req.params.rstrId;
+    var offset = 0;
+    var count = 10;
+
+    try {
+        if ('offset' in req.query) {
+            let offsetNum = Number(req.query.offset);
+            if (!isNaN(offsetNum))
+                offset = offsetNum;
+            else
+                return res.send({
+                    status: 400,
+                    message: "Invalid value for offset.",
+                });
+            if (offset < 0)
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: "Offset must be >= 0.",
+                });
+        } 
+        if ('count' in req.query) {
+            let countNum = Number(req.query.count);
+            if (!isNaN(countNum)) 
+                count = countNum;
+            else 
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: "Invalid value for count.",
+                    data: null
+                });
+            if (count < 1)
+                return res.send({
+                    status: httpStatus.BAD_REQUEST,
+                    message: "Count must be >= 1.",
+                    data: null
+                });
+        }
+
+        const estReq = await api.get(`establishments/${estId}`, { validateStatus: () => true });
+        if (estReq.status != 200) 
+            return res.sendStatus(404).json({
+                status: 404,
+                message: 'establishment not found.' 
+            });
+
+        let reviewQuery = `establishments/reviews/${estId}?offset=${offset}&count=${count}`;
+
+        if (req.session?.user)
+            reviewQuery += `&viewerId=${req.session.user._id}`
+        if ('comment' in req.query)
+            reviewQuery += `&comment=${req.query.comment}`
+
+        // const viewerQry = (req.session && req.session.user) ? `viewerId=${req.session.user._id}` : '';
+        const revReq = await api.get(reviewQuery, { validateStatus: () => true });
+
+        const establishmentData = estReq.data.data[0];
+        let reviewsData = revReq.data.data;
+        
+        // get user review. If offset is 0 (page 1) really try
+        // to find the user review.
+        let userReview;
+        if (req.session.user) {
+            userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
+            reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
+        }
+        // really try to find the user review on the first page.
+        if (req.session.user && !userReview && offset == 0) {
+            const userRevReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
+            console.log(userRevReq)
+            userReview = userRevReq.data.data[0] || undefined;
+        }
+        
+        // return the reviews data
+        res.status(200).json({
+            status: 200,
+            message: 'returned reviews.',
+            data: {
+                userReview: offset == 0 ? userReview : undefined, // don't return the user review on subsequent pages.
+                reviews: reviewsData
+            }
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({status: 500, message: 'something went wrong...'})
     }
 });
 
@@ -322,7 +405,6 @@ app.post('/editreview/:rstrId', async (req, res) => {
     if (comment) updatedReview['comment'] = comment;
 
     const headers = {}
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken
     try {
         const api = createApiHelper(req, res);
         const reviewRes = await api.put(`users/reviews/${rstrId}`,
@@ -348,9 +430,7 @@ app.delete('/deletereview/:rstrId', async (req, res) => {
 
     const usrsURL = API_URL+'users/'
     const headers = {}
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
-        // console.log(`${usrsURL}reviews/${req.params.rstrId}`);
         const api = createApiHelper(req, res);
         const reviewRes = await api.delete(`users/reviews/${req.params.rstrId}`,
             {
@@ -369,38 +449,38 @@ app.delete('/deletereview/:rstrId', async (req, res) => {
 })
 
 app.get('/search', async (req, res) => {
-    const searchTerm = req.query.query || ''; 
+    const searchQuery = req.query.query || ''; 
+    const city = req.query.city || '';
+    const minRating = req.query.minRating || '';
+    const minPrice = req.query.minPrice || '';
+    const maxPrice = req.query.maxPrice || '';
 
     try {
-        let searchReq = await api.get(`establishments`, {
+        let searchReq = await axios.get(`${API_URL}establishments`, {
             params: { 
-                search: searchTerm 
+                search: searchQuery,
+                city: city,
+                minRating: minRating,
+                minPrice: minPrice,
+                maxPrice: maxPrice
             },
             validateStatus: () => true
         });
-
-        let results = [];
-        if (searchReq.status === 200 && searchReq.data.status === 200) {
-            results = searchReq.data.data;
-        }
+        
+        let results = searchReq.status === 200 ? searchReq.data.data : [];
 
         res.render('search.hbs', {
-            title: '6-7-ate-9 | Search Results',
-            query: searchTerm, 
+            title: 'Search Results',
+            query: searchQuery,
+            location: city, 
             results: results,
             user: req.session ? req.session.user : null,
-            css: [
-                '/css/style.css', 
-                '/css/search.css'
-            ],
-            js: [
-                '/js/script.js'
-            ],
-            searchBar: true,
-            loginContainer: req.session.user ? false : true
+            css: ['/css/style.css', '/css/search.css'],
+            js: ['/js/script.js'],
+            searchBar: true
         });
     } catch (error) {
-        return renderErrorPage(req, res)
+        return renderErrorPage(req, res, message="Something seemed to go wrong with your search...")
     }
 });
 
@@ -408,7 +488,8 @@ app.get('/signup', async (req, res) => {
     res.render('signup.hbs', 
         { 
             title: 'Sign Up', 
-            css: ['/css/style.css', '/css/signlog.css'] 
+            css: ['/css/style.css', '/css/signlog.css'],
+            js: ['/js/signup.js'],
         });
 });
 
@@ -427,6 +508,7 @@ app.post('/signup', async (req, res) => {
             return res.render('signup.hbs', { 
                 title: 'Sign Up', 
                 css: ['/css/style.css', '/css/signlog.css'],
+                js: ['/js/signup.js'],
                 error: signupData.message
             });
         }
@@ -530,16 +612,23 @@ app.post('/logout', async (req, res) => {
 app.get('/profile', async (req, res) => {
     if (!req.session || !req.session.user) return res.redirect('/login'); 
     try {
-        const userReq = await api.get(`users/${req.session.user._id}`, { validateStatus: () => true });
-        if (userReq.status !== 200) throw Error()
+        // Fetch User Data
+        const userReq = await axios.get(`${API_URL}users/${req.session.user._id}`, { validateStatus: () => true });
+        if (userReq.status !== 200) return res.status(404).send("User not found");
 
-        const reviewsReq = await api.get(`users/reviews/${req.session.user._id}`, { validateStatus: () => true });
-        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
+        // Fetch User Reviews
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${req.session.user._id}?viewerId=${req.session.user._id}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
+
+        // Fetch Suggested Foodies
+        const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
+        const suggestedFoodies = suggestedReq.status === 200 ? suggestedReq.data.data : [];
 
         res.render('profile.hbs', {
             title: 'My Profile',
-            reviews: reviews,
             user: userReq.data.data,
+            reviews: reviews,
+            suggestedFoodies: suggestedFoodies, // Passed to Handlebars
             css: ['/css/style.css', '/css/profile.css'],
             js: ['/js/script.js'],
             searchBar: true
@@ -547,8 +636,37 @@ app.get('/profile', async (req, res) => {
     } catch (err) {
         return renderErrorPage(req, res)
     }
+});
 
-})
+app.get('/profile/:id', async (req, res) => {
+    const profileId = req.params.id;
+    try {
+        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
+        if (userReq.status !== 200) return res.status(404).send("User not found");
+
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
+
+        let suggestedFoodies = [];
+        if (req.session && req.session.user) {
+            const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
+            if (suggestedReq.status === 200) suggestedFoodies = suggestedReq.data.data;
+        }
+
+        res.render('profile-other.hbs', {
+            title: 'User Profile',
+            profileData: userReq.data.data,
+            reviews: reviews,
+            suggestedFoodies: suggestedFoodies,
+            user: req.session ? req.session.user : null,
+            css: ['/css/style.css', '/css/profile.css'],
+            js: ['/js/script.js'],
+            searchBar: true
+        });
+    } catch (error) {
+        return renderErrorPage(req, res)
+    }
+});
 
 app.get('/profile/edit', async (req, res) => {
     if (!req.session || !req.session.user || !req.session.accessToken) 
@@ -578,7 +696,6 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
         form.append('desc', req.body['description'])
 
     const headers = { ...form.getHeaders() };
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     const api = createApiHelper(req, res);
     const editRes = await api.patch('users/'+userId, form, {
         headers: headers,
@@ -604,7 +721,8 @@ app.get('/profile/:id', async (req, res) => {
         const userReq = await api.get(`users/${profileId}`, { validateStatus: () => true });
         if (userReq.status !== 200) throw Error()
 
-        const reviewsReq = await api.get(`users/reviews/${profileId}`, { validateStatus: () => true });
+        const viewerQuery = (req.session && req.session.user) ? `?viewerId=${req.session.user._id}` : '';
+        const reviewsReq = await api.get(`users/reviews/${profileId}${viewerQuery}`, { validateStatus: () => true });
         const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : []
 
 
@@ -645,7 +763,6 @@ app.post('/review/:markop/:reviewId', async (req, res) => {
     const reviewId = req.params.reviewId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const apiRes = await api.post(`users/${markop}/${reviewId}`, {}, {
@@ -674,7 +791,6 @@ app.post('/respond/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const postRes = await api.post(`users/owner_response/${userId}`, {
@@ -709,7 +825,6 @@ app.put('/respond/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const postRes = await api.put(`users/owner_response/${userId}`, {
@@ -741,7 +856,6 @@ app.delete('/respond/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     const headers = {};
-    // headers['Authorization'] = 'Bearer ' + req.session.accessToken;
     try {
         const api = createApiHelper(req, res);
         const delRes = await api.delete(`users/owner_response/${userId}`, {

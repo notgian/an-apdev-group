@@ -11,7 +11,7 @@ services:
       API_PORT: ${API_PORT}
       API_PUBLIC_HOSTNAME: ${API_PUBLIC_HOSTNAME} 
       API_HOSTNAME: ${API_HOSTNAME}
-      API_LOCATION: "localhost:4200"  # depracate this
+      SESSION_SECRET: ${SESSION_SECRET}
       ENVIRONMENT: "prod"
     ports: 
       - ${WEB_PORT}:${WEB_PORT}
@@ -51,7 +51,7 @@ services:
       - ${API_PORT}:${API_PORT}
     volumes:
       - ./api/:/app/api
-      - ./data/media:/app/data/media
+      - ./data:/app/data
       - /app/api/node_modules
     networks:
       - api-network

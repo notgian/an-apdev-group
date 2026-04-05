@@ -71,3 +71,7 @@ input[type="text"], input[type="password"], textarea {
 .btn-main:hover {
     background-color: #ad1457;
 }
+
+#signup-error {
+    color: red
+}
