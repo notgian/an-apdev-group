@@ -1,3 +1,8 @@
+.content-container {
+  background-color:  #f7ebf1;
+  padding: 20px;
+  min-height: 100vh;
+}
 
 #search-results-list {
   display: flex;
@@ -41,7 +46,7 @@
   gap: 6px;
 }
 
-.card-right h4 {
+.card-right h3 {
   margin: 0;
   color: #d14d72;
   font-weight: 800;

@@ -183,27 +183,29 @@ app.get('/', async (req, res) => {
 
 app.get('/establishments', async (req, res) => {
     // Pagination logic
-    const limit = 10;
+    const limit = 5;
     let page = parseInt(req.query.page) || 1;
     let offset = (page - 1) * limit;
 
     // Added offset and count parameters to the API call
-    let rstrreq = (await api.get('establishments', { params: { offset: offset, count: limit } }));
-    let establishments;
-    if (rstrreq.status != 200)
-        establishments = new Array();
-    else if (rstrreq.data.status != 200)
-        establishments = new Array();
-    else {
-        establishments = rstrreq.data.data;
-    }
+    let rstrreq = await api.get('establishments', { params: { offset: offset, count: limit } });
+    let establishments = (rstrreq.status === 200 && rstrreq.data.status === 200) ? rstrreq.data.data : [];
+
+    let totalCount = rstrreq.data.totalCount || 0;
+    let maxPages = rstrreq.data.maxPages || 1;
+    let start = rstrreq.data.start || 0;
+    let end = rstrreq.data.end || establishments.length;
 
     let renderData = {
         title: '6-7-ate-9 | Establishments',
         establishments: establishments,
         page: page,
-        nextPage: page + 1,
         prevPage: page > 1 ? page - 1 : null,
+        nextPage: page < maxPages ? page + 1 : null,
+        start,
+        end,
+        totalCount,
+        maxPages,
         css: [
             '/css/style.css',
             '/css/establishments.css' // Changed from home.css to establishments.css

@@ -4,9 +4,9 @@
         <img id="establishment-img" src="{{establishment.imageSrc}}" alt="{{establishment.name}}">
         <div class="establishment-info">
             <h2 id="establishment-name">{{establishment.name}}</h2>
-            <p id="establishment-rating">{{establishment.avgRating}}</p>
+            <p id="establishment-rating">{{#renderStarsHTML establishment.avgRating}}{{/renderStarsHTML}} ({{establishment.avgRating}})</p>
             <p id="establishment-category">{{establishment.category}}</p>
-            <p id="establishment-price">₱{{establishment.priceRange.min}}-{{establishment.priceRange.max}}</p>
+            <p id="establishment-price">₱{{establishment.priceRange.min}} - ₱{{establishment.priceRange.max}}</p>
             <p id="establishment-location">{{establishment.location.city}} {{establishment.location.street}}</p>
 
             <div class="establishment-about">

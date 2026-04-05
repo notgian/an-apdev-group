@@ -119,7 +119,7 @@ router.get('/', async (req, res) => {
     if ('maxPrice' in req.query && req.query.maxPrice !== '') {
         queryObj['priceRange.max'] = { $lte: Number(req.query.maxPrice) }
     }
-
+    
     let query = Restaurant.find(queryObj)
         .skip(OFFSET)       
         .limit(COUNT)
@@ -133,13 +133,25 @@ router.get('/', async (req, res) => {
         query.sort({avgRating: 1})
     else
         query.sort({createdAt: -1})
+
     let foundRstrs = await query.exec()
+
+    const totalCount = await Restaurant.countDocuments(queryObj);
+    const maxPages = Math.ceil(totalCount / COUNT);
+    const page = Math.floor(OFFSET / COUNT) + 1;
+    const start = OFFSET + 1;
+    const end = OFFSET + foundRstrs.length;
 
     res.send({
         status: httpStatus.OK,
         message: "OK",
-        data: foundRstrs
-    })
+        data: foundRstrs,
+        totalCount,
+        page,
+        maxPages,
+        start,
+        end
+    });
 });
 
 /**
