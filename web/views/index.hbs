@@ -21,7 +21,7 @@
                 <div class="card">
                     <h3>{{this.name}}</h3>
                     <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
-                    <p>{{ this.category }} • {{this.location.city}}</p> {{! NOTE/TODO: Restaurants currently have no categories. }}
+                    <p>{{ this.category }} • {{#if this.location.city}}{{this.location.city}}{{else}}Location not specified{{/if}}</p> {{! NOTE/TODO: Restaurants currently have no categories. }}
                     <p>₱{{this.priceRange.min}} - ₱{{this.priceRange.max}}</p>
                     <button onclick="window.location.href='/establishment/{{this._id}}';">Read Reviews</button>
                 </div>        

@@ -43,7 +43,8 @@
                 <img src="{{this.logo}}" class="avatar-small" alt="{{this.name}} logo">
                 <div class="est-details">
                     <p><strong>{{this.name}}</strong></p>
-                    <p class="est-subtext">{{this.rating}} • {{this.category}} • {{this.location}} • {{this.price}}</p>
+                    <p class="est-subtext">
+                        {{this.rating}} • {{this.category}} • {{#if this.location.city}}{{this.location.city}}{{else}}Location not specified{{/if}} • {{this.price}}</p>
                 </div>
                 <a href="/establishments/{{this.id}}" class="follow-btn">Read Reviews</a>
             </div>

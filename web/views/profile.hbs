@@ -14,6 +14,21 @@
                 <a href="/profile/edit" class="edit-btn">Edit Profile</a>
             </div>
 
+            <div class="user-stats"> {{!-- For following etc?? pacheck nlng if tama --}}
+                <div class="stat-item">
+                    <strong>{{user.followers.length}}</strong>
+                    <span>Followers</span>
+                </div>
+                <div class="stat-item">
+                    <strong>{{user.following.length}}</strong>
+                    <span>Following</span>
+                </div>
+                <div class="stat-item">
+                    <strong>{{reviews.length}}</strong>
+                    <span>Reviews</span>
+            </div>
+
+            </div>
             <div class="user-activity">
                 <h3>Latest Reviews</h3>
                 {{#each reviews}}
@@ -39,7 +54,10 @@
             {{#each otherFoodies}}
                 <div class="user-card">
                     <img src="{{this.avatar}}" class="avatar-med" alt="{{this.username}}">
-                    <p><a href="/profile/{{this.username}}">{{this.username}}</a></p>
+                   <div class="user-card-info">
+                        <p><a href="/profile/{{this.username}}"><strong>{{this.username}}</strong></a></p>
+                        <p class="small-text">{{this.follower_count}} followers</p>
+                    </div>
                     <button class="follow-btn">Follow</button>
                 </div>
             {{else}}
