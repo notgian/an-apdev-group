@@ -302,6 +302,22 @@ const searchReviews = () => {
 // const reviewsNextPage
 window.addEventListener('DOMContentLoaded', (e) => {
     renderReviews(establishmentId)
+
+    const form = document.getElementById('review-form');
+    if (!form) return;
+
+    const ratingInput = form.querySelector('.rating-value');
+
+    form.onsubmit = function (event) {
+        if (!ratingInput.value) {
+        event.preventDefault();
+        alert('Please select a star rating before submitting your review.');
+        return false;
+        }
+
+        event.preventDefault();
+        form.submit();
+    };
 })
 
 

@@ -25,26 +25,20 @@
         {{/each}}
     </div>
 
-    <div style="display:flex; justify-content:center; align-items:center; gap:30px; width:100%; margin-top:20px; padding-top:10px;">
+    <div id="pagination">
         {{#if prevPage}}
-            <span>
-                <a href="/establishments?page={{prevPage}}" 
-                style="color:#d14d72; text-decoration:none; font-size:14px; font-weight:600;">
-                Previous
-                </a>
+            <span class="pagination-link">
+            <a href="/establishments?page={{prevPage}}">Previous</a>
             </span>
         {{/if}}
 
-        <span style="color:#555; font-size:14px;">
+        <span id="results-info">
             Showing {{start}}–{{end}} of {{totalCount}} results
         </span>
 
         {{#if nextPage}}
-            <span>
-                <a href="/establishments?page={{nextPage}}" 
-                style="color:#d14d72; text-decoration:none; font-size:14px; font-weight:600;">
-                Next
-                </a>
+            <span class="pagination-link">
+            <a href="/establishments?page={{nextPage}}">Next</a>
             </span>
         {{/if}}
     </div>
