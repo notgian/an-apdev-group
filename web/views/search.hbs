@@ -23,18 +23,8 @@
         </div>
 
     <h2 id="search-results-info">
-        {{#if query}}
-          {{#if location}}
-            Searching "{{query}}" in "{{location}}": {{results.length}} result(s)
-          {{else}}
-            Searching for "{{query}}": {{results.length}} result(s)
-          {{/if}}
-        {{else if location}}
-          Searching in "{{location}}": {{results.length}} result(s)
-        {{else}}
-          Search Results: {{results.length}} result(s)
-        {{/if}}
-      </h2>
+          Searching for "{{query}}": {{results.length}} result(s)
+    </h2>
 
       <div id="search-results-list">
         {{#if results.length}}
