@@ -133,37 +133,122 @@ const renderStarsHTML = (rating) => {
     return `<span class="stars${rating == -1 ? '-no-ratings' : ''} star-rating">${innerText}</span>`
 }
 
+function truncateReviewText(str, len, reviewId, type = "review") {
+  if (typeof str !== 'string') return str;
+
+  if (str.length > len) {
+    let truncated = str.substring(0, len);
+    let lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 0) truncated = truncated.substring(0, lastSpace);
+
+    return `
+      <span class="${type}-comment-text" 
+            data-full="${str}" 
+            data-truncated="${truncated}...">
+        ${truncated}...
+      </span>
+      <span class="toggle-view" onclick="toggleView('${reviewId}', '${type}')">
+        <em>View more</em>
+      </span>
+    `;
+  }
+  return str;
+}
+
+function toggleView(reviewId, type = "review") {
+    const reviewEl = document.querySelector(
+        `[data-reviewid="${reviewId}"] .${type}-comment-text`
+    );
+    const toggleEl = document.querySelector(
+        `[data-reviewid="${reviewId}"] .toggle-view`
+    );
+
+    if (!reviewEl || !toggleEl) return;
+
+    if (toggleEl.innerText.includes("more")) {
+        reviewEl.textContent = reviewEl.dataset.full;
+        toggleEl.innerHTML = "<em>View less</em>";
+    } else {
+        reviewEl.textContent = reviewEl.dataset.truncated;
+        toggleEl.innerHTML = "<em>View more</em>";
+    }
+}
+
+function openMediaViewer(url, captionText = '') {
+    const modal = document.getElementById('media-viewer');
+    const img = document.getElementById('media-viewer-img');
+    const caption = document.getElementById('caption');
+    img.src = url;
+    caption.innerHTML = captionText;
+    modal.style.display = "block";
+}
+
+function closeMediaViewer() {
+    document.getElementById('media-viewer').style.display = "none";
+}
+
+const renderMediaThumbnails = (media, reviewId) => {
+    if (!media || media.length === 0) return '';
+
+    var mediaThumbsHTML = ''
+    for (let i in media) {
+        m = media[i]
+        
+        mediaThumbsHTML += `
+            <div class="review-media">
+                    <img src="${m}" 
+                        alt="media-${i}" 
+                        class="review-thumbnail"
+                        onclick="openMediaViewer('${m}', 'media-${i}')"/>
+            </div>
+        `;
+    }
+    return mediaThumbsHTML;
+};
+
 const createReviewHTML = (review) => {
     const ownerResponse = review.ownerResponse ? `
         <div class="review-response">
             <p> 
-                <strong>${review.ownerResponse.ownerId.username} </strong> 
-                <span class="review-edited"> <em> ${review.ownerResponse.edited ? 'edited' : ''} </em> </span>
+                <a href="/profile/${review.ownerResponse.ownerId._id}" 
+                style="color:black; text-decoration:none; font-weight:bold;"
+                onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.ownerResponse.ownerId.username}</a>
+                <span class="review-edited"><em>${review.ownerResponse.edited ? 'edited' : ''}</em></span>
                 <br />
-                ${review.ownerResponse.comment}
+                ${truncateReviewText(review.ownerResponse.comment, 100, review._id + "-owner", "owner")}
             </p>
+            <p> ${renderMediaThumbnails(review.ownerResponse.media, review._id + "-owner")} </p>
         </div>
     ` : '';
+
 
     return `
     <div class="review" data-author="${review.userId._id}" data-reviewid="${review._id}">
         <div>
             <div class="review-header">
                 <span>
-                    <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                    <a href="/profile/${review.userId._id}"
+                       style="color:black; text-decoration:none; font-weight:bold;"
+                       onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                       onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.userId.username}</a> • ${renderStarsHTML(review.rating)}
                 </span>
-                <span class="review-edited"> <em> ${review.edited? 'edited' : ''} </em> </span>
+                <span class="review-edited"><em>${review.edited ? 'edited' : ''}</em></span>
             </div>
-            <p>${review.comment}</p>
+            <p>
+                ${truncateReviewText(review.comment, 100, review._id, "review")}
+            </p>
+
+            <p> ${renderMediaThumbnails(review.media, review._id)} </p>
         </div>
         <div>
             <span onclick="markReview(this, 'helpful')">
                 <i class="fa-regular fa-thumbs-up"></i>
-                <span class="review-helpful-count"> ${review.helpfulCount} </span>
+                <span class="review-helpful-count">${review.helpfulCount}</span>
             </span>
             <span onclick="markReview(this, 'unhelpful')">
                 <i class="fa-regular fa-thumbs-down"></i>
-                <span class="review-unhelpful-count"> ${review.unhelpfulCount} </span>
+                <span class="review-unhelpful-count">${review.unhelpfulCount}</span>
             </span>
         </div>
         
@@ -177,7 +262,10 @@ const createUserReviewHTML = (review) => {
     <div class="review" id="${review.userId._id}" data-author="${review.userId._id}" data-reviewid="${review._id}">
         <div style="display: flex; justify-content: space-between">
             <span>
-                <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                <a href="/profile/${review.userId._id}" 
+                   style="color:black; text-decoration:none; font-weight:bold;"
+                   onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                   onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.userId.username}</a> • ${renderStarsHTML(review.rating)}
             </span>
             <span>
                 <span id="review-delete" onclick="reviewDelete()">
@@ -189,7 +277,10 @@ const createUserReviewHTML = (review) => {
             </span>
         </div>
         <div class="review-comment">
-            <p class="review-comment-text">${review.comment}</p>
+            <p>
+                ${truncateReviewText(review.comment, 100, review._id, "review")}
+            </p>
+            <p> ${renderMediaThumbnails(review.media, review._id)} </p>
             <div class="review-editarea">
                 <span class="review-rating star-rating-selector"> 
                     <input type="hidden" name="rating" class="rating-value" value="${review.rating}" autocomplete="off"/>
@@ -222,10 +313,15 @@ const createUserReviewHTML = (review) => {
 const renderReviews = async (rstrId, page = 1) => { 
     // no validation for count and offset here so prayge
     const count = 10
-    const offset = (page-1) * 10
+    const offset = (page - 1) * count;
 
     var apiUrl = `/reviews/${rstrId}?offset=${offset}&count=${count}`;
-    
+    const currentUserId = window.currentUser?._id || localStorage.getItem("userId");
+
+    if (currentUserId) {
+        apiUrl += `&viewerId=${currentUserId}`;
+    }
+
     // Disable buttons temporarily so user doesn't spam them
     const reviewButtons = document.getElementById('reviews-page-buttons').getElementsByTagName('button');
     const backButton  = reviewButtons[0];
@@ -244,11 +340,22 @@ const renderReviews = async (rstrId, page = 1) => {
     const markReq = await fetch(apiUrl, {
         method: 'GET',
     });
+    
     const revJson = await markReq.json();
     const revData = revJson.data;
 
-    const userReview = revData?.userReview;
-    const reviews = revData?.reviews;
+    if (revData?.reviews?.reviews) {
+        userReview = revData.reviews.userReview || null;
+        reviews = revData.reviews.reviews || [];
+        totalCount = revData.reviews.totalCount || reviews.length;
+    } else {
+        userReview = revData?.userReview || null;
+        reviews = revData?.reviews || [];
+        totalCount = revData?.totalCount || reviews.length;
+    }
+
+    const totalPages = Math.ceil(totalCount / count) || 1;
+    if (page > totalPages) page = totalPages;
 
     // Clear all previous reviews
     const reviewsList = document.getElementById('reviews-list');
@@ -261,20 +368,22 @@ const renderReviews = async (rstrId, page = 1) => {
         reviewsList.innerHTML += createReviewHTML(review);
     }
 
-    let realCount = Math.min(count, reviews?.length)
+    const start = reviews.length > 0 ? offset + 1 : 0;
+    const end = offset + reviews.length;
 
     // update reviews result count
-    document.getElementById('reviews-result-count').innerText = `Showing ${realCount} results`;
+    document.getElementById('reviews-result-count').innerText =
+        reviews.length > 0
+            ? `Showing ${start}–${end} of ${totalCount} reviews`
+            : `No reviews found`;
     
-    // update reviews page number result count
-    document.getElementById('reviews-page-number').innerText = `Page ${page}`;
-    
-    // update page number
+    // update reviews page number result count and page number
+    document.getElementById('reviews-page-number').innerText = `Page ${page}/${totalPages}`;
     document.getElementById('reviews-page').value = page;
 
     // update review-buttons
     backButton.disabled = page <= 1 ? true : false
-    nextButton.disabled = reviews?.length < count ? true : false
+    nextButton.disabled = page >= totalPages;
 }
 
 const nextPageReviews = () => {
@@ -302,6 +411,36 @@ const searchReviews = () => {
 // const reviewsNextPage
 window.addEventListener('DOMContentLoaded', (e) => {
     renderReviews(establishmentId)
+
+    const form = document.getElementById('review-form');
+    if (!form) return;
+
+    const ratingInput = form.querySelector('.rating-value');
+
+    form.onsubmit = function (event) {
+        if (!ratingInput.value) {
+        event.preventDefault();
+        alert('Please select a star rating before submitting your review.');
+        return false;
+        }
+
+        event.preventDefault();
+        form.submit();
+    };
+
+    const stars = document.querySelectorAll('.rating-stars');
+        stars.forEach((star, index) => {
+            star.addEventListener('mouseover', () => {
+            stars.forEach((s, i) => s.classList.toggle('hovered', i <= index));
+            });
+            star.addEventListener('mouseout', () => {
+            stars.forEach(s => s.classList.remove('hovered'));
+            });
+            star.addEventListener('click', () => {
+            stars.forEach((s, i) => s.classList.toggle('selected', i <= index));
+        });
+    });
 })
+
 
 

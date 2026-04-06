@@ -64,6 +64,23 @@ body {
     min-height: 65vh;
     max-height: 100vh;
     min-width: 60%;
+    max-width: 60%;
+    overflow-x: hidden;
+}
+
+.rating-stars {
+  cursor: pointer;
+  font-size: 24px;
+  transition: color 0.2s ease, transform 0.1s ease;
+  color: #ccc;
+}
+
+.rating-stars.hovered {
+  color: #f1da2f;;
+}
+
+.rating-stars.selected {
+  color: #f1da2f;
 }
 
 #review-form {
@@ -199,4 +216,30 @@ body {
 
 .review-edited {
     margin-left: auto;
+}
+
+.toggle-view em {
+    color: #d14d72;
+    cursor: pointer;
+    font-style: italic;
+    margin-left: 3px;
+    font-size: 0.85em;
+}
+
+.toggle-view {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.review-thumbnail {
+    height: 10em;
+    width: 10em;
+    object-fit: cover;
+    overflow: hidden;
+    border-radius: 1em;
+    border: 3px solid #d14d72;
+}
+
+.review-media {
+    display: inline;
 }
