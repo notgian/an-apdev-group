@@ -356,7 +356,7 @@ app.get('/reviews/:rstrId', async (req, res) => {
         const revReq = await api.get(reviewQuery, { validateStatus: () => true });
 
         const establishmentData = estReq.data.data[0];
-        let reviewsData = revReq.data.data;
+        let reviewsData = revReq.data.data.reviews;
         
         // get user review. If offset is 0 (page 1) really try
         // to find the user review.
@@ -382,6 +382,7 @@ app.get('/reviews/:rstrId', async (req, res) => {
         })
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({status: 500, message: 'something went wrong...'})
     }
 });
@@ -421,12 +422,15 @@ app.post('/postreview/:rstrId', upload.array('media'), async (req, res) => {
             validateStatus: () => true
         });
 
+        console.log(reviewRes.status)
+
         if (reviewRes.status == 201)
             return res.redirect('/establishment/'+req.params.rstrId)
         return renderErrorPage(req, res)
 
     }
     catch (err) {
+        console.log(err)
         return renderErrorPage(req, res)
     }
 })

@@ -189,16 +189,21 @@ function closeMediaViewer() {
 
 const renderMediaThumbnails = (media, reviewId) => {
     if (!media || media.length === 0) return '';
-    return `
-        <div class="review-media">
-            ${media.map((file, idx) => `
-                <img src="${file.thumbnailUrl}" 
-                    alt="media-${idx}" 
-                    class="review-thumbnail"
-                    onclick="openMediaViewer('${file.url}', 'media-${idx}')"/>
-            `).join('')}
-        </div>
-    `;
+
+    var mediaThumbsHTML = ''
+    for (let i in media) {
+        m = media[i]
+        
+        mediaThumbsHTML += `
+            <div class="review-media">
+                    <img src="${m}" 
+                        alt="media-${i}" 
+                        class="review-thumbnail"
+                        onclick="openMediaViewer('${m}', 'media-${i}')"/>
+            </div>
+        `;
+    }
+    return mediaThumbsHTML;
 };
 
 const createReviewHTML = (review) => {
