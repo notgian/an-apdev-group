@@ -115,6 +115,45 @@ const createApiHelper = (req, res) => {
     return apiInstance;
 }
 
+// Middleware for extending remember period
+// Only allows an extension every 24 hours
+const extendRememberMe = (req, res, next) => {
+    const THREE_WEEKS_MS = 3 * 7 * 24 * 60 * 60 * 1000;
+    const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (req.session?.user && req.session?.cookie?.maxAge) {
+        if (!(req.session?.lastExtension) || (now - req.session.lastExtension > ONE_DAY_MS)){
+            req.session.cookie.maxAge += THREE_WEEKS_MS;
+            req.session.lastExtension = now;
+            console.log(`Remember period extended for ${req.session.user.username}`)
+        }
+    }
+
+    next();
+}
+
+// function to wrap the login logic
+// ts is called in both the login and signup
+// routes so might as well make my life easier
+const doLoginLogic = async (req, res, loginRes) => {
+    req.session.accessToken = loginRes.data.data.accessToken;
+    req.session.refreshToken = loginRes.data.data.refreshToken;
+
+    if (req.body?.remember) {
+        req.session.cookie.maxAge = 3 * 7 * 24 * 60 * 60 * 1000;
+        req.session.lastExtension = Date.now();
+    }
+
+    const userReq = await api.get(`users`, { params: { search: req.body.username }, validateStatus: () => true });
+    if (userReq.status === 200 && userReq.data.data.length > 0) {
+        req.session.user = userReq.data.data[0]; 
+    } else {
+        req.session.user = { username: req.body.username }; 
+    }            
+    res.redirect('/'); 
+}
+
 // Application Proper
 const app = express();
 app.engine('hbs', hbs.engine({extname:'hbs'}));
@@ -127,11 +166,13 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 30 * 60 * 60 * 1000, // Session expires in 30 days
+        // maxAge: 30 * 60 * 60 * 1000,
+        maxAge: null,
         httpOnly: true,
         // secure: process.env.NODE_ENV === 'production'
     }
 }));
+app.use(extendRememberMe)
 const upload = multer({ storage: multer.memoryStorage() });
 
 // For rendering error page
@@ -251,7 +292,6 @@ app.get('/establishment/:id', async (req, res) => {
             searchBar: true
         });
     } catch (error) {
-        console.log(error)
         return renderErrorPage(req, res)
     }
 });
@@ -326,7 +366,6 @@ app.get('/reviews/:rstrId', async (req, res) => {
         // really try to find the user review on the first page.
         if (req.session.user && !userReview && offset == 0) {
             const userRevReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
-            console.log(userRevReq)
             userReview = userRevReq.data.data[0] || undefined;
         }
         
@@ -341,7 +380,6 @@ app.get('/reviews/:rstrId', async (req, res) => {
         })
 
     } catch (error) {
-        console.log(error)
         return res.status(500).json({status: 500, message: 'something went wrong...'})
     }
 });
@@ -522,16 +560,7 @@ app.post('/signup', async (req, res) => {
         }, { validateStatus: () => true });
 
         if (loginRes.status == 200) {
-            req.session.accessToken = loginRes.data.data.accessToken;
-            req.session.refreshToken = loginRes.data.data.refreshToken;
-
-            const userReq = await api.get(`users`, { params: { search: req.body.username }, validateStatus: () => true });
-            if (userReq.status === 200 && userReq.data.data.length > 0) {
-                req.session.user = userReq.data.data[0]; 
-            } else {
-                req.session.user = { username: req.body.username }; 
-            }            
-            res.redirect('/'); 
+            await doLoginLogic(req, res, loginRes);
         } else {
             res.render({ 
                 title: 'Sign Up', 
@@ -565,16 +594,7 @@ app.post('/login', async (req, res) => {
         }, { validateStatus: () => true });
 
         if (loginRes.status == 200) {
-            req.session.accessToken = loginRes.data.data.accessToken;
-            req.session.refreshToken = loginRes.data.data.refreshToken;
-
-            const userReq = await api.get(`users`, { params: { search: req.body.username }, validateStatus: () => true });
-            if (userReq.status === 200 && userReq.data.data.length > 0) {
-                req.session.user = userReq.data.data[0]; 
-            } else {
-                req.session.user = { username: req.body.username }; 
-            }            
-            res.redirect('/'); 
+            await doLoginLogic(req, res, loginRes);
         } else {
             res.render('login.hbs', 
                 { 
