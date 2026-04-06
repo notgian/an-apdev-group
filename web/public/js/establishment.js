@@ -133,6 +133,47 @@ const renderStarsHTML = (rating) => {
     return `<span class="stars${rating == -1 ? '-no-ratings' : ''} star-rating">${innerText}</span>`
 }
 
+function truncateReviewText(str, len, reviewId, type = "review") {
+  if (typeof str !== 'string') return str;
+
+  if (str.length > len) {
+    let truncated = str.substring(0, len);
+    let lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 0) truncated = truncated.substring(0, lastSpace);
+
+    return `
+      <span class="${type}-comment-text" 
+            data-full="${str}" 
+            data-truncated="${truncated}...">
+        ${truncated}...
+      </span>
+      <span class="toggle-view" onclick="toggleView('${reviewId}', '${type}')">
+        <em>View more</em>
+      </span>
+    `;
+  }
+  return str;
+}
+
+function toggleView(reviewId, type = "review") {
+    const reviewEl = document.querySelector(
+        `[data-reviewid="${reviewId}"] .${type}-comment-text`
+    );
+    const toggleEl = document.querySelector(
+        `[data-reviewid="${reviewId}"] .toggle-view`
+    );
+
+    if (!reviewEl || !toggleEl) return;
+
+    if (toggleEl.innerText.includes("more")) {
+        reviewEl.textContent = reviewEl.dataset.full;
+        toggleEl.innerHTML = "<em>View less</em>";
+    } else {
+        reviewEl.textContent = reviewEl.dataset.truncated;
+        toggleEl.innerHTML = "<em>View more</em>";
+    }
+}
+
 const createReviewHTML = (review) => {
     const ownerResponse = review.ownerResponse ? `
         <div class="review-response">
@@ -140,7 +181,7 @@ const createReviewHTML = (review) => {
                 <strong>${review.ownerResponse.ownerId.username} </strong> 
                 <span class="review-edited"> <em> ${review.ownerResponse.edited ? 'edited' : ''} </em> </span>
                 <br />
-                ${review.ownerResponse.comment}
+                ${truncateReviewText(review.ownerResponse.comment, 100, review._id + "-owner", "owner")}
             </p>
         </div>
     ` : '';
@@ -154,7 +195,9 @@ const createReviewHTML = (review) => {
                 </span>
                 <span class="review-edited"> <em> ${review.edited? 'edited' : ''} </em> </span>
             </div>
-            <p>${review.comment}</p>
+            <p>
+                ${truncateReviewText(review.comment, 100, review._id, "review")}
+            </p>
         </div>
         <div>
             <span onclick="markReview(this, 'helpful')">
@@ -189,7 +232,9 @@ const createUserReviewHTML = (review) => {
             </span>
         </div>
         <div class="review-comment">
-            <p class="review-comment-text">${review.comment}</p>
+            <p>
+                ${truncateReviewText(review.comment, 100, review._id, "review")}
+            </p>
             <div class="review-editarea">
                 <span class="review-rating star-rating-selector"> 
                     <input type="hidden" name="rating" class="rating-value" value="${review.rating}" autocomplete="off"/>

@@ -89,3 +89,24 @@
     margin: auto;
     text-align: center;
 }
+
+.review-comment-text,
+.owner-comment-text {
+  word-wrap: break-word;       /* legacy support */
+  overflow-wrap: break-word;   /* modern browsers */
+  white-space: normal;         /* allow wrapping */
+  max-width: 100%;             /* respect parent width */
+  display: block;              /* block-level so it wraps naturally */
+}
+
+.review-comment-text,
+.owner-comment-text {
+  max-height: 6em;         /* show ~3 lines initially */
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.review-expanded .review-comment-text,
+.review-expanded .owner-comment-text {
+  max-height: 1000px;      /* enough to show full text */
+}

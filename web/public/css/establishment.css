@@ -64,6 +64,8 @@ body {
     min-height: 65vh;
     max-height: 100vh;
     min-width: 60%;
+    max-width: 60%;
+    overflow-x: hidden;
 }
 
 .rating-stars {
@@ -215,3 +217,17 @@ body {
 .review-edited {
     margin-left: auto;
 }
+
+.toggle-view em {
+    color: #d14d72;
+    cursor: pointer;
+    font-style: italic;
+    margin-left: 3px;
+    font-size: 0.85em;
+}
+
+.toggle-view {
+  display: inline-block;
+  max-width: 100%;
+}
+

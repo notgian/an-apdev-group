@@ -8,7 +8,7 @@ home page
 /establishment/:id (establihsment reviews) [USER & OWNER]
 - [ ] render media included in review (thumbnail view) (for nested reviews, refer to [this](https://github.com/handlebars-lang/handlebars.js/discussions/2079#discussioncomment-13665762) if it doesn't work)
 - [ ] add a way to view media in a review by expanding/opening it in a pop-up menu
-- [ ] have a way to truncate reviews
+- [x] have a way to truncate reviews
 - [x] perform validation before submitting a review (ensure a star rating is provided, since this isn't a normal form element) (idea for this: onsubmit event, use event.preventDefault, then event.submit)
 - [ ] unify layout, styles, scripts, and functionality of both normal user and owner views
 - [x] OWNER SPECIFIC: fixing the mark helpful/unhelpful
