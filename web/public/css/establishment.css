@@ -145,6 +145,8 @@ body {
     display: block;
     flex-direction: row;
     justify-content: space-between;
+    overflow-wrap: break-word;
+    overflow: hidden;
 }
 
 /* Responsive */
