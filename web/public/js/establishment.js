@@ -174,19 +174,49 @@ function toggleView(reviewId, type = "review") {
     }
 }
 
+function openMediaViewer(url, captionText = '') {
+    const modal = document.getElementById('media-viewer');
+    const img = document.getElementById('media-viewer-img');
+    const caption = document.getElementById('caption');
+    img.src = url;
+    caption.innerHTML = captionText;
+    modal.style.display = "block";
+}
+
+function closeMediaViewer() {
+    document.getElementById('media-viewer').style.display = "none";
+}
+
+const renderMediaThumbnails = (media, reviewId) => {
+    if (!media || media.length === 0) return '';
+    return `
+        <div class="review-media">
+            ${media.map((file, idx) => `
+                <img src="${file.thumbnailUrl}" 
+                    alt="media-${idx}" 
+                    class="review-thumbnail"
+                    onclick="openMediaViewer('${file.url}', 'media-${idx}')"/>
+            `).join('')}
+        </div>
+    `;
+};
+
 const createReviewHTML = (review) => {
     const ownerResponse = review.ownerResponse ? `
         <div class="review-response">
             <p> 
-                <a href="/profile/${review.ownerResponse.ownerId._id}" class="review-username">
-                    <strong>${review.ownerResponse.ownerId.username}</strong>
-                </a>
+                <a href="/profile/${review.ownerResponse.ownerId._id}" 
+                style="color:black; text-decoration:none; font-weight:bold;"
+                onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.ownerResponse.ownerId.username}</a>
                 <span class="review-edited"><em>${review.ownerResponse.edited ? 'edited' : ''}</em></span>
                 <br />
                 ${truncateReviewText(review.ownerResponse.comment, 100, review._id + "-owner", "owner")}
             </p>
+            <p> ${renderMediaThumbnails(review.ownerResponse.media, review._id + "-owner")} </p>
         </div>
     ` : '';
+
 
     return `
     <div class="review" data-author="${review.userId._id}" data-reviewid="${review._id}">
@@ -203,6 +233,8 @@ const createReviewHTML = (review) => {
             <p>
                 ${truncateReviewText(review.comment, 100, review._id, "review")}
             </p>
+
+            <p> ${renderMediaThumbnails(review.media, review._id)} </p>
         </div>
         <div>
             <span onclick="markReview(this, 'helpful')">
@@ -243,6 +275,7 @@ const createUserReviewHTML = (review) => {
             <p>
                 ${truncateReviewText(review.comment, 100, review._id, "review")}
             </p>
+            <p> ${renderMediaThumbnails(review.media, review._id)} </p>
             <div class="review-editarea">
                 <span class="review-rating star-rating-selector"> 
                     <input type="hidden" name="rating" class="rating-value" value="${review.rating}" autocomplete="off"/>

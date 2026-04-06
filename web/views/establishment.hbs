@@ -70,8 +70,15 @@
         </div>
         
     </div>
+
+
 </main>
 
+<div id="media-viewer" class="modal">
+    <span class="close" onclick="closeMediaViewer()">&times;</span>
+    <img class="modal-content" id="media-viewer-img">
+    <div id="caption"></div>
+</div>
 
 <script defer>
     const establishmentId = '{{establishment._id}}'
