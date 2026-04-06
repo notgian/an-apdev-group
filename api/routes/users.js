@@ -31,13 +31,9 @@ const urlencodedParser = bodyParser.urlencoded({extended: true})
 
 // multer for uploading files
 // TODO: please do check if you still need to separate this to prod anddev given our deployment setup
-const MEDIA_PATH = (process.env.ENVIRONMENT == 'dev') ?
-    '/app/data/media' : 
-    './data/media' ;
+const MEDIA_PATH = '/app/data/media';
 
-const TRASH_PATH = (process.env.ENVIRONMENT == 'dev') ?
-    '/app/data/.trash' : 
-    './data/.trash' ;
+const TRASH_PATH = '/app/data/.trash';
 
 // For file uploading
 const storage = multer.diskStorage({
