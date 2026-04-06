@@ -97,10 +97,31 @@
     text-shadow: #d12e69 1px 1px 2px;
 }
 
+/* Pagination container */
+#pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-top: 20px;
+  padding-top: 10px;
+  width: 100%;
+}
+
+/* Links */
+#pagination a {
+  color: #d14d72;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#pagination a:hover {
+  text-decoration: underline;
+}
+
+/* Results info text */
 #results-info {
-    margin-top: 10px;
-    text-align: center;
-    color: #555;
-    font-size: 14px;
-    padding-top: 5px;
+  color: #555;
+  font-size: 14px;
 }

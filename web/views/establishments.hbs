@@ -1,7 +1,3 @@
-{{#*inline "styles"}}
-  <link rel="stylesheet" href="/css/establishments.css">
-{{/inline}}
-
 <main class="content-container establishments-page">
     <h2>DISCOVER PLACES TO EAT</h2>
 
@@ -16,11 +12,9 @@
             <h3>{{this.name}}</h3>
             <p>{{#renderStarsHTML this.avgRating}}{{/renderStarsHTML}}</p>
             <p>{{this.location.city}} • ₱{{this.priceRange.min}} - ₱{{this.priceRange.max}}</p>
-            <p class="establishment-hours">Open from {{this.hours}}</p>
 
             <p class="establishment-about">
-                {{!-- “{{truncate this.about 100}}” --}}
-                “{{this.description}}”
+                “{{truncate this.description 100}}”
             </p>
 
             <button>
@@ -31,14 +25,22 @@
         {{/each}}
     </div>
 
-<!--- not implemented (yet?) but this is where pagination would go 
     <div id="pagination">
-        {{pagination}}
-    </div>
---->
+        {{#if prevPage}}
+            <span class="pagination-link">
+            <a href="/establishments?page={{prevPage}}">Previous</a>
+            </span>
+        {{/if}}
 
-    <div id="results-info">
-        Showing {{establishments.length}} results
+        <span id="results-info">
+            Showing {{start}}–{{end}} of {{totalCount}} results
+        </span>
+
+        {{#if nextPage}}
+            <span class="pagination-link">
+            <a href="/establishments?page={{nextPage}}">Next</a>
+            </span>
+        {{/if}}
     </div>
 </main>
 

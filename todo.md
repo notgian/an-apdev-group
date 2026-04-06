@@ -3,23 +3,23 @@ home page
 - [x] fix location rendering
 
 /establishments
-- [ ] add buttons for pagination. (For simplicity, you just make it next and prev page.)
+- [x] add buttons for pagination. (For simplicity, you just make it next and prev page.)
 
 /establishment/:id (establihsment reviews) [USER & OWNER]
 - [ ] render media included in review (thumbnail view) (for nested reviews, refer to [this](https://github.com/handlebars-lang/handlebars.js/discussions/2079#discussioncomment-13665762) if it doesn't work)
 - [ ] add a way to view media in a review by expanding/opening it in a pop-up menu
-- [ ] have a way to truncate reviews
-- [ ] perform validation before submitting a review (ensure a star rating is provided, since this isn't a normal form element) (idea for this: onsubmit event, use event.preventDefault, then event.submit)
+- [x] have a way to truncate reviews
+- [x] perform validation before submitting a review (ensure a star rating is provided, since this isn't a normal form element) (idea for this: onsubmit event, use event.preventDefault, then event.submit)
 - [ ] unify layout, styles, scripts, and functionality of both normal user and owner views
 - [x] OWNER SPECIFIC: fixing the mark helpful/unhelpful
 - [x] PREFERRED: transfer the big ahh scripts into an external JS file
 - [x] added pagination
-- [ ] OPTIONAL improve styling by adding cursor rules for the review stars selection thing and other potential styling imporvements
+- [x] OPTIONAL improve styling by adding cursor rules for the review stars selection thing and other potential styling imporvements
 - [ ] OPTIONAL: add a custom styling for reviews marked helpful/unhelpful by the user. Assume that for this, each review object will have an attribute called 'marked' that can either be null, helpful, or unhelpful NOTE: ako na bahala sa view button functionality - gian
 
 /search
 - [x] add search filters (see API's GET establishment route for the 
-- [ ] PREFERRED: unify styles with establishments page.
+- [x] PREFERRED: unify styles with establishments page.
 
 /profile
 - [ ] actually render the other foodies to follow thingy (this shall be passed through the web routes as 'foodies', if this will end up really being added)

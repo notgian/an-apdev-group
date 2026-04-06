@@ -37,7 +37,7 @@ const authenticateToken = (req, res, next) => {
 }
 
 const generateAccessToken = async (user) => {
-    const lifeTimeSeconds = 5 * 60; // 5 mins
+    lifeTimeSeconds = 5 * 60; // 5 mins
     return jwt.sign(user, process.env.JWT_ACCESS_SECRET, {expiresIn: lifeTimeSeconds+'s'}) 
 }
 
@@ -83,6 +83,7 @@ const tokenCleanupWorker = (intervalMs = 60000) => {
 /**
  * @route   POST /login
  * @desc    Authenticates a user and returns a success status. 
+ * (Planned to return a JWT token upon implementation).
  * @access  Public
  * @param   {string} req.body.username - User's unique username.
  * @param   {string} req.body.password - User's plain text password.
@@ -130,16 +131,6 @@ router.post('/login', async (req, res) => {
     });
 });
 
-
-/**
- * @route   POST /token
- * @desc    Uses the refresh token to obtain a new access token
- * @access  Public
- * @param   {string} req.body.token - User's refresh token
- * @returns {object} 200 - Successful login.
- * @returns {object} 401 - Unauthorized (Invalid credentials).
- * @returns {object} 400 - Missing username or password.
- */
 router.post('/token', async (req, res) => {
     const refreshToken = req.body.token;
     if (!refreshToken) 
@@ -171,13 +162,6 @@ router.post('/token', async (req, res) => {
             role: user.role
         };
         const accessToken = await generateAccessToken(rawUser);
-
-        // extend lifetime of the refresh token
-        const oldExpiryDate = foundToken.expiresAfter;
-        const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000;
-        const newExpiryDate = new Date(oldExpiryDate.getTime() + ONE_DAY_MS);
-
-        await Tokens.findOneAndUpdate({_id: foundToken._id}, {expiresAfter: newExpiryDate})
 
         return res.status(httpStatus.OK).json({
             status: httpStatus.OK,
@@ -219,6 +203,9 @@ router.post('/logout', authenticateToken, async (req, res) => {
             data: null
         });
     }
+
+
+
 })
 
 module.exports = {

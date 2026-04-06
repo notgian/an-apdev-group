@@ -662,12 +662,15 @@ router.post('/reviews/:rstrid', [ authenticateToken, uploadMedia.array('media') 
         });
     }
 
+
     // Check that the user does not already have a review in that establishment
     let queryIfReviews = await Reviews.find({
         userId: userId,
         restaurantId: restaurantId
     })
         .lean();
+
+    console.log(queryIfReviews)
 
     if (queryIfReviews.length > 0) {
         deleteMedia();

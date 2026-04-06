@@ -1,37 +1,10 @@
 // OWNER EXCLUSIVE STUFF
 /* Review Reply Exclusive Stuff */
 
-// const respInps = document.getElementsByClassName('response-comment-input')
-// for (let textarea of respInps) {
-//     textarea.addEventListener('input', function() {
-//       this.style.height = 'auto';
-//       this.style.height = (this.scrollHeight) + 'px';
-//     });
-// }
-
 const adjustResponseInput = (el) => {
     el.style.height = 'auto';
     el.style.height = (this.scrollHeight) + 'px';
 }
-
-// Show Reply Editor 
-// const showReplies = document.getElementsByClassName('review-reply')
-// for (let rply of showReplies) {
-//     rply.addEventListener('click', (e) => {
-//         // yes this is scuffed, no I will not fix this
-//         const review = e.target.parentElement.parentElement.parentElement;
-//
-//         const responseBody = review.getElementsByClassName('review-response-body')[0];
-//         const responseEditor = review.getElementsByClassName('review-response-input')[0];
-//         responseEditor.style.display = "block";
-//
-//         if (responseBody) {
-//             const responseText = responseBody.getElementsByClassName('response-body-text')[0].innerText;
-//             responseEditor.getElementsByTagName('textarea')[0].value = responseText;
-//             responseBody.style.display = "none";
-//         }
-//     })
-// }
 
 const showReplyEditor = (el) => {
     const review = el.parentElement.parentElement.parentElement;
@@ -47,20 +20,6 @@ const showReplyEditor = (el) => {
     }
 }
 
-// const cancelReplies = document.getElementsByClassName('response-comment-cancel')
-// for (let cancel of cancelReplies) {
-//     cancel.addEventListener('click', (e) => {
-//         const review = e.target.parentElement.parentElement;
-//
-//         const responseBody = review.getElementsByClassName('review-response-body')[0];
-//         const responseEditor = review.getElementsByClassName('review-response-input')[0];
-//         responseEditor.style.display = "none";
-//
-//         if (responseBody) 
-//             responseBody.style.display = "block";
-//     });
-// }
-
 const cancelReply = (el) => {
     const review = el.parentElement.parentElement;
 
@@ -71,23 +30,6 @@ const cancelReply = (el) => {
     if (responseBody) 
         responseBody.style.display = "block";
 }
-
-// const editReplies = document.getElementsByClassName('response-edit')
-// for (let edit of editReplies) {
-//     edit.addEventListener('click', (e) => {
-//         const review = e.target.parentElement.parentElement.parentElement.parentElement;
-//
-//         const responseBody = review.getElementsByClassName('review-response-body')[0];
-//         const responseEditor = review.getElementsByClassName('review-response-input')[0];
-//         responseEditor.style.display = "block";
-//
-//         if (responseBody) {
-//             const responseText = responseBody.getElementsByClassName('response-body-text')[0].innerText;
-//             responseEditor.getElementsByTagName('textarea')[0].value = responseText;
-//             responseBody.style.display = "none";
-//         }
-//     });
-// }
 
 const editReply = (el) => {
     const review = el.parentElement.parentElement.parentElement;
@@ -102,31 +44,6 @@ const editReply = (el) => {
         responseBody.style.display = "none";
     }
 }
-
-// const deleteReplies = document.getElementsByClassName('response-delete')
-// for (let delReply of deleteReplies) {
-//     delReply.addEventListener('click', async (e) => {
-//         const deleteConfirm = confirm('Delete reply?');
-//         if (!deleteConfirm)
-//             return
-//
-//         const review = e.target.parentElement.parentElement.parentElement.parentElement
-//         const usrId = review.getAttribute('data-author');
-//
-//         const delReq = await fetch(`/respond/${usrId}`, {
-//             method: 'DELETE',
-//             headers: { 'Content-Type': 'application/json' },
-//         });
-//         const delRes = await delReq.json();
-//
-//         if (delRes.status == 200) {
-//             alert("Sucessfully deleted response!");
-//             window.location.reload();
-//         } else {
-//             alert(replyRes.message);
-//         }
-//     });
-// }
 
 const deleteReply = async (el) => {
     const deleteConfirm = confirm('Delete reply?');
@@ -200,6 +117,79 @@ const saveOwnerReply = async (e) => {
 
 // NON OWNER EXCLUSIVE STUFF
 
+function truncateReviewText(str, len, reviewId, type = "review") {
+    if (typeof(str) != 'string') return str;
+
+    if (str.length > len) {
+        let truncated = str.substring(0, len);
+        let lastSpace = truncated.lastIndexOf(' ');
+        if (lastSpace > 0) truncated = truncated.substring(0, lastSpace);
+
+        return `
+      <span class="${type}-comment-text" 
+            data-full="${str}" 
+            data-truncated="${truncated}...">
+        ${truncated}...
+      </span>
+      <span class="toggle-view" onclick="toggleView('${reviewId}', '${type}')">
+        <em>View more</em>
+      </span>
+    `;
+    }
+    return str;
+}
+
+function toggleView(reviewId, type = "review") {
+    const reviewEl = document.querySelector(
+        `[data-reviewid="${reviewId}"] .${type}-comment-text`
+    );
+    const toggleEl = document.querySelector(
+        `[data-reviewid="${reviewId}"] .toggle-view`
+    );
+
+    if (!reviewEl || !toggleEl) return;
+
+    if (toggleEl.innerText.includes("more")) {
+        reviewEl.textContent = reviewEl.dataset.full;
+        toggleEl.innerHTML = "<em>View less</em>";
+    } else {
+        reviewEl.textContent = reviewEl.dataset.truncated;
+        toggleEl.innerHTML = "<em>View more</em>";
+    }
+}
+
+function openMediaViewer(url, captionText = '') {
+    const modal = document.getElementById('media-viewer');
+    const img = document.getElementById('media-viewer-img');
+    const caption = document.getElementById('caption');
+    img.src = url;
+    caption.innerHTML = "";  // the caption text is broken, so I'll not display it 
+    modal.style.display = "block";
+}
+
+function closeMediaViewer() {
+    document.getElementById('media-viewer').style.display = "none";
+}
+
+const renderMediaThumbnails = (media, reviewId) => {
+    if (!media || media.length === 0) return '';
+
+    var mediaThumbsHTML = ''
+    for (let i in media) {
+        m = media[i]
+
+        mediaThumbsHTML += `
+            <div class="review-media">
+                    <img src="${m}" 
+                        alt="media-${i}" 
+                        class="review-thumbnail"
+                        onclick="openMediaViewer('${m}', 'media-${i}')"/>
+            </div>
+        `;
+    }
+    return mediaThumbsHTML;
+};
+
 const markReview = async (e, action) => {
     // Yes it's scuffed, again, no, I won't fix this.
     const review = e.parentElement.parentElement.parentElement;
@@ -231,6 +221,29 @@ const renderStarsHTML = (rating) => {
     }
 
     return `<span class="stars${rating == -1 ? '-no-ratings' : ''} star-rating">${innerText}</span>`
+}
+
+
+const NEWcreateReviewHTML = (review) => {
+
+    return `
+    <div class="review" data-author="${review.userId._id}" data-reviewid="${review._id}">
+        <div>
+        </div>
+        <div>
+            <span onclick="markReview(this, 'helpful')">
+                <i class="fa-regular fa-thumbs-up"></i>
+                <span class="review-helpful-count">${review.helpfulCount}</span>
+            </span>
+            <span onclick="markReview(this, 'unhelpful')">
+                <i class="fa-regular fa-thumbs-down"></i>
+                <span class="review-unhelpful-count">${review.unhelpfulCount}</span>
+            </span>
+        </div>
+
+        ${ownerResponse}
+    </div>
+    `;
 }
 
 const createReviewHTML = (review) => {
@@ -265,11 +278,18 @@ const createReviewHTML = (review) => {
         <div>
             <div class="review-header">
                 <span>
-                    <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                    <a href="/profile/${review.userId._id}"
+                       style="color:black; text-decoration:none; font-weight:bold;"
+                       onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                       onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.userId.username}</a> • ${renderStarsHTML(review.rating)}
                 </span>
-                <span class="review-edited"> <em> ${review.edited? 'edited' : ''} </em> </span>
+                <span class="review-edited"><em>${review.edited ? 'edited' : ''}</em></span>
             </div>
-            <p>${review.comment}</p>
+            <p>
+                ${truncateReviewText(review.comment, 100, review._id, "review")}
+            </p>
+
+            <p> ${renderMediaThumbnails(review.media, review._id)} </p>
         </div>
         <div class="review-actions">
             <span class="review-actions-left">
