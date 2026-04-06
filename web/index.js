@@ -224,27 +224,29 @@ app.get('/', async (req, res) => {
 
 app.get('/establishments', async (req, res) => {
     // Pagination logic
-    const limit = 10;
+    const limit = 5;
     let page = parseInt(req.query.page) || 1;
     let offset = (page - 1) * limit;
 
     // Added offset and count parameters to the API call
-    let rstrreq = (await api.get('establishments', { params: { offset: offset, count: limit } }));
-    let establishments;
-    if (rstrreq.status != 200)
-        establishments = new Array();
-    else if (rstrreq.data.status != 200)
-        establishments = new Array();
-    else {
-        establishments = rstrreq.data.data;
-    }
+    let rstrreq = await api.get('establishments', { params: { offset: offset, count: limit } });
+    let establishments = (rstrreq.status === 200 && rstrreq.data.status === 200) ? rstrreq.data.data : [];
+
+    let totalCount = rstrreq.data.totalCount || 0;
+    let maxPages = rstrreq.data.maxPages || 1;
+    let start = rstrreq.data.start || 0;
+    let end = rstrreq.data.end || establishments.length;
 
     let renderData = {
         title: '6-7-ate-9 | Establishments',
         establishments: establishments,
         page: page,
-        nextPage: page + 1,
         prevPage: page > 1 ? page - 1 : null,
+        nextPage: page < maxPages ? page + 1 : null,
+        start,
+        end,
+        totalCount,
+        maxPages,
         css: [
             '/css/style.css',
             '/css/establishments.css' // Changed from home.css to establishments.css
@@ -492,6 +494,8 @@ app.get('/search', async (req, res) => {
     const minRating = req.query.minRating || '';
     const minPrice = req.query.minPrice || '';
     const maxPrice = req.query.maxPrice || '';
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
 
     try {
         let searchReq = await axios.get(`${API_URL}establishments`, {
@@ -506,6 +510,9 @@ app.get('/search', async (req, res) => {
         });
         
         let results = searchReq.status === 200 ? searchReq.data.data : [];
+        let totalCount = searchReq.status === 200 ? searchReq.data.totalCount : 0;
+        let start = (page - 1) * limit + 1;
+        let end = Math.min(page * limit, totalCount);
 
         res.render('search.hbs', {
             title: 'Search Results',
@@ -515,7 +522,12 @@ app.get('/search', async (req, res) => {
             user: req.session ? req.session.user : null,
             css: ['/css/style.css', '/css/search.css'],
             js: ['/js/script.js'],
-            searchBar: true
+            searchBar: true,
+            prevPage: page > 1 ? page - 1 : null,
+            nextPage: end < totalCount ? page + 1 : null,
+            start,
+            end,
+            totalCount
         });
     } catch (error) {
         return renderErrorPage(req, res, message="Something seemed to go wrong with your search...")

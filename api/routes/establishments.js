@@ -119,7 +119,7 @@ router.get('/', async (req, res) => {
     if ('maxPrice' in req.query && req.query.maxPrice !== '') {
         queryObj['priceRange.max'] = { $lte: Number(req.query.maxPrice) }
     }
-
+    
     let query = Restaurant.find(queryObj)
         .skip(OFFSET)       
         .limit(COUNT)
@@ -133,13 +133,25 @@ router.get('/', async (req, res) => {
         query.sort({avgRating: 1})
     else
         query.sort({createdAt: -1})
+
     let foundRstrs = await query.exec()
+
+    const totalCount = await Restaurant.countDocuments(queryObj);
+    const maxPages = Math.ceil(totalCount / COUNT);
+    const page = Math.floor(OFFSET / COUNT) + 1;
+    const start = OFFSET + 1;
+    const end = OFFSET + foundRstrs.length;
 
     res.send({
         status: httpStatus.OK,
         message: "OK",
-        data: foundRstrs
-    })
+        data: foundRstrs,
+        totalCount,
+        page,
+        maxPages,
+        start,
+        end
+    });
 });
 
 /**
@@ -283,6 +295,8 @@ router.get("/reviews/:id", async (req, res) => {
 
     // Find and return the reviews
     try {
+        const totalCount = await Reviews.countDocuments(qry);
+
         const reviewQry = Reviews.find(qry)
             .skip(OFFSET)
             .limit(COUNT)
@@ -296,10 +310,11 @@ router.get("/reviews/:id", async (req, res) => {
             })
             .lean();
 
-        let reviews = await reviewQry.exec();
+        let reviews = await reviewQry.exec() || [];
+        let userReview = null;
 
         const viewerId = req.query.viewerId;
-        if (viewerId) {
+        if (viewerId && mongoose.Types.ObjectId.isValid(viewerId)) {
             reviews = reviews.map(review => {
                 let marked = null;
                 if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
@@ -309,12 +324,22 @@ router.get("/reviews/:id", async (req, res) => {
                 }
                 return { ...review, marked: marked };
             });
+
+            userReview = await Reviews.findOne({ restaurantId: rstrId, userId: viewerId })
+                .populate('userId', ['username', 'avatar', 'role'])
+                .lean();
         }
+
+        console.log("sending reviews:", reviews);
 
         res.send({
             status: httpStatus.OK,
             message: `OK`,
-            data: reviews
+            data: {
+                userReview: userReview || null,
+                reviews,
+                totalCount
+            }
         }) ;
     } 
     catch (err) {
