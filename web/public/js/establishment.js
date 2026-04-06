@@ -178,8 +178,10 @@ const createReviewHTML = (review) => {
     const ownerResponse = review.ownerResponse ? `
         <div class="review-response">
             <p> 
-                <strong>${review.ownerResponse.ownerId.username} </strong> 
-                <span class="review-edited"> <em> ${review.ownerResponse.edited ? 'edited' : ''} </em> </span>
+                <a href="/profile/${review.ownerResponse.ownerId._id}" class="review-username">
+                    <strong>${review.ownerResponse.ownerId.username}</strong>
+                </a>
+                <span class="review-edited"><em>${review.ownerResponse.edited ? 'edited' : ''}</em></span>
                 <br />
                 ${truncateReviewText(review.ownerResponse.comment, 100, review._id + "-owner", "owner")}
             </p>
@@ -191,9 +193,12 @@ const createReviewHTML = (review) => {
         <div>
             <div class="review-header">
                 <span>
-                    <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                    <a href="/profile/${review.userId._id}"
+                       style="color:black; text-decoration:none; font-weight:bold;"
+                       onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                       onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.userId.username}</a> • ${renderStarsHTML(review.rating)}
                 </span>
-                <span class="review-edited"> <em> ${review.edited? 'edited' : ''} </em> </span>
+                <span class="review-edited"><em>${review.edited ? 'edited' : ''}</em></span>
             </div>
             <p>
                 ${truncateReviewText(review.comment, 100, review._id, "review")}
@@ -202,11 +207,11 @@ const createReviewHTML = (review) => {
         <div>
             <span onclick="markReview(this, 'helpful')">
                 <i class="fa-regular fa-thumbs-up"></i>
-                <span class="review-helpful-count"> ${review.helpfulCount} </span>
+                <span class="review-helpful-count">${review.helpfulCount}</span>
             </span>
             <span onclick="markReview(this, 'unhelpful')">
                 <i class="fa-regular fa-thumbs-down"></i>
-                <span class="review-unhelpful-count"> ${review.unhelpfulCount} </span>
+                <span class="review-unhelpful-count">${review.unhelpfulCount}</span>
             </span>
         </div>
         
@@ -220,7 +225,10 @@ const createUserReviewHTML = (review) => {
     <div class="review" id="${review.userId._id}" data-author="${review.userId._id}" data-reviewid="${review._id}">
         <div style="display: flex; justify-content: space-between">
             <span>
-                <strong>${review.userId.username}</strong> • ${renderStarsHTML(review.rating)}
+                <a href="/profile/${review.userId._id}" 
+                   style="color:black; text-decoration:none; font-weight:bold;"
+                   onmouseover="this.style.color='#d14d72'; this.style.textDecoration='underline';"
+                   onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.userId.username}</a> • ${renderStarsHTML(review.rating)}
             </span>
             <span>
                 <span id="review-delete" onclick="reviewDelete()">

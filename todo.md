@@ -14,7 +14,7 @@ home page
 - [x] OWNER SPECIFIC: fixing the mark helpful/unhelpful
 - [x] PREFERRED: transfer the big ahh scripts into an external JS file
 - [x] added pagination
-- [ ] OPTIONAL improve styling by adding cursor rules for the review stars selection thing and other potential styling imporvements
+- [x] OPTIONAL improve styling by adding cursor rules for the review stars selection thing and other potential styling imporvements
 - [ ] OPTIONAL: add a custom styling for reviews marked helpful/unhelpful by the user. Assume that for this, each review object will have an attribute called 'marked' that can either be null, helpful, or unhelpful NOTE: ako na bahala sa view button functionality - gian
 
 /search
