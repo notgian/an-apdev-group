@@ -8,9 +8,7 @@ const fs = require('fs')
 const router = express.Router();
 
 // Yeah im hardcoding this im kinda lazy so DO NOT change the volumes in the docker compose files plsplspls
-const MEDIA_PATH = (process.env.ENVIRONMENT == 'dev') ?
-    '/app/data/media' : 
-    './data/media'
+const MEDIA_PATH = '/app/data/media';
 
 // For file uploading
 const storage = multer.diskStorage({

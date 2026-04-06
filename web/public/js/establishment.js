@@ -1,12 +1,15 @@
 const reviewDelete = async () => {
-        const proceedDelete = confirm("Delete user review?")
-        const deleteReq = await fetch(`/deletereview/${establishmentId}`, {
-            method: 'DELETE',
-        });
+    const proceedDelete = confirm("Delete user review?");
+    if (!proceedDelete)
+        return;
 
-        const deleteRes = await deleteReq.json();
-        alert(deleteRes.message);
-        window.location.reload();
+    const deleteReq = await fetch(`/deletereview/${establishmentId}`, {
+        method: 'DELETE',
+    });
+
+    const deleteRes = await deleteReq.json();
+    alert(deleteRes.message);
+    window.location.reload();
 }
 
 const toggleReviewEdit = (id) => {
@@ -14,12 +17,15 @@ const toggleReviewEdit = (id) => {
     if (!userReview)
         return
 
-    const userReviewText = userReview.getElementsByClassName("review-comment-text")[0];
-    const userReviewEditArea = userReview.getElementsByClassName("review-editarea")[0];
+    const userReviewText = document.getElementsByClassName("review-comment-text")[0];
+    const userReviewEditArea = document.getElementsByClassName("review-editarea")[0];
+
+    console.log(userReviewEditArea, userReviewText)
 
     if (!userReviewText || !userReviewEditArea)
         return
-    
+
+
     // Toggle editing on
     if (userReviewText.style.display != "none") {
         userReviewText.style.display = "none";
@@ -134,14 +140,14 @@ const renderStarsHTML = (rating) => {
 }
 
 function truncateReviewText(str, len, reviewId, type = "review") {
-  if (typeof str !== 'string') return str;
+    if (typeof(str) != 'string') return str;
 
-  if (str.length > len) {
-    let truncated = str.substring(0, len);
-    let lastSpace = truncated.lastIndexOf(' ');
-    if (lastSpace > 0) truncated = truncated.substring(0, lastSpace);
+    if (str.length > len) {
+        let truncated = str.substring(0, len);
+        let lastSpace = truncated.lastIndexOf(' ');
+        if (lastSpace > 0) truncated = truncated.substring(0, lastSpace);
 
-    return `
+        return `
       <span class="${type}-comment-text" 
             data-full="${str}" 
             data-truncated="${truncated}...">
@@ -151,8 +157,8 @@ function truncateReviewText(str, len, reviewId, type = "review") {
         <em>View more</em>
       </span>
     `;
-  }
-  return str;
+    }
+    return str;
 }
 
 function toggleView(reviewId, type = "review") {
@@ -179,7 +185,7 @@ function openMediaViewer(url, captionText = '') {
     const img = document.getElementById('media-viewer-img');
     const caption = document.getElementById('caption');
     img.src = url;
-    caption.innerHTML = captionText;
+    caption.innerHTML = "";  // the caption text is broken, so I'll not display it 
     modal.style.display = "block";
 }
 
@@ -193,7 +199,7 @@ const renderMediaThumbnails = (media, reviewId) => {
     var mediaThumbsHTML = ''
     for (let i in media) {
         m = media[i]
-        
+
         mediaThumbsHTML += `
             <div class="review-media">
                     <img src="${m}" 
@@ -251,7 +257,7 @@ const createReviewHTML = (review) => {
                 <span class="review-unhelpful-count">${review.unhelpfulCount}</span>
             </span>
         </div>
-        
+
         ${ownerResponse}
     </div>
     `;
@@ -277,9 +283,7 @@ const createUserReviewHTML = (review) => {
             </span>
         </div>
         <div class="review-comment">
-            <p>
-                ${truncateReviewText(review.comment, 100, review._id, "review")}
-            </p>
+            <p class="review-comment-text">${review.comment}</p>
             <p> ${renderMediaThumbnails(review.media, review._id)} </p>
             <div class="review-editarea">
                 <span class="review-rating star-rating-selector"> 
@@ -340,19 +344,15 @@ const renderReviews = async (rstrId, page = 1) => {
     const markReq = await fetch(apiUrl, {
         method: 'GET',
     });
-    
+
     const revJson = await markReq.json();
     const revData = revJson.data;
 
-    if (revData?.reviews?.reviews) {
-        userReview = revData.reviews.userReview || null;
-        reviews = revData.reviews.reviews || [];
-        totalCount = revData.reviews.totalCount || reviews.length;
-    } else {
-        userReview = revData?.userReview || null;
-        reviews = revData?.reviews || [];
-        totalCount = revData?.totalCount || reviews.length;
-    }
+    console.log(revData)
+
+    userReview = revData?.userReview || null;
+    reviews = revData?.reviews || [];
+    totalCount = revData?.totalCount || reviews.length;
 
     const totalPages = Math.ceil(totalCount / count) || 1;
     if (page > totalPages) page = totalPages;
@@ -374,9 +374,9 @@ const renderReviews = async (rstrId, page = 1) => {
     // update reviews result count
     document.getElementById('reviews-result-count').innerText =
         reviews.length > 0
-            ? `Showing ${start}–${end} of ${totalCount} reviews`
-            : `No reviews found`;
-    
+        ? `Showing ${start}–${end} of ${totalCount} reviews`
+        : `No reviews found`;
+
     // update reviews page number result count and page number
     document.getElementById('reviews-page-number').innerText = `Page ${page}/${totalPages}`;
     document.getElementById('reviews-page').value = page;
@@ -419,9 +419,9 @@ window.addEventListener('DOMContentLoaded', (e) => {
 
     form.onsubmit = function (event) {
         if (!ratingInput.value) {
-        event.preventDefault();
-        alert('Please select a star rating before submitting your review.');
-        return false;
+            event.preventDefault();
+            alert('Please select a star rating before submitting your review.');
+            return false;
         }
 
         event.preventDefault();
@@ -429,14 +429,14 @@ window.addEventListener('DOMContentLoaded', (e) => {
     };
 
     const stars = document.querySelectorAll('.rating-stars');
-        stars.forEach((star, index) => {
-            star.addEventListener('mouseover', () => {
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseover', () => {
             stars.forEach((s, i) => s.classList.toggle('hovered', i <= index));
-            });
-            star.addEventListener('mouseout', () => {
+        });
+        star.addEventListener('mouseout', () => {
             stars.forEach(s => s.classList.remove('hovered'));
-            });
-            star.addEventListener('click', () => {
+        });
+        star.addEventListener('click', () => {
             stars.forEach((s, i) => s.classList.toggle('selected', i <= index));
         });
     });

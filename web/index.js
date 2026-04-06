@@ -279,7 +279,7 @@ app.get('/establishment/:id', async (req, res) => {
         let userReview = false;
         if (!isOwner && req.session?.user) {
             const revReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
-            userReview = (revReq.data?.data?.length > 0)
+            userReview = (revReq.data?.data?.reviews)
         }
 
         const template = isOwner ? 'establishment-owner.hbs' : 'establishment.hbs';
@@ -356,29 +356,26 @@ app.get('/reviews/:rstrId', async (req, res) => {
         const revReq = await api.get(reviewQuery, { validateStatus: () => true });
 
         const establishmentData = estReq.data.data[0];
-        let reviewsData = revReq.data.data.reviews;
+        let reviewsData = revReq.data.data;
         
         // get user review. If offset is 0 (page 1) really try
         // to find the user review.
-        let userReview;
-        if (req.session.user) {
-            userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
-            reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
-        }
+        // if (req.session.user) {
+        //     userReview = reviewsData.filter(obj => {return obj.userId._id == req.session.user._id})[0] || undefined;
+        //     reviewsData = reviewsData.filter(obj => {return obj.userId._id != req.session.user._id});
+        // }
         // really try to find the user review on the first page.
-        if (req.session.user && !userReview && offset == 0) {
-            const userRevReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
-            userReview = userRevReq.data.data[0] || undefined;
-        }
+        // if (req.session.user && !userReview && offset == 0) {
+        //     const userRevReq = await api.get(`establishments/reviews/${estId}?user=${req.session.user._id}`, { validateStatus: () => true });
+        //     userReview = userRevReq.data.data[0] || undefined;
+        //     // reviewsData['userReview'] = userReview
+        // }
         
         // return the reviews data
         res.status(200).json({
             status: 200,
             message: 'returned reviews.',
-            data: {
-                userReview: offset == 0 ? userReview : undefined, // don't return the user review on subsequent pages.
-                reviews: reviewsData
-            }
+            data: reviewsData
         })
 
     } catch (error) {
@@ -674,38 +671,8 @@ app.get('/profile', async (req, res) => {
     }
 });
 
-app.get('/profile/:id', async (req, res) => {
-    const profileId = req.params.id;
-    try {
-        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
-        if (userReq.status !== 200)
-            return renderErrorPage(req, res)
-
-        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
-        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
-
-        let suggestedFoodies = [];
-        if (req.session && req.session.user) {
-            const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
-            if (suggestedReq.status === 200) suggestedFoodies = suggestedReq.data.data;
-        }
-
-        res.render('profile-other.hbs', {
-            title: 'User Profile',
-            profileData: userReq.data.data,
-            reviews: reviews,
-            suggestedFoodies: suggestedFoodies,
-            user: req.session ? req.session.user : null,
-            css: ['/css/style.css', '/css/profile.css'],
-            js: ['/js/profile.js'],
-            searchBar: true
-        });
-    } catch (error) {
-        return renderErrorPage(req, res)
-    }
-});
-
 app.get('/profile/edit', async (req, res) => {
+    console.log('EDIT!')
     if (!req.session || !req.session.user || !req.session.accessToken) 
         return res.redirect('/login'); 
     res.render('profile-edit.hbs', {
@@ -749,8 +716,39 @@ app.post('/profile/edit', upload.single('avatar'), async (req, res) => {
         js: ['/js/script.js'],
         message: editRes.data.message
     });
+});
 
-})
+app.get('/profile/:id', async (req, res) => {
+    const profileId = req.params.id;
+    try {
+        const userReq = await axios.get(`${API_URL}users/${profileId}`, { validateStatus: () => true });
+        if (userReq.status !== 200)
+            return renderErrorPage(req, res)
+
+        const reviewsReq = await axios.get(`${API_URL}users/reviews/${profileId}`, { validateStatus: () => true });
+        const reviews = reviewsReq.status == 200 ? reviewsReq.data.data : [];
+
+        let suggestedFoodies = [];
+        if (req.session && req.session.user) {
+            const suggestedReq = await axios.get(`${API_URL}users/suggested/${req.session.user._id}`, { validateStatus: () => true });
+            if (suggestedReq.status === 200) suggestedFoodies = suggestedReq.data.data;
+        }
+
+        res.render('profile-other.hbs', {
+            title: 'User Profile',
+            profileData: userReq.data.data,
+            reviews: reviews,
+            suggestedFoodies: suggestedFoodies,
+            user: req.session ? req.session.user : null,
+            css: ['/css/style.css', '/css/profile.css'],
+            js: ['/js/profile.js'],
+            searchBar: true
+        });
+    } catch (error) {
+        return renderErrorPage(req, res)
+    }
+});
+
 
 app.post('/follow/:tofollowid', async (req, res) => {
     const toFollowId = req.params.tofollowid;
