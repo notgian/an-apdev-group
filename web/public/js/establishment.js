@@ -222,10 +222,15 @@ const createUserReviewHTML = (review) => {
 const renderReviews = async (rstrId, page = 1) => { 
     // no validation for count and offset here so prayge
     const count = 10
-    const offset = (page-1) * 10
+    const offset = (page - 1) * count;
 
     var apiUrl = `/reviews/${rstrId}?offset=${offset}&count=${count}`;
-    
+    const currentUserId = window.currentUser?._id || localStorage.getItem("userId");
+
+    if (currentUserId) {
+        apiUrl += `&viewerId=${currentUserId}`;
+    }
+
     // Disable buttons temporarily so user doesn't spam them
     const reviewButtons = document.getElementById('reviews-page-buttons').getElementsByTagName('button');
     const backButton  = reviewButtons[0];
@@ -244,11 +249,22 @@ const renderReviews = async (rstrId, page = 1) => {
     const markReq = await fetch(apiUrl, {
         method: 'GET',
     });
+    
     const revJson = await markReq.json();
     const revData = revJson.data;
 
-    const userReview = revData?.userReview;
-    const reviews = revData?.reviews;
+    if (revData?.reviews?.reviews) {
+        userReview = revData.reviews.userReview || null;
+        reviews = revData.reviews.reviews || [];
+        totalCount = revData.reviews.totalCount || reviews.length;
+    } else {
+        userReview = revData?.userReview || null;
+        reviews = revData?.reviews || [];
+        totalCount = revData?.totalCount || reviews.length;
+    }
+
+    const totalPages = Math.ceil(totalCount / count) || 1;
+    if (page > totalPages) page = totalPages;
 
     // Clear all previous reviews
     const reviewsList = document.getElementById('reviews-list');
@@ -261,20 +277,22 @@ const renderReviews = async (rstrId, page = 1) => {
         reviewsList.innerHTML += createReviewHTML(review);
     }
 
-    let realCount = Math.min(count, reviews?.length)
+    const start = reviews.length > 0 ? offset + 1 : 0;
+    const end = offset + reviews.length;
 
     // update reviews result count
-    document.getElementById('reviews-result-count').innerText = `Showing ${realCount} results`;
+    document.getElementById('reviews-result-count').innerText =
+        reviews.length > 0
+            ? `Showing ${start}–${end} of ${totalCount} reviews`
+            : `No reviews found`;
     
-    // update reviews page number result count
-    document.getElementById('reviews-page-number').innerText = `Page ${page}`;
-    
-    // update page number
+    // update reviews page number result count and page number
+    document.getElementById('reviews-page-number').innerText = `Page ${page}/${totalPages}`;
     document.getElementById('reviews-page').value = page;
 
     // update review-buttons
     backButton.disabled = page <= 1 ? true : false
-    nextButton.disabled = reviews?.length < count ? true : false
+    nextButton.disabled = page >= totalPages;
 }
 
 const nextPageReviews = () => {

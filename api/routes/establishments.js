@@ -295,6 +295,8 @@ router.get("/reviews/:id", async (req, res) => {
 
     // Find and return the reviews
     try {
+        const totalCount = await Reviews.countDocuments(qry);
+
         const reviewQry = Reviews.find(qry)
             .skip(OFFSET)
             .limit(COUNT)
@@ -308,10 +310,11 @@ router.get("/reviews/:id", async (req, res) => {
             })
             .lean();
 
-        let reviews = await reviewQry.exec();
+        let reviews = await reviewQry.exec() || [];
+        let userReview = null;
 
         const viewerId = req.query.viewerId;
-        if (viewerId) {
+        if (viewerId && mongoose.Types.ObjectId.isValid(viewerId)) {
             reviews = reviews.map(review => {
                 let marked = null;
                 if (review.helpfulVotes && review.helpfulVotes.some(id => id.toString() === viewerId)) {
@@ -321,12 +324,22 @@ router.get("/reviews/:id", async (req, res) => {
                 }
                 return { ...review, marked: marked };
             });
+
+            userReview = await Reviews.findOne({ restaurantId: rstrId, userId: viewerId })
+                .populate('userId', ['username', 'avatar', 'role'])
+                .lean();
         }
+
+        console.log("sending reviews:", reviews);
 
         res.send({
             status: httpStatus.OK,
             message: `OK`,
-            data: reviews
+            data: {
+                userReview: userReview || null,
+                reviews,
+                totalCount
+            }
         }) ;
     } 
     catch (err) {

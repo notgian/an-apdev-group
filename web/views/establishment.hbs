@@ -76,39 +76,7 @@
 <script defer>
     const establishmentId = '{{establishment._id}}'
 
-        document.addEventListener('DOMContentLoaded', () => {
-      const stars = document.querySelectorAll('.rating-star');
-      let selected = 0;
-
-      stars.forEach((star, index) => {
-        star.addEventListener('mouseover', () => {
-          stars.forEach((s, i) => {
-            s.textContent = i <= index ? '★' : '☆';
-            s.style.color = '#f1da2f'; // yellow preview
-          });
-        });
-
-        star.addEventListener('mouseout', () => {
-          stars.forEach((s, i) => {
-            if (i < selected) {
-              s.textContent = '★';
-              s.style.color = '#f1da2f'; // solid yellow
-            } else {
-              s.textContent = '☆';
-              s.style.color = '#ccc'; // gray
-            }
-          });
-        });
-
-        star.addEventListener('click', () => {
-          selected = index + 1;
-          stars.forEach((s, i) => {
-            s.textContent = i < selected ? '★' : '☆';
-            s.style.color = i < selected ? '#f1da2f' : '#ccc';
-          });
-        });
-      });
-    });
+    window.currentUserId = '{{user._id}}';
 </script>
 
 <style>
