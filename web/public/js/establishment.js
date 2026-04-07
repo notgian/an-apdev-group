@@ -19,6 +19,7 @@ const toggleReviewEdit = (id) => {
 
     const userReviewText = document.getElementsByClassName("review-comment-text")[0];
     const userReviewEditArea = document.getElementsByClassName("review-editarea")[0];
+    const toggleView = userReview.getElementsByClassName('toggle-view')[0] || null;
 
     console.log(userReviewEditArea, userReviewText)
 
@@ -33,11 +34,13 @@ const toggleReviewEdit = (id) => {
         const reviewText = userReviewText.getAttribute('data-full') || 
             userReviewText.innerText;
         userReviewEditArea.getElementsByTagName('textarea')[0].value = reviewText.trim();
+        if (toggleView) toggleView.style.display = "none";
     } 
     // Toggle editing off
     else {
         userReviewText.style.display = "flex";
         userReviewEditArea.style.display = "none";
+        if (toggleView) toggleView.style.display = "inline";
     }
 
     let starObj = userReview.getElementsByClassName("star-rating-selector")[0].getElementsByClassName("stars")[0]
