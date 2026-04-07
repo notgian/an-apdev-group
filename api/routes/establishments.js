@@ -98,7 +98,10 @@ router.get('/', async (req, res) => {
     let queryObj = {}
     if ('search' in req.query && req.query.search !== '') {
         SEARCH = req.query.search
-        queryObj['name'] = {$regex: `.*${SEARCH}.*`, $options: 'i'}
+        queryObj['$or'] = [
+            { name: {$regex: `.*${SEARCH}.*`, $options: 'i'} },
+            { description: {$regex: `.*${SEARCH}.*`, $options: 'i'} },
+        ]
     }
 
     // Filter by City/Location
