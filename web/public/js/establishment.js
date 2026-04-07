@@ -186,7 +186,7 @@ function openMediaViewer(url, captionText = '') {
     const caption = document.getElementById('caption');
     img.src = url;
     caption.innerHTML = "";  // the caption text is broken, so I'll not display it 
-    modal.style.display = "block";
+    modal.style.display = "flex";
 }
 
 function closeMediaViewer() {
