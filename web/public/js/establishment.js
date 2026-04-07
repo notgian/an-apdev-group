@@ -30,7 +30,9 @@ const toggleReviewEdit = (id) => {
     if (userReviewText.style.display != "none") {
         userReviewText.style.display = "none";
         userReviewEditArea.style.display = "block";
-        userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.getAttribute('data-full')
+        const reviewText = userReviewText.getAttribute('data-full') || 
+            userReviewText.innerText;
+        userReviewEditArea.getElementsByTagName('textarea')[0].value = reviewText.trim();
     } 
     // Toggle editing off
     else {
@@ -159,7 +161,10 @@ function truncateReviewText(str, len, reviewId, type = "review") {
       </span>
     `;
     }
-    return str;
+    return `
+      <span class="${type}-comment-text">
+        ${str}
+      </span>`;
 }
 
 function toggleView(reviewId, type = "review") {

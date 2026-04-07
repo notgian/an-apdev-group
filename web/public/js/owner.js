@@ -42,7 +42,7 @@ const editReply = (el) => {
         const responseText = responseBody.getElementsByClassName('owner-comment-text')[0].getAttribute('data-full') || 
             responseBody.getElementsByClassName('owner-comment-text')[0].innerText;
         console.log(responseText)
-        responseEditor.getElementsByTagName('textarea')[0].value = responseText;
+        responseEditor.getElementsByTagName('textarea')[0].value = responseText.trim();
         responseBody.style.display = "none";
     }
 }
@@ -140,7 +140,7 @@ function truncateReviewText(str, len, reviewId, type = "review") {
     }
     return `
       <span class="${type}-comment-text">
-        ${str}...
+        ${str}
       </span>`;
 }
 
