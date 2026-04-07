@@ -225,7 +225,7 @@ const createReviewHTML = (review) => {
                 onmouseout="this.style.color='black'; this.style.textDecoration='none';">${review.ownerResponse.ownerId.username}</a>
                 <span class="review-edited"><em>${review.ownerResponse.edited ? 'edited' : ''}</em></span>
                 <br />
-                ${truncateReviewText(review.ownerResponse.comment, 100, review._id + "-owner", "owner")}
+                ${truncateReviewText(review.ownerResponse.comment, 100, review._id, "owner")}
             </p>
             <p> ${renderMediaThumbnails(review.ownerResponse.media, review._id + "-owner")} </p>
         </div>

@@ -14,7 +14,7 @@ const showReplyEditor = (el) => {
     responseEditor.style.display = "block";
 
     if (responseBody) {
-        const responseText = responseBody.getElementsByClassName('response-body-text')[0].innerText;
+        const responseText = responseBody.getElementsByClassName('owner-comment-text')[0].innerText;
         responseEditor.getElementsByTagName('textarea')[0].value = responseText;
         responseBody.style.display = "none";
     }
@@ -39,7 +39,9 @@ const editReply = (el) => {
     responseEditor.style.display = "block";
 
     if (responseBody) {
-        const responseText = responseBody.getElementsByClassName('response-body-text')[0].innerText;
+        const responseText = responseBody.getElementsByClassName('owner-comment-text')[0].getAttribute('data-full') || 
+            responseBody.getElementsByClassName('owner-comment-text')[0].innerText;
+        console.log(responseText)
         responseEditor.getElementsByTagName('textarea')[0].value = responseText;
         responseBody.style.display = "none";
     }
@@ -136,7 +138,10 @@ function truncateReviewText(str, len, reviewId, type = "review") {
       </span>
     `;
     }
-    return str;
+    return `
+      <span class="${type}-comment-text">
+        ${str}...
+      </span>`;
 }
 
 function toggleView(reviewId, type = "review") {
@@ -260,9 +265,8 @@ const createReviewHTML = (review) => {
             </span>
 
             <br />
-            <span class="response-body-text">
-                ${review.ownerResponse.comment}
-            </span>
+
+            ${truncateReviewText(review.ownerResponse.comment, 100, review._id, "owner")}
         </p>
     </div>
 
