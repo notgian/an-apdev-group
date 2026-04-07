@@ -30,11 +30,11 @@ const toggleReviewEdit = (id) => {
     if (userReviewText.style.display != "none") {
         userReviewText.style.display = "none";
         userReviewEditArea.style.display = "block";
-        userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.innerText
+        userReviewEditArea.getElementsByTagName('textarea')[0].value = userReviewText.getAttribute('data-full')
     } 
     // Toggle editing off
     else {
-        userReviewText.style.display = "block";
+        userReviewText.style.display = "flex";
         userReviewEditArea.style.display = "none";
     }
 
@@ -103,6 +103,7 @@ const saveReview = async (id) => {
         }
         userReview.getElementsByClassName("star-rating")[0].innerText = starsStr;
         userReview.getElementsByClassName("review-comment-text")[0].innerText = newComment;
+        window.location.reload()
     }
 }
 
@@ -168,6 +169,8 @@ function toggleView(reviewId, type = "review") {
     const toggleEl = document.querySelector(
         `[data-reviewid="${reviewId}"] .toggle-view`
     );
+
+    console.log(reviewEl, toggleEl)
 
     if (!reviewEl || !toggleEl) return;
 
@@ -283,7 +286,7 @@ const createUserReviewHTML = (review) => {
             </span>
         </div>
         <div class="review-comment">
-            <p class="review-comment-text">${review.comment}</p>
+            ${truncateReviewText(review.comment, 100, review._id, "review")}
             <p> ${renderMediaThumbnails(review.media, review._id)} </p>
             <div class="review-editarea">
                 <span class="review-rating star-rating-selector"> 
