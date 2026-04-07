@@ -125,14 +125,14 @@ router.get('/', async (req, res) => {
         .limit(COUNT)
         .lean();
    
-    if (ORDERBY == 'createDate') 
-        query.sort({createdAt: -1})
-    else if (ORDERBY == 'name') 
-        query.sort({name: 1})
-    else if (ORDERBY == 'rating') 
-        query.sort({avgRating: 1})
-    else
-        query.sort({createdAt: -1})
+    // if (ORDERBY == 'createDate') 
+    //     query.sort({createdAt: -1})
+    // else if (ORDERBY == 'name') 
+    //     query.sort({name: 1})
+    // else if (ORDERBY == 'rating') 
+    //     query.sort({avgRating: 1})
+    // else
+    //     query.sort({createdAt: -1})
 
     let foundRstrs = await query.exec()
 
