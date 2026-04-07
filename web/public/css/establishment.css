@@ -285,3 +285,7 @@ body {
   cursor: pointer;
 }
 .close:hover { color: #bbb; }
+
+.fa-thumbs-up, .fa-thumbs-down, .fa-pen, .fa-trash, .rating-stars {
+    cursor: pointer;
+}
